@@ -1,15 +1,7 @@
 import Link from "next/link";
-import { getAllLocations } from "@/lib/books/queries";
 import { ManualEntryForm } from "@/components/books/manual-entry-form";
 
-export default async function AddPage() {
-  let locations: string[] = [];
-  try {
-    locations = await getAllLocations();
-  } catch {
-    locations = [];
-  }
-
+export default function AddPage() {
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -18,7 +10,7 @@ export default async function AddPage() {
           For books without a scannable ISBN or missing from public APIs
         </p>
       </div>
-      <ManualEntryForm locationSuggestions={locations} />
+      <ManualEntryForm />
       <p className="text-center text-sm text-stone-500">
         Have an ISBN?{" "}
         <Link

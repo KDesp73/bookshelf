@@ -1,5 +1,6 @@
 import { Suspense } from "react";
-import { listBooks, getAllTags, getAllLocations } from "@/lib/books/queries";
+import { listBooks, getAllTags } from "@/lib/books/queries";
+import { isAdmin } from "@/lib/auth/session";
 import { parseLibraryFilters } from "@/lib/books/filters";
 import { LibraryFilters } from "@/components/library/library-filters";
 import { BookGrid } from "@/components/library/book-grid";
@@ -14,14 +15,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   let books: Awaited<ReturnType<typeof listBooks>> = [];
   let tags: string[] = [];
-  let locations: string[] = [];
+  let admin = false;
   let dbError: string | null = null;
 
   try {
-    [books, tags, locations] = await Promise.all([
+    [books, tags, admin] = await Promise.all([
       listBooks(filters),
       getAllTags(),
-      getAllLocations(),
+      isAdmin(),
     ]);
   } catch {
     dbError =
@@ -49,7 +50,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <Suspense fallback={<div className="h-10 animate-pulse rounded-md bg-stone-200 dark:bg-stone-800" />}>
             <LibraryFilters tags={tags} />
           </Suspense>
-          <BookGrid books={books} locationSuggestions={locations} />
+          <BookGrid books={books} isAdmin={admin} />
         </>
       )}
     </div>

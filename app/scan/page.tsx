@@ -1,14 +1,6 @@
-import { getAllLocations } from "@/lib/books/queries";
 import { ScanFlow } from "@/components/scan/scan-flow";
 
-export default async function ScanPage() {
-  let locations: string[] = [];
-  try {
-    locations = await getAllLocations();
-  } catch {
-    locations = [];
-  }
-
+export default function ScanPage() {
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -17,7 +9,7 @@ export default async function ScanPage() {
           Point your camera at the barcode on the back cover
         </p>
       </div>
-      <ScanFlow locationSuggestions={locations} />
+      <ScanFlow />
     </div>
   );
 }

@@ -18,14 +18,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 interface ManualEntryFormProps {
-  locationSuggestions?: string[];
   initialIsbn?: string;
 }
 
-export function ManualEntryForm({
-  locationSuggestions = [],
-  initialIsbn = "",
-}: ManualEntryFormProps) {
+export function ManualEntryForm({ initialIsbn = "" }: ManualEntryFormProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +34,6 @@ export function ManualEntryForm({
   const [publisher, setPublisher] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [status, setStatus] = useState<(typeof READING_STATUSES)[number]>("Unread");
-  const [physicalLocation, setPhysicalLocation] = useState("");
   const [tagsInput, setTagsInput] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -69,7 +64,6 @@ export function ManualEntryForm({
         publisher: publisher.trim() || undefined,
         coverUrl: coverUrl.trim() || undefined,
         status,
-        physicalLocation: physicalLocation.trim() || undefined,
         tags: tagsInput
           .split(",")
           .map((t) => t.trim())
@@ -171,19 +165,6 @@ export function ManualEntryForm({
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label>Physical location</Label>
-            <Input
-              list="manual-location-suggestions"
-              value={physicalLocation}
-              onChange={(e) => setPhysicalLocation(e.target.value)}
-            />
-            <datalist id="manual-location-suggestions">
-              {locationSuggestions.map((loc) => (
-                <option key={loc} value={loc} />
-              ))}
-            </datalist>
           </div>
           <div className="grid gap-2">
             <Label>Tags</Label>

@@ -5,11 +5,12 @@ import type { BookDocument } from "@/types/book";
 import { BookCover } from "@/components/books/book-cover";
 import { Badge } from "@/components/ui/badge";
 import { BookDetailsDialog } from "@/components/library/book-details-dialog";
+import { PreloadBookCovers } from "@/components/library/preload-book-covers";
 import { cn } from "@/lib/utils";
 
 interface BookGridProps {
   books: BookDocument[];
-  locationSuggestions: string[];
+  isAdmin: boolean;
 }
 
 const statusColors: Record<string, string> = {
@@ -18,7 +19,7 @@ const statusColors: Record<string, string> = {
   Read: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
 };
 
-export function BookGrid({ books, locationSuggestions }: BookGridProps) {
+export function BookGrid({ books, isAdmin }: BookGridProps) {
   const [selected, setSelected] = useState<BookDocument | null>(null);
 
   if (books.length === 0) {
@@ -36,8 +37,9 @@ export function BookGrid({ books, locationSuggestions }: BookGridProps) {
 
   return (
     <>
+      <PreloadBookCovers books={books} />
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-        {books.map((book) => (
+        {books.map((book, index) => (
           <button
             key={book._id}
             type="button"
@@ -47,6 +49,7 @@ export function BookGrid({ books, locationSuggestions }: BookGridProps) {
             <BookCover
               title={book.title}
               coverUrl={book.coverUrl}
+              priority={index < 12}
               className="w-full transition-transform duration-200 group-hover:-translate-y-1 group-hover:shadow-lg"
             />
             <div className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-md bg-gradient-to-t from-black/80 via-black/50 to-transparent p-2 pt-8 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 sm:opacity-0">
@@ -73,7 +76,7 @@ export function BookGrid({ books, locationSuggestions }: BookGridProps) {
         book={selected}
         open={!!selected}
         onOpenChange={(open) => !open && setSelected(null)}
-        locationSuggestions={locationSuggestions}
+        isAdmin={isAdmin}
         onUpdated={(updated) => setSelected(updated)}
       />
     </>

@@ -13,11 +13,7 @@ import Link from "next/link";
 
 type ScanStep = "scan" | "manual-isbn" | "preview" | "existing";
 
-interface ScanFlowProps {
-  locationSuggestions: string[];
-}
-
-export function ScanFlow({ locationSuggestions }: ScanFlowProps) {
+export function ScanFlow() {
   const [step, setStep] = useState<ScanStep>("scan");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -53,10 +49,7 @@ export function ScanFlow({ locationSuggestions }: ScanFlowProps) {
         <h2 className="text-center font-serif text-xl font-semibold">
           Confirm & save
         </h2>
-        <BookPreviewForm
-          initial={preview}
-          locationSuggestions={locationSuggestions}
-        />
+        <BookPreviewForm initial={preview} />
         <div className="text-center">
           <Button variant="ghost" onClick={() => setStep("scan")}>
             Scan another

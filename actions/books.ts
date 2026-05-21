@@ -11,8 +11,8 @@ import {
   findBookById,
   listBooks,
   getAllTags,
-  getAllLocations,
 } from "@/lib/books/queries";
+import { requireAdmin } from "@/lib/auth/require-admin";
 import type { BookDocument, BookInput, LibraryFilters } from "@/types/book";
 import type { ReadingStatus } from "@/lib/constants";
 
@@ -28,6 +28,9 @@ export async function lookupIsbnAction(
     | { type: "preview"; preview: BookInput }
   >
 > {
+  const authError = await requireAdmin();
+  if (authError) return { success: false, error: authError };
+
   const isbn13 = normalizeIsbn(rawIsbn);
   if (!isbn13) {
     return { success: false, error: "Invalid ISBN. Enter a valid 10 or 13 digit code." };
@@ -43,7 +46,8 @@ export async function lookupIsbnAction(
     if (!preview?.title) {
       return {
         success: false,
-        error: "No metadata found for this ISBN. Try manual entry.",
+        error:
+          "No metadata found for this ISBN. Add it manually from the Add page.",
       };
     }
 
@@ -69,6 +73,9 @@ export async function lookupIsbnAction(
 export async function saveBookAction(
   input: BookInput,
 ): Promise<ActionResult<BookDocument>> {
+  const authError = await requireAdmin();
+  if (authError) return { success: false, error: authError };
+
   const isbn13 = normalizeIsbn(input.isbn13) ?? input.isbn13;
 
   if (!input.title?.trim()) {
@@ -99,7 +106,6 @@ export async function saveBookAction(
       pageCount: input.pageCount,
       coverUrl: input.coverUrl?.trim(),
       status: input.status ?? "Unread",
-      physicalLocation: input.physicalLocation?.trim(),
       tags: input.tags?.map((t) => t.trim()).filter(Boolean) ?? [],
       notes: input.notes?.trim(),
     });
@@ -122,7 +128,6 @@ export async function saveBookAction(
         pageCount: book.pageCount ?? undefined,
         coverUrl: book.coverUrl ?? undefined,
         status: book.status as ReadingStatus,
-        physicalLocation: book.physicalLocation ?? undefined,
         tags: book.tags ?? [],
         notes: book.notes ?? undefined,
         dateAdded: book.dateAdded.toISOString(),
@@ -137,6 +142,9 @@ export async function updateBookAction(
   id: string,
   updates: Partial<BookInput> & { status?: ReadingStatus },
 ): Promise<ActionResult<BookDocument>> {
+  const authError = await requireAdmin();
+  if (authError) return { success: false, error: authError };
+
   if (updates.status && !READING_STATUSES.includes(updates.status)) {
     return { success: false, error: "Invalid reading status." };
   }
@@ -166,9 +174,6 @@ export async function updateBookAction(
           coverUrl: updates.coverUrl?.trim(),
         }),
         ...(updates.status !== undefined && { status: updates.status }),
-        ...(updates.physicalLocation !== undefined && {
-          physicalLocation: updates.physicalLocation?.trim(),
-        }),
         ...(updates.tags !== undefined && {
           tags: updates.tags.map((t) => t.trim()).filter(Boolean),
         }),
@@ -195,6 +200,9 @@ export async function updateBookAction(
 }
 
 export async function deleteBookAction(id: string): Promise<ActionResult<null>> {
+  const authError = await requireAdmin();
+  if (authError) return { success: false, error: authError };
+
   try {
     await connectDB();
     const result = await Book.deleteOne({ _id: id, userId: DEFAULT_USER_ID });
@@ -220,14 +228,11 @@ export async function getLibraryBooksAction(
 }
 
 export async function getFilterOptionsAction(): Promise<
-  ActionResult<{ tags: string[]; locations: string[] }>
+  ActionResult<{ tags: string[] }>
 > {
   try {
-    const [tags, locations] = await Promise.all([
-      getAllTags(),
-      getAllLocations(),
-    ]);
-    return { success: true, data: { tags, locations } };
+    const tags = await getAllTags();
+    return { success: true, data: { tags } };
   } catch {
     return { success: false, error: "Failed to load filter options." };
   }

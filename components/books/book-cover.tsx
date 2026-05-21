@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -6,7 +5,7 @@ interface BookCoverProps {
   title: string;
   coverUrl?: string;
   className?: string;
-  sizes?: string;
+  /** Load immediately (above-the-fold grid items). */
   priority?: boolean;
 }
 
@@ -14,7 +13,6 @@ export function BookCover({
   title,
   coverUrl,
   className,
-  sizes = "(max-width: 768px) 33vw, 150px",
   priority = false,
 }: BookCoverProps) {
   if (coverUrl) {
@@ -25,13 +23,15 @@ export function BookCover({
           className,
         )}
       >
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={coverUrl}
           alt={`Cover of ${title}`}
-          fill
-          className="object-cover"
-          sizes={sizes}
-          priority={priority}
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="eager"
+          decoding="async"
+          fetchPriority={priority ? "high" : "auto"}
+          referrerPolicy="no-referrer"
         />
       </div>
     );

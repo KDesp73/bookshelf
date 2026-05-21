@@ -17,7 +17,6 @@ function toBookDocument(book: IBook & { _id: { toString(): string } }): BookDocu
     pageCount: book.pageCount ?? undefined,
     coverUrl: book.coverUrl ?? undefined,
     status: book.status as ReadingStatus,
-    physicalLocation: book.physicalLocation ?? undefined,
     tags: book.tags ?? [],
     notes: book.notes ?? undefined,
     dateAdded: book.dateAdded.toISOString(),
@@ -87,15 +86,4 @@ export async function getAllTags(userId = DEFAULT_USER_ID): Promise<string[]> {
   await connectDB();
   const tags = await Book.distinct("tags", { userId });
   return tags.filter(Boolean).sort((a, b) => a.localeCompare(b));
-}
-
-export async function getAllLocations(
-  userId = DEFAULT_USER_ID,
-): Promise<string[]> {
-  await connectDB();
-  const locations = await Book.distinct("physicalLocation", {
-    userId,
-    physicalLocation: { $exists: true, $ne: "" },
-  });
-  return locations.filter(Boolean).sort((a, b) => a.localeCompare(b));
 }

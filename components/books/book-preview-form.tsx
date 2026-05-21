@@ -20,21 +20,15 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface BookPreviewFormProps {
   initial: BookInput;
-  locationSuggestions?: string[];
 }
 
-export function BookPreviewForm({
-  initial,
-  locationSuggestions = [],
-}: BookPreviewFormProps) {
+export function BookPreviewForm({ initial }: BookPreviewFormProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [coverUrl, setCoverUrl] = useState(initial.coverUrl ?? "");
   const [tagsInput, setTagsInput] = useState(initial.tags?.join(", ") ?? "");
   const [status, setStatus] = useState(initial.status ?? "Unread");
-  const [physicalLocation, setPhysicalLocation] = useState(
-    initial.physicalLocation ?? "",
-  );
   const [notes, setNotes] = useState(initial.notes ?? "");
 
   function handleSave() {
@@ -42,8 +36,8 @@ export function BookPreviewForm({
     startTransition(async () => {
       const result = await saveBookAction({
         ...initial,
+        coverUrl: coverUrl.trim() || undefined,
         status,
-        physicalLocation: physicalLocation || undefined,
         tags: tagsInput
           .split(",")
           .map((t) => t.trim())
@@ -68,7 +62,7 @@ export function BookPreviewForm({
       <div className="flex gap-4">
         <BookCover
           title={initial.title}
-          coverUrl={initial.coverUrl}
+          coverUrl={coverUrl || initial.coverUrl}
           className="w-28 shrink-0"
         />
         <div className="min-w-0 flex-1">
@@ -97,6 +91,16 @@ export function BookPreviewForm({
 
       <div className="grid gap-4">
         <div className="grid gap-2">
+          <Label htmlFor="cover">Cover image URL</Label>
+          <Input
+            id="cover"
+            value={coverUrl}
+            onChange={(e) => setCoverUrl(e.target.value)}
+            placeholder="https://…"
+          />
+        </div>
+
+        <div className="grid gap-2">
           <Label htmlFor="status">Reading status</Label>
           <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
             <SelectTrigger id="status">
@@ -110,22 +114,6 @@ export function BookPreviewForm({
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        <div className="grid gap-2">
-          <Label htmlFor="location">Physical location</Label>
-          <Input
-            id="location"
-            list="location-suggestions"
-            value={physicalLocation}
-            onChange={(e) => setPhysicalLocation(e.target.value)}
-            placeholder="Living Room Shelf A"
-          />
-          <datalist id="location-suggestions">
-            {locationSuggestions.map((loc) => (
-              <option key={loc} value={loc} />
-            ))}
-          </datalist>
         </div>
 
         <div className="grid gap-2">

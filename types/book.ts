@@ -18,7 +18,6 @@ export interface BookPreview extends BookMetadata {
 
 export interface BookInput extends BookMetadata {
   status?: ReadingStatus;
-  physicalLocation?: string;
   tags?: string[];
   notes?: string;
 }

@@ -28,7 +28,6 @@ const bookSchema = new Schema(
       enum: READING_STATUSES,
       default: "Unread",
     },
-    physicalLocation: { type: String, trim: true },
     tags: { type: [String], default: [] },
     notes: { type: String },
     dateAdded: { type: Date, default: Date.now },

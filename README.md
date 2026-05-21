@@ -28,6 +28,14 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+### Troubleshooting dev server
+
+If you see a Turbopack panic (`Next.js package not found` on `/add` or other routes):
+
+1. Stop the dev server and delete the cache: `rm -rf .next`
+2. Reinstall if needed: `rm -rf node_modules && npm install`
+3. The default `npm run dev` uses `--webpack` to avoid this Turbopack issue on Next.js 16.
+
 ## Features
 
 - **Scan flow** — Camera scans EAN-13 ISBN barcodes, beeps on success, looks up metadata, confirms before save
@@ -35,15 +43,20 @@ Open [http://localhost:3000](http://localhost:3000).
 - **Dashboard** — Responsive cover grid with hover details
 - **URL filters** — `?search=dune&status=Read&tag=Sci-Fi&sort=title`
 - **Manual entry** — Multi-step form for books without reliable API metadata
-- **Book details** — Edit status, location, tags, and notes in a modal
+- **Admin login** — Password-protected editing; guests browse read-only
+- **Book details** — Read-only detail view; admins can edit status, tags, notes, and cover
 
 ## Environment
 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `MONGODB_URI` | Yes | MongoDB connection string |
+| `ADMIN_PASSWORD` | Prod | Admin password (dev default: `admin` if unset) |
+| `SESSION_SECRET` | Prod | Random string for signing session cookies |
 | `BOOKSHELF_USER_ID` | No | User isolation key (default: `default-user`) |
 | `GOOGLE_BOOKS_API_KEY` | No | Optional Google Books API key |
+| `THEBOOKDB_API_KEY` | No | Optional TheBookDB metadata API key |
+| `ISBNDB_API_KEY` | No | Optional ISBNdb API key (higher coverage) |
 
 ## Project structure
 

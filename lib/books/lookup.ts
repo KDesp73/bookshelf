@@ -3,18 +3,27 @@ import { normalizeIsbn } from "@/lib/books/isbn";
 
 type PartialMetadata = Partial<BookMetadata>;
 
+const OPEN_LIBRARY_HEADERS = {
+  "User-Agent": "BookShelf/1.0 (personal library app; contact: local)",
+};
+
 export async function fetchBookByIsbn(
   rawIsbn: string,
 ): Promise<BookPreview | null> {
   const isbn13 = normalizeIsbn(rawIsbn);
   if (!isbn13) return null;
 
-  const [openLibrary, google] = await Promise.all([
-    fetchOpenLibrary(isbn13),
-    fetchGoogleBooks(isbn13),
-  ]);
+  const fetchers: Array<() => Promise<PartialMetadata>> = [
+    () => fetchOpenLibraryBibkeys(isbn13),
+    () => fetchOpenLibraryEdition(isbn13),
+    () => fetchOpenLibrarySearch(isbn13),
+    () => fetchGoogleBooks(isbn13),
+    () => fetchTheBookDb(isbn13),
+    () => fetchIsbnDb(isbn13),
+  ];
 
-  const merged = mergeMetadata(isbn13, openLibrary, google);
+  const results = await Promise.all(fetchers.map((fn) => fn()));
+  const merged = mergeMetadata(isbn13, results);
   if (!merged.title) return null;
 
   return {
@@ -25,11 +34,13 @@ export async function fetchBookByIsbn(
   };
 }
 
-async function fetchOpenLibrary(isbn13: string): Promise<PartialMetadata> {
+async function fetchOpenLibraryBibkeys(
+  isbn13: string,
+): Promise<PartialMetadata> {
   try {
     const res = await fetch(
       `https://openlibrary.org/api/books?bibkeys=ISBN:${isbn13}&format=json&jscmd=data`,
-      { next: { revalidate: 3600 } },
+      { next: { revalidate: 3600 }, headers: OPEN_LIBRARY_HEADERS },
     );
 
     if (!res.ok) return {};
@@ -64,6 +75,118 @@ async function fetchOpenLibrary(isbn13: string): Promise<PartialMetadata> {
       publishedDate: entry.publish_date,
       pageCount: entry.number_of_pages,
       description: entry.notes,
+      coverUrl,
+    };
+  } catch {
+    return {};
+  }
+}
+
+async function fetchOpenLibraryEdition(
+  isbn13: string,
+): Promise<PartialMetadata> {
+  try {
+    const res = await fetch(`https://openlibrary.org/isbn/${isbn13}.json`, {
+      next: { revalidate: 3600 },
+      headers: OPEN_LIBRARY_HEADERS,
+    });
+
+    if (!res.ok) return {};
+
+    const data = (await res.json()) as {
+      title?: string;
+      subtitle?: string;
+      publishers?: string[];
+      publish_date?: string;
+      number_of_pages?: number;
+      description?: string | { value?: string };
+      authors?: Array<{ key?: string }>;
+      covers?: number[];
+    };
+
+    const description =
+      typeof data.description === "string"
+        ? data.description
+        : data.description?.value;
+
+    let coverUrl: string | undefined;
+    if (data.covers?.[0]) {
+      coverUrl = `https://covers.openlibrary.org/b/id/${data.covers[0]}-L.jpg`;
+    }
+
+    let authors: string[] = [];
+    if (data.authors?.length) {
+      const authorResults = await Promise.all(
+        data.authors.slice(0, 5).map(async (a) => {
+          if (!a.key) return null;
+          try {
+            const authorRes = await fetch(
+              `https://openlibrary.org${a.key}.json`,
+              { next: { revalidate: 3600 }, headers: OPEN_LIBRARY_HEADERS },
+            );
+            if (!authorRes.ok) return null;
+            const authorData = (await authorRes.json()) as { name?: string };
+            return authorData.name ?? null;
+          } catch {
+            return null;
+          }
+        }),
+      );
+      authors = authorResults.filter((n): n is string => Boolean(n));
+    }
+
+    return {
+      title: data.title,
+      subtitle: data.subtitle,
+      authors,
+      publisher: data.publishers?.[0],
+      publishedDate: data.publish_date,
+      pageCount: data.number_of_pages,
+      description,
+      coverUrl,
+    };
+  } catch {
+    return {};
+  }
+}
+
+async function fetchOpenLibrarySearch(
+  isbn13: string,
+): Promise<PartialMetadata> {
+  try {
+    const res = await fetch(
+      `https://openlibrary.org/search.json?isbn=${isbn13}&limit=1`,
+      { next: { revalidate: 3600 }, headers: OPEN_LIBRARY_HEADERS },
+    );
+
+    if (!res.ok) return {};
+
+    const data = (await res.json()) as {
+      docs?: Array<{
+        title?: string;
+        subtitle?: string;
+        author_name?: string[];
+        publisher?: string[];
+        first_publish_year?: number;
+        number_of_pages_median?: number;
+        cover_i?: number;
+      }>;
+    };
+
+    const doc = data.docs?.[0];
+    if (!doc) return {};
+
+    const coverUrl = doc.cover_i
+      ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`
+      : undefined;
+
+    return {
+      title: doc.title,
+      subtitle: doc.subtitle,
+      authors: doc.author_name ?? [],
+      publisher: doc.publisher?.[0],
+      publishedDate: doc.first_publish_year?.toString(),
+      pageCount: doc.number_of_pages_median,
       coverUrl,
     };
   } catch {
@@ -134,28 +257,133 @@ async function fetchGoogleBooks(isbn13: string): Promise<PartialMetadata> {
   }
 }
 
+async function fetchTheBookDb(isbn13: string): Promise<PartialMetadata> {
+  const apiKey = process.env.THEBOOKDB_API_KEY?.trim();
+  if (!apiKey) return {};
+
+  try {
+    const res = await fetch(
+      `https://api.thebookdb.net/?key=${encodeURIComponent(apiKey)}&isbn=${isbn13}`,
+      { next: { revalidate: 3600 } },
+    );
+
+    if (!res.ok) return {};
+
+    const data = (await res.json()) as {
+      book?: {
+        title?: string;
+        description?: string;
+        image?: string;
+        authors?: Array<{ name?: string }>;
+        publisher?: string;
+        date_published?: string;
+        pages?: number;
+      };
+    };
+
+    const book = data.book;
+    if (!book) return {};
+
+    return {
+      title: book.title,
+      description: book.description,
+      authors: book.authors?.map((a) => a.name).filter(Boolean) as string[],
+      publisher: book.publisher,
+      publishedDate: book.date_published,
+      pageCount: book.pages,
+      coverUrl: book.image,
+    };
+  } catch {
+    return {};
+  }
+}
+
+async function fetchIsbnDb(isbn13: string): Promise<PartialMetadata> {
+  const apiKey = process.env.ISBNDB_API_KEY?.trim();
+  if (!apiKey) return {};
+
+  try {
+    const res = await fetch(`https://api2.isbndb.com/book/${isbn13}`, {
+      headers: {
+        Authorization: apiKey,
+        "Content-Type": "application/json",
+      },
+      next: { revalidate: 3600 },
+    });
+
+    if (!res.ok) return {};
+
+    const data = (await res.json()) as {
+      book?: {
+        title?: string;
+        title_long?: string;
+        authors?: string[];
+        publisher?: string;
+        date_published?: string;
+        synopsis?: string;
+        pages?: number;
+        image?: string;
+      };
+    };
+
+    const book = data.book;
+    if (!book) return {};
+
+    return {
+      title: book.title ?? book.title_long,
+      authors: book.authors ?? [],
+      publisher: book.publisher,
+      publishedDate: book.date_published,
+      description: book.synopsis,
+      pageCount: book.pages,
+      coverUrl: book.image,
+    };
+  } catch {
+    return {};
+  }
+}
+
 function mergeMetadata(
   isbn13: string,
-  openLibrary: PartialMetadata,
-  google: PartialMetadata,
+  sources: PartialMetadata[],
 ): BookMetadata {
-  const pickCover = () => {
-    const googleCover = google.coverUrl;
-    const olCover = openLibrary.coverUrl;
-    if (googleCover && isHigherRes(googleCover, olCover)) return googleCover;
-    return olCover ?? googleCover;
+  const pick = <K extends keyof BookMetadata>(key: K): BookMetadata[K] | undefined => {
+    for (const source of sources) {
+      const value = source[key];
+      if (value !== undefined && value !== null && value !== "") {
+        if (Array.isArray(value) && value.length === 0) continue;
+        return value as BookMetadata[K];
+      }
+    }
+    return undefined;
+  };
+
+  const pickAuthors = (): string[] => {
+    for (const source of sources) {
+      if (source.authors?.length) return source.authors;
+    }
+    return [];
+  };
+
+  const pickCover = (): string | undefined => {
+    let best: string | undefined;
+    for (const source of sources) {
+      const cover = source.coverUrl;
+      if (!cover) continue;
+      if (!best || isHigherRes(cover, best)) best = cover;
+    }
+    return best;
   };
 
   return {
     isbn13,
-    title: google.title ?? openLibrary.title ?? "",
-    subtitle: google.subtitle ?? openLibrary.subtitle,
-    authors:
-      (google.authors?.length ? google.authors : openLibrary.authors) ?? [],
-    publisher: google.publisher ?? openLibrary.publisher,
-    publishedDate: google.publishedDate ?? openLibrary.publishedDate,
-    description: google.description ?? openLibrary.description,
-    pageCount: google.pageCount ?? openLibrary.pageCount,
+    title: pick("title") ?? "",
+    subtitle: pick("subtitle"),
+    authors: pickAuthors(),
+    publisher: pick("publisher"),
+    publishedDate: pick("publishedDate"),
+    description: pick("description"),
+    pageCount: pick("pageCount"),
     coverUrl: pickCover(),
   };
 }
