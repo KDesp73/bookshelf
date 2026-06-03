@@ -62,7 +62,7 @@ If you see a Turbopack panic (`Next.js package not found` on `/add` or other rou
 
 ## Migration note
 
-Books stored under the legacy `default-user` id are not automatically assigned to a new account. Create an account and re-add books, or migrate data manually in MongoDB.
+Books stored under the legacy `default-user` id are automatically claimed by the admin account on first library visit after onboarding.
 
 ## Project structure
 
