@@ -38,6 +38,7 @@ export interface UserListItem {
   image?: string;
   avatarType?: AvatarType;
   bio?: string;
+  shelfAppearance: ShelfAppearance;
   bookCount: number;
   likeCount: number;
   createdAt: string;

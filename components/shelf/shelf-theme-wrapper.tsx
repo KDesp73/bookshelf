@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { ShelfAppearance } from "@/types/shelf";
 import { buildShelfStyleVars } from "@/lib/shelf/presets";
 import { scopeShelfCss } from "@/lib/shelf/css";
+import { cn } from "@/lib/utils";
 
 interface ShelfThemeWrapperProps {
   username: string;
@@ -25,7 +26,7 @@ export function ShelfThemeWrapper({
     <div
       data-shelf={username}
       data-preset={appearance.preset}
-      className={`bookshelf-themed shelf-root rounded-2xl ${className ?? ""}`.trim()}
+      className={cn("bookshelf-themed shelf-root rounded-2xl", className)}
       style={buildShelfStyleVars(appearance)}
     >
       {scopedCss ? (

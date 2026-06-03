@@ -3,6 +3,7 @@ import { Book } from "@/models/Book";
 import { CollectionLike } from "@/models/CollectionLike";
 import { User, type IUser } from "@/models/User";
 import type { AvatarType } from "@/lib/constants";
+import { getShelfAppearance } from "@/lib/shelf/appearance";
 import type { DiscoverFilters, UserListItem } from "@/types/user";
 
 export async function getLikeCount(userId: string): Promise<number> {
@@ -65,6 +66,7 @@ export async function listUsers(
         image: typedUser.image ?? undefined,
         avatarType: (typedUser.avatarType as AvatarType | undefined) ?? undefined,
         bio: typedUser.bio ?? undefined,
+        shelfAppearance: getShelfAppearance(typedUser),
         bookCount: bookCountMap.get(id) ?? 0,
         likeCount: likeCountMap.get(id) ?? 0,
         createdAt: typedUser.createdAt.toISOString(),
