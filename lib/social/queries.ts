@@ -40,7 +40,7 @@ export async function listUsers(
 
   const [bookCounts, likeCounts] = await Promise.all([
     Book.aggregate<{ _id: string; count: number }>([
-      { $match: { userId: { $in: userIds } } },
+      { $match: { userId: { $in: userIds }, isWishlist: { $ne: true } } },
       { $group: { _id: "$userId", count: { $sum: 1 } } },
     ]),
     CollectionLike.aggregate<{ _id: string; count: number }>([

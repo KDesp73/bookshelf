@@ -88,6 +88,7 @@ export default async function ProfilePage({
             books={books}
             isOwner={isOwner}
             showNotes={isOwner}
+            canAddToWishlist={!!viewer?.username && !isOwner}
           />
         </>
       )}

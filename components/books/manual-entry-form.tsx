@@ -50,7 +50,7 @@ export function ManualEntryForm({ initialIsbn = "" }: ManualEntryFormProps) {
     setStep(2);
   }
 
-  function handleSubmit() {
+  function handleSubmit(isWishlist: boolean) {
     setError(null);
     const normalized = isbn.trim() ? normalizeIsbn(isbn) : null;
     const isbn13 = normalized ?? `manual-${Date.now()}`;
@@ -63,12 +63,13 @@ export function ManualEntryForm({ initialIsbn = "" }: ManualEntryFormProps) {
         authors: authors.split(",").map((a) => a.trim()).filter(Boolean),
         publisher: publisher.trim() || undefined,
         coverUrl: coverUrl.trim() || undefined,
-        status,
+        status: isWishlist ? "Unread" : status,
         tags: tagsInput
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean),
         notes: notes.trim() || undefined,
+        isWishlist,
       });
 
       if (!result.success) {
@@ -76,7 +77,7 @@ export function ManualEntryForm({ initialIsbn = "" }: ManualEntryFormProps) {
         return;
       }
 
-      router.push("/");
+      router.push(isWishlist ? "/wishlist" : "/");
       router.refresh();
     });
   }
@@ -178,12 +179,19 @@ export function ManualEntryForm({ initialIsbn = "" }: ManualEntryFormProps) {
             <Label>Notes</Label>
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => setStep(1)}>
               Back
             </Button>
-            <Button onClick={handleSubmit} disabled={pending}>
+            <Button onClick={() => handleSubmit(false)} disabled={pending}>
               {pending ? "Saving…" : "Save to Library"}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => handleSubmit(true)}
+              disabled={pending}
+            >
+              Add to Wishlist
             </Button>
           </div>
         </div>

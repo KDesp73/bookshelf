@@ -16,9 +16,14 @@ import { READING_STATUSES } from "@/lib/constants";
 interface LibraryFiltersProps {
   tags: string[];
   basePath?: string;
+  hideStatusFilter?: boolean;
 }
 
-export function LibraryFilters({ tags, basePath = "/" }: LibraryFiltersProps) {
+export function LibraryFilters({
+  tags,
+  basePath = "/",
+  hideStatusFilter = false,
+}: LibraryFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
@@ -57,22 +62,24 @@ export function LibraryFilters({ tags, basePath = "/" }: LibraryFiltersProps) {
         />
       </div>
 
-      <Select
-        value={status}
-        onValueChange={(v) => updateParams({ status: v })}
-      >
-        <SelectTrigger className="w-full sm:w-[140px]">
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All statuses</SelectItem>
-          {READING_STATUSES.map((s) => (
-            <SelectItem key={s} value={s}>
-              {s}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {!hideStatusFilter ? (
+        <Select
+          value={status}
+          onValueChange={(v) => updateParams({ status: v })}
+        >
+          <SelectTrigger className="w-full sm:w-[140px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            {READING_STATUSES.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : null}
 
       <Select value={tag} onValueChange={(v) => updateParams({ tag: v })}>
         <SelectTrigger className="w-full sm:w-[160px]">

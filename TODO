@@ -1,4 +1,3 @@
-TODO: landing page
 TODO: API keys
 TODO: restricting/deleting users
 TODO: hash user image
@@ -9,9 +8,10 @@ TODO: email verification
 TODO: customize bookshelf appearence (custom css)
 TODO: themes
 TODO: better discover page
-TODO: about page
 TODO: export collection
 TODO: share profile
 TODO: mobile ui
 TODO: wishlist
 TODO: reports (inappropriate custom covers or bios)
+DONE: about page
+DONE: landing page

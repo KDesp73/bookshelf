@@ -3,7 +3,10 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
+  addToWishlistAction,
   deleteBookAction,
+  moveToLibraryAction,
+  moveToWishlistAction,
   updateBookAction,
 } from "@/actions/books";
 import type { BookDocument, PublicBookDocument } from "@/types/book";
@@ -36,6 +39,7 @@ interface BookDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
   isOwner: boolean;
   showNotes?: boolean;
+  canAddToWishlist?: boolean;
   onUpdated: (book: BookDocument) => void;
 }
 
@@ -43,6 +47,7 @@ const statusColors: Record<string, string> = {
   Unread: "bg-sky-100 text-sky-900 dark:bg-sky-950 dark:text-sky-200",
   Reading: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
   Read: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
+  Wishlist: "bg-violet-100 text-violet-900 dark:bg-violet-950 dark:text-violet-200",
 };
 
 export function BookDetailsDialog({
@@ -51,6 +56,7 @@ export function BookDetailsDialog({
   onOpenChange,
   isOwner,
   showNotes = isOwner,
+  canAddToWishlist = false,
   onUpdated,
 }: BookDetailsDialogProps) {
   if (!book) return null;
@@ -63,6 +69,7 @@ export function BookDetailsDialog({
           book={book}
           isOwner={isOwner}
           showNotes={showNotes}
+          canAddToWishlist={canAddToWishlist}
           onOpenChange={onOpenChange}
           onUpdated={onUpdated}
         />
@@ -75,12 +82,14 @@ function BookDetailsContent({
   book,
   isOwner,
   showNotes,
+  canAddToWishlist,
   onOpenChange,
   onUpdated,
 }: {
   book: BookDocument | PublicBookDocument;
   isOwner: boolean;
   showNotes: boolean;
+  canAddToWishlist: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdated: (book: BookDocument) => void;
 }) {
@@ -95,19 +104,25 @@ function BookDetailsContent({
     "notes" in book ? (book.notes ?? "") : "",
   );
   const [rating, setRating] = useState<number | undefined>(book.rating);
+  const [addedToWishlist, setAddedToWishlist] = useState(false);
+  const isWishlist = book.isWishlist === true;
 
   function handleSave() {
     setError(null);
     startTransition(async () => {
       const result = await updateBookAction(book._id, {
-        status,
+        ...(isWishlist
+          ? {}
+          : {
+              status,
+              rating: rating ?? null,
+            }),
         coverUrl: coverUrl.trim() || undefined,
         tags: tagsInput
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean),
         notes: notes || undefined,
-        rating: rating ?? null,
       });
 
       if (!result.success) {
@@ -122,7 +137,8 @@ function BookDetailsContent({
   }
 
   function handleDelete() {
-    if (!confirm(`Remove "${book.title}" from your library?`)) return;
+    const location = isWishlist ? "wishlist" : "library";
+    if (!confirm(`Remove "${book.title}" from your ${location}?`)) return;
 
     startTransition(async () => {
       const result = await deleteBookAction(book._id);
@@ -130,6 +146,59 @@ function BookDetailsContent({
         setError(result.error);
         return;
       }
+      onOpenChange(false);
+      router.refresh();
+    });
+  }
+
+  function handleAddToWishlist() {
+    setError(null);
+    startTransition(async () => {
+      const result = await addToWishlistAction({
+        isbn13: book.isbn13,
+        title: book.title,
+        subtitle: book.subtitle,
+        authors: book.authors,
+        publisher: book.publisher,
+        publishedDate: book.publishedDate,
+        description: book.description,
+        pageCount: book.pageCount,
+        coverUrl: book.coverUrl,
+      });
+
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+
+      setAddedToWishlist(true);
+      router.refresh();
+    });
+  }
+
+  function handleMoveToLibrary() {
+    setError(null);
+    startTransition(async () => {
+      const result = await moveToLibraryAction(book._id);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      onUpdated(result.data);
+      onOpenChange(false);
+      router.refresh();
+    });
+  }
+
+  function handleMoveToWishlist() {
+    setError(null);
+    startTransition(async () => {
+      const result = await moveToWishlistAction(book._id);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      onUpdated(result.data);
       onOpenChange(false);
       router.refresh();
     });
@@ -167,10 +236,12 @@ function BookDetailsContent({
           </div>
 
           <div className="grid gap-3">
-            <div className="grid gap-2">
-              <Label>Rating</Label>
-              <StarRating value={rating} onChange={setRating} />
-            </div>
+            {!isWishlist ? (
+              <div className="grid gap-2">
+                <Label>Rating</Label>
+                <StarRating value={rating} onChange={setRating} />
+              </div>
+            ) : null}
 
             <div className="grid gap-2">
               <Label>Cover image URL</Label>
@@ -181,24 +252,26 @@ function BookDetailsContent({
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label>Status</Label>
-              <Select
-                value={status}
-                onValueChange={(v) => setStatus(v as typeof status)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {READING_STATUSES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {!isWishlist ? (
+              <div className="grid gap-2">
+                <Label>Status</Label>
+                <Select
+                  value={status}
+                  onValueChange={(v) => setStatus(v as typeof status)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {READING_STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
 
             <div className="grid gap-2">
               <Label>Tags</Label>
@@ -255,17 +328,17 @@ function BookDetailsContent({
               <p className="text-sm font-medium text-stone-800 dark:text-stone-200">
                 {book.authors.join(", ")}
               </p>
-              {book.rating != null ? (
+              {book.rating != null && !isWishlist ? (
                 <StarRating value={book.rating} readOnly />
               ) : null}
               <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   className={cn(
                     "border-0",
-                    statusColors[book.status],
+                    statusColors[isWishlist ? "Wishlist" : book.status],
                   )}
                 >
-                  {book.status}
+                  {isWishlist ? "Wishlist" : book.status}
                 </Badge>
                 {book.tags.map((tag) => (
                   <Badge key={tag} variant="secondary">
@@ -326,6 +399,38 @@ function BookDetailsContent({
               </p>
             </div>
           )}
+
+          {error && (
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            {canAddToWishlist ? (
+              addedToWishlist ? (
+                <Button variant="secondary" disabled>
+                  In your wishlist
+                </Button>
+              ) : (
+                <Button onClick={handleAddToWishlist} disabled={pending}>
+                  {pending ? "Adding…" : "Add to wishlist"}
+                </Button>
+              )
+            ) : null}
+            {isOwner && isWishlist ? (
+              <Button onClick={handleMoveToLibrary} disabled={pending}>
+                {pending ? "Moving…" : "Move to library"}
+              </Button>
+            ) : null}
+            {isOwner && !isWishlist ? (
+              <Button
+                variant="outline"
+                onClick={handleMoveToWishlist}
+                disabled={pending}
+              >
+                {pending ? "Moving…" : "Move to wishlist"}
+              </Button>
+            ) : null}
+          </div>
         </div>
       )}
     </>

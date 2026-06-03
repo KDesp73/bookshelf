@@ -31,18 +31,19 @@ export function BookPreviewForm({ initial }: BookPreviewFormProps) {
   const [status, setStatus] = useState(initial.status ?? "Unread");
   const [notes, setNotes] = useState(initial.notes ?? "");
 
-  function handleSave() {
+  function handleSave(isWishlist: boolean) {
     setError(null);
     startTransition(async () => {
       const result = await saveBookAction({
         ...initial,
         coverUrl: coverUrl.trim() || undefined,
-        status,
+        status: isWishlist ? "Unread" : status,
         tags: tagsInput
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean),
         notes: notes || undefined,
+        isWishlist,
       });
 
       if (!result.success) {
@@ -50,7 +51,7 @@ export function BookPreviewForm({ initial }: BookPreviewFormProps) {
         return;
       }
 
-      router.push("/");
+      router.push(isWishlist ? "/wishlist" : "/");
       router.refresh();
     });
   }
@@ -141,9 +142,19 @@ export function BookPreviewForm({ initial }: BookPreviewFormProps) {
         <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
       )}
 
-      <Button onClick={handleSave} disabled={pending} size="lg">
-        {pending ? "Saving…" : "Save to Library"}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={() => handleSave(false)} disabled={pending} size="lg">
+          {pending ? "Saving…" : "Save to Library"}
+        </Button>
+        <Button
+          onClick={() => handleSave(true)}
+          disabled={pending}
+          size="lg"
+          variant="outline"
+        >
+          Add to Wishlist
+        </Button>
+      </div>
     </div>
   );
 }

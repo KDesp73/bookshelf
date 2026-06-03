@@ -123,7 +123,7 @@ export async function getAdminUserDetailAction(
       return { success: false, error: "User not found." };
     }
 
-    const books = await listBooks(userId);
+    const books = await listBooks(userId, { list: "all" });
     return { success: true, data: { user, books } };
   } catch {
     return { success: false, error: "Failed to load user." };

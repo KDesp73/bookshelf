@@ -29,7 +29,7 @@ export default async function AdminUserDetailPage({
   let dbError: string | null = null;
 
   try {
-    books = await listBooks(userId);
+    books = await listBooks(userId, { list: "all" });
   } catch {
     dbError =
       "Could not connect to MongoDB. Set MONGODB_URI in .env.local and ensure the database is running.";

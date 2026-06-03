@@ -37,6 +37,7 @@ function serializeBook(book: {
   notes?: string | null;
   rating?: number | null;
   dateAdded: Date;
+  isWishlist?: boolean | null;
 }): BookDocument {
   return {
     _id: book._id.toString(),
@@ -54,8 +55,17 @@ function serializeBook(book: {
     tags: book.tags ?? [],
     notes: book.notes ?? undefined,
     rating: book.rating ?? undefined,
+    isWishlist: book.isWishlist === true,
     dateAdded: book.dateAdded.toISOString(),
   };
+}
+
+function revalidateBookPaths(username: string) {
+  revalidatePath("/");
+  revalidatePath("/wishlist");
+  revalidatePath("/scan");
+  revalidatePath("/add");
+  revalidatePath(`/u/${username}`);
 }
 
 export async function lookupIsbnAction(
@@ -137,7 +147,12 @@ export async function saveBookAction(
     });
 
     if (existing) {
-      return { success: false, error: "Book already in library." };
+      return {
+        success: false,
+        error: existing.isWishlist
+          ? "Book already in your wishlist."
+          : "Book already in your library.",
+      };
     }
 
     const book = await Book.create({
@@ -151,19 +166,92 @@ export async function saveBookAction(
       description: input.description?.trim(),
       pageCount: input.pageCount,
       coverUrl: input.coverUrl?.trim(),
-      status: input.status ?? "Unread",
+      status: input.isWishlist ? "Unread" : (input.status ?? "Unread"),
       tags: input.tags?.map((t) => t.trim()).filter(Boolean) ?? [],
       notes: input.notes?.trim(),
-      rating: input.rating ?? undefined,
+      rating: input.isWishlist ? undefined : (input.rating ?? undefined),
+      isWishlist: input.isWishlist === true,
     });
 
-    revalidatePath("/");
-    revalidatePath("/scan");
-    revalidatePath(`/u/${auth.user.username}`);
+    revalidateBookPaths(auth.user.username!);
 
     return { success: true, data: serializeBook(book) };
   } catch {
     return { success: false, error: "Failed to save book." };
+  }
+}
+
+export async function addToWishlistAction(
+  input: BookInput,
+): Promise<ActionResult<BookDocument>> {
+  return saveBookAction({ ...input, isWishlist: true, status: "Unread", rating: null });
+}
+
+export async function moveToLibraryAction(
+  id: string,
+): Promise<ActionResult<BookDocument>> {
+  const auth = await requireUserWithUsername();
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Sign in required." };
+  }
+
+  try {
+    await connectDB();
+
+    const book = await Book.findOneAndUpdate(
+      { _id: id, userId: auth.user.id, isWishlist: true },
+      { isWishlist: false, status: "Unread" },
+      { new: true },
+    );
+
+    if (!book) {
+      return { success: false, error: "Wishlist item not found." };
+    }
+
+    revalidateBookPaths(auth.user.username!);
+
+    const doc = await findBookById(id, auth.user.id);
+    if (!doc) {
+      return { success: false, error: "Book not found after update." };
+    }
+
+    return { success: true, data: doc };
+  } catch {
+    return { success: false, error: "Failed to move book to library." };
+  }
+}
+
+export async function moveToWishlistAction(
+  id: string,
+): Promise<ActionResult<BookDocument>> {
+  const auth = await requireUserWithUsername();
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Sign in required." };
+  }
+
+  try {
+    await connectDB();
+
+    const book = await Book.findOneAndUpdate(
+      { _id: id, userId: auth.user.id, isWishlist: { $ne: true } },
+      { isWishlist: true, rating: undefined },
+      { new: true },
+    );
+
+    if (!book) {
+      return { success: false, error: "Book not found." };
+    }
+
+    revalidateBookPaths(auth.user.username!);
+
+    const doc = await findBookById(id, auth.user.id);
+    if (!doc) {
+      return { success: false, error: "Book not found after update." };
+    }
+
+    return { success: true, data: doc };
+  } catch {
+    return { success: false, error: "Failed to move book to wishlist." };
   }
 }
 
@@ -224,8 +312,7 @@ export async function updateBookAction(
       return { success: false, error: "Book not found." };
     }
 
-    revalidatePath("/");
-    revalidatePath(`/u/${auth.user.username}`);
+    revalidateBookPaths(auth.user.username!);
 
     const doc = await findBookById(id, auth.user.id);
     if (!doc) {
@@ -250,8 +337,7 @@ export async function deleteBookAction(id: string): Promise<ActionResult<null>> 
     if (result.deletedCount === 0) {
       return { success: false, error: "Book not found." };
     }
-    revalidatePath("/");
-    revalidatePath(`/u/${auth.user.username}`);
+    revalidateBookPaths(auth.user.username!);
     return { success: true, data: null };
   } catch {
     return { success: false, error: "Failed to delete book." };

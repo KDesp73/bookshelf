@@ -14,12 +14,14 @@ interface BookGridProps {
   isOwner: boolean;
   showNotes?: boolean;
   emptyMessage?: string;
+  canAddToWishlist?: boolean;
 }
 
 const statusColors: Record<string, string> = {
   Unread: "bg-sky-100 text-sky-900 dark:bg-sky-950 dark:text-sky-200",
   Reading: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
   Read: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
+  Wishlist: "bg-violet-100 text-violet-900 dark:bg-violet-950 dark:text-violet-200",
 };
 
 export function BookGrid({
@@ -27,6 +29,7 @@ export function BookGrid({
   isOwner,
   showNotes = isOwner,
   emptyMessage,
+  canAddToWishlist = false,
 }: BookGridProps) {
   const [selected, setSelected] = useState<BookDocument | PublicBookDocument | null>(
     null,
@@ -75,12 +78,12 @@ export function BookGrid({
             <Badge
               className={cn(
                 "absolute left-1.5 top-1.5 border-0 text-[10px]",
-                statusColors[book.status],
+                statusColors[book.isWishlist ? "Wishlist" : book.status],
               )}
             >
-              {book.status}
+              {book.isWishlist ? "Wishlist" : book.status}
             </Badge>
-            {book.rating != null ? (
+            {book.rating != null && !book.isWishlist ? (
               <div className="absolute right-1.5 top-1.5 rounded bg-black/70 px-1.5 py-0.5">
                 <StarRating value={book.rating} readOnly size="sm" showValue={false} />
               </div>
@@ -95,6 +98,7 @@ export function BookGrid({
         onOpenChange={(open) => !open && setSelected(null)}
         isOwner={isOwner}
         showNotes={showNotes}
+        canAddToWishlist={canAddToWishlist}
         onUpdated={(updated) => setSelected(updated)}
       />
     </>

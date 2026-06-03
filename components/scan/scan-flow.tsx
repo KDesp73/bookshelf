@@ -20,10 +20,12 @@ export function ScanFlow() {
   const [manualIsbn, setManualIsbn] = useState("");
   const [preview, setPreview] = useState<BookInput | null>(null);
   const [existingTitle, setExistingTitle] = useState<string | null>(null);
+  const [existingIsWishlist, setExistingIsWishlist] = useState(false);
 
   function resolveIsbn(isbn: string) {
     setError(null);
     setExistingTitle(null);
+    setExistingIsWishlist(false);
     startTransition(async () => {
       const result = await lookupIsbnAction(isbn);
       if (!result.success) {
@@ -34,6 +36,7 @@ export function ScanFlow() {
 
       if (result.data.type === "existing") {
         setExistingTitle(result.data.book.title);
+        setExistingIsWishlist(result.data.book.isWishlist);
         setStep("existing");
         return;
       }
@@ -63,14 +66,19 @@ export function ScanFlow() {
     return (
       <div className="mx-auto max-w-md space-y-4 rounded-xl border border-amber-200 bg-amber-50 p-6 text-center dark:border-amber-900 dark:bg-amber-950/30">
         <CheckCircle2 className="mx-auto h-10 w-10 text-amber-700 dark:text-amber-400" />
-        <h2 className="font-serif text-lg font-semibold">Already in library</h2>
+        <h2 className="font-serif text-lg font-semibold">
+          {existingIsWishlist ? "Already in wishlist" : "Already in library"}
+        </h2>
         <p className="text-sm text-stone-600 dark:text-stone-400">
-          <strong>{existingTitle}</strong> is already cataloged.
+          <strong>{existingTitle}</strong> is already on your{" "}
+          {existingIsWishlist ? "wishlist" : "shelf"}.
         </p>
         <div className="flex flex-wrap justify-center gap-2">
           <Button onClick={() => setStep("scan")}>Scan another</Button>
           <Button variant="outline" asChild>
-            <Link href="/">View library</Link>
+            <Link href={existingIsWishlist ? "/wishlist" : "/"}>
+              {existingIsWishlist ? "View wishlist" : "View library"}
+            </Link>
           </Button>
         </div>
       </div>

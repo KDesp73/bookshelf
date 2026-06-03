@@ -33,6 +33,7 @@ const bookSchema = new Schema(
       type: Number,
       enum: RATING_VALUES,
     },
+    isWishlist: { type: Boolean, default: false, index: true },
     dateAdded: { type: Date, default: Date.now },
   },
   {

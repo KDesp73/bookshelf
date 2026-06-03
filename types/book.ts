@@ -21,6 +21,7 @@ export interface BookInput extends BookMetadata {
   tags?: string[];
   notes?: string;
   rating?: number | null;
+  isWishlist?: boolean;
 }
 
 export interface BookDocument extends BookInput {
@@ -30,9 +31,12 @@ export interface BookDocument extends BookInput {
   tags: string[];
   dateAdded: string;
   rating?: number;
+  isWishlist: boolean;
 }
 
 export type PublicBookDocument = Omit<BookDocument, "notes">;
+
+export type BookListKind = "library" | "wishlist" | "all";
 
 export interface LibraryFilters {
   search?: string;
@@ -40,4 +44,5 @@ export interface LibraryFilters {
   tag?: string;
   sort?: "dateAdded" | "title";
   order?: "asc" | "desc";
+  list?: BookListKind;
 }

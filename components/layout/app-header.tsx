@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, Compass, LogIn, LogOut, Plus, ScanLine, Shield, User } from "lucide-react";
+import { BookOpen, Compass, Heart, LogIn, LogOut, Plus, ScanLine, Shield, User } from "lucide-react";
 import { logoutAction } from "@/actions/auth";
 import { getSessionUser } from "@/lib/auth/get-session-user";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,12 @@ export async function AppHeader() {
               ) : null}
               {user.username ? (
                 <>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/wishlist">
+                      <Heart className="h-4 w-4" />
+                      <span className="hidden sm:inline">Wishlist</span>
+                    </Link>
+                  </Button>
                   <Button variant="ghost" size="sm" asChild>
                     <Link href={`/u/${user.username}`}>
                       <User className="h-4 w-4" />

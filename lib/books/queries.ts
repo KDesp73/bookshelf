@@ -26,6 +26,7 @@ function toBookDocument(
     tags: book.tags ?? [],
     notes: book.notes ?? undefined,
     rating: book.rating ?? undefined,
+    isWishlist: book.isWishlist === true,
     dateAdded: book.dateAdded.toISOString(),
   };
 }
@@ -39,11 +40,26 @@ function toPublicBookDocument(
   return publicDoc;
 }
 
+function applyListFilter(
+  query: Record<string, unknown>,
+  list: LibraryFilters["list"],
+): void {
+  if (list === "wishlist") {
+    query.isWishlist = true;
+  } else if (list === "all") {
+    return;
+  } else {
+    query.isWishlist = { $ne: true };
+  }
+}
+
 function buildBookQuery(
   userId: string,
   filters: LibraryFilters,
 ): Record<string, unknown> {
   const query: Record<string, unknown> = { userId };
+
+  applyListFilter(query, filters.list ?? "library");
 
   if (filters.status) {
     query.status = filters.status;
@@ -112,7 +128,7 @@ export async function listPublicBooks(
 ): Promise<PublicBookDocument[]> {
   await connectDB();
 
-  const query = buildBookQuery(userId, filters);
+  const query = buildBookQuery(userId, { ...filters, list: "library" });
   const sortField = filters.sort === "title" ? "title" : "dateAdded";
   const sortOrder = filters.order === "asc" ? 1 : -1;
 
@@ -126,13 +142,23 @@ export async function listPublicBooks(
   );
 }
 
-export async function getAllTags(userId: string): Promise<string[]> {
+export async function getAllTags(
+  userId: string,
+  list: LibraryFilters["list"] = "library",
+): Promise<string[]> {
   await connectDB();
-  const tags = await Book.distinct("tags", { userId });
+  const query: Record<string, unknown> = { userId };
+  applyListFilter(query, list ?? "library");
+  const tags = await Book.distinct("tags", query);
   return tags.filter(Boolean).sort((a, b) => a.localeCompare(b));
 }
 
 export async function getBookCount(userId: string): Promise<number> {
   await connectDB();
-  return Book.countDocuments({ userId });
+  return Book.countDocuments({ userId, isWishlist: { $ne: true } });
+}
+
+export async function getWishlistCount(userId: string): Promise<number> {
+  await connectDB();
+  return Book.countDocuments({ userId, isWishlist: true });
 }
