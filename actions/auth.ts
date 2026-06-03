@@ -140,9 +140,7 @@ export async function completeOnboardingAction(
       bio: bio || undefined,
     });
 
-    if (auth.user.isAdmin) {
-      await claimLegacyBooksForAdmin(auth.user.id);
-    }
+    await claimLegacyBooksForAdmin(auth.user.id);
   } catch {
     return { error: "Could not save profile. Try again." };
   }

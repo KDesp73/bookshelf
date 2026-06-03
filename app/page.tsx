@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { listBooks, getAllTags } from "@/lib/books/queries";
 import { claimLegacyBooksForAdmin } from "@/lib/books/legacy";
+import { isAdminEmail } from "@/lib/auth/admin";
 import { getSessionUser } from "@/lib/auth/get-session-user";
 import { parseLibraryFilters } from "@/lib/books/filters";
 import { LibraryFilters } from "@/components/library/library-filters";
@@ -24,7 +25,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     redirect("/onboarding");
   }
 
-  if (user.isAdmin) {
+  if (user.isAdmin || isAdminEmail(user.email)) {
     await claimLegacyBooksForAdmin(user.id);
   }
 
