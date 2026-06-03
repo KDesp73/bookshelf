@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { BookOpen, Compass, Heart, LogIn, LogOut, Plus, ScanLine, Shield, User } from "lucide-react";
-import { logoutAction } from "@/actions/auth";
+import { BookOpen, Compass, LogIn, Shield, User } from "lucide-react";
 import { getSessionUser } from "@/lib/auth/get-session-user";
+import { AddBookMenu } from "@/components/layout/add-book-menu";
 import { Button } from "@/components/ui/button";
 
 export async function AppHeader() {
@@ -37,38 +37,15 @@ export async function AppHeader() {
               ) : null}
               {user.username ? (
                 <>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href="/wishlist">
-                      <Heart className="h-4 w-4" />
-                      <span className="hidden sm:inline">Wishlist</span>
-                    </Link>
-                  </Button>
+                  <AddBookMenu />
                   <Button variant="ghost" size="sm" asChild>
                     <Link href={`/u/${user.username}`}>
                       <User className="h-4 w-4" />
                       <span className="hidden sm:inline">Profile</span>
                     </Link>
                   </Button>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href="/add">
-                      <Plus className="h-4 w-4" />
-                      <span className="hidden sm:inline">Add</span>
-                    </Link>
-                  </Button>
-                  <Button size="sm" asChild>
-                    <Link href="/scan">
-                      <ScanLine className="h-4 w-4" />
-                      <span className="hidden sm:inline">Scan</span>
-                    </Link>
-                  </Button>
                 </>
               ) : null}
-              <form action={logoutAction}>
-                <Button variant="ghost" size="sm" type="submit">
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline">Log out</span>
-                </Button>
-              </form>
             </>
           ) : (
             <Button variant="ghost" size="sm" asChild>

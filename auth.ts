@@ -109,11 +109,16 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       if (trigger === "update" && session) {
         const update = session as {
           username?: string;
-          user?: { username?: string };
+          name?: string;
+          user?: { username?: string; name?: string };
         };
         const nextUsername = update.username ?? update.user?.username;
         if (typeof nextUsername === "string") {
           token.username = nextUsername;
+        }
+        const nextName = update.name ?? update.user?.name;
+        if (typeof nextName === "string") {
+          token.name = nextName;
         }
         return token;
       }

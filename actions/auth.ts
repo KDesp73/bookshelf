@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
 import { signIn, signOut, unstable_update } from "@/auth";
@@ -13,6 +14,7 @@ import { requireUser } from "@/lib/auth/require-user";
 
 export type AuthActionState = {
   error?: string;
+  success?: boolean;
 };
 
 export async function registerAction(
@@ -159,8 +161,16 @@ export async function updateProfileAction(
     return { error: auth.error ?? "Sign in required." };
   }
 
+  if (!auth.user.username) {
+    return { error: "Complete onboarding before editing your profile." };
+  }
+
   const name = String(formData.get("name") ?? "").trim();
   const bio = String(formData.get("bio") ?? "").trim();
+
+  if (bio.length > 280) {
+    return { error: "Bio must be 280 characters or fewer." };
+  }
 
   try {
     await connectDB();
@@ -172,5 +182,8 @@ export async function updateProfileAction(
     return { error: "Could not update profile." };
   }
 
-  redirect(`/u/${auth.user.username}`);
+  await unstable_update({ user: { name: name || undefined } });
+  revalidatePath(`/u/${auth.user.username}`);
+
+  return { success: true };
 }
