@@ -18,11 +18,6 @@ export async function AppHeader() {
           BookShelf
         </Link>
         <nav className="flex items-center gap-2">
-          {!user ? (
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/#about">About</Link>
-            </Button>
-          ) : null}
           <Button variant="ghost" size="sm" asChild>
             <Link href="/discover">
               <Compass className="h-4 w-4" />
