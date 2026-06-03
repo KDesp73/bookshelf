@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import type { BookDocument } from "@/types/book";
+import type { BookDocument, PublicBookDocument } from "@/types/book";
 import { BookCover } from "@/components/books/book-cover";
+import { StarRating } from "@/components/books/star-rating";
 import { Badge } from "@/components/ui/badge";
 import { BookDetailsDialog } from "@/components/library/book-details-dialog";
 import { PreloadBookCovers } from "@/components/library/preload-book-covers";
 import { cn } from "@/lib/utils";
 
 interface BookGridProps {
-  books: BookDocument[];
-  isAdmin: boolean;
+  books: (BookDocument | PublicBookDocument)[];
+  isOwner: boolean;
+  showNotes?: boolean;
+  emptyMessage?: string;
 }
 
 const statusColors: Record<string, string> = {
@@ -19,18 +22,27 @@ const statusColors: Record<string, string> = {
   Read: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
 };
 
-export function BookGrid({ books, isAdmin }: BookGridProps) {
-  const [selected, setSelected] = useState<BookDocument | null>(null);
+export function BookGrid({
+  books,
+  isOwner,
+  showNotes = isOwner,
+  emptyMessage,
+}: BookGridProps) {
+  const [selected, setSelected] = useState<BookDocument | PublicBookDocument | null>(
+    null,
+  );
 
   if (books.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-stone-300 bg-white/50 px-6 py-16 text-center dark:border-stone-600 dark:bg-stone-900/30">
         <p className="font-serif text-lg text-stone-700 dark:text-stone-300">
-          Your shelf is empty
+          {emptyMessage ?? "Your shelf is empty"}
         </p>
-        <p className="mt-2 text-sm text-stone-500">
-          Scan a barcode or add a book manually to get started.
-        </p>
+        {isOwner ? (
+          <p className="mt-2 text-sm text-stone-500">
+            Scan a barcode or add a book manually to get started.
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -68,6 +80,11 @@ export function BookGrid({ books, isAdmin }: BookGridProps) {
             >
               {book.status}
             </Badge>
+            {book.rating != null ? (
+              <div className="absolute right-1.5 top-1.5 rounded bg-black/70 px-1.5 py-0.5">
+                <StarRating value={book.rating} readOnly size="sm" showValue={false} />
+              </div>
+            ) : null}
           </button>
         ))}
       </div>
@@ -76,7 +93,8 @@ export function BookGrid({ books, isAdmin }: BookGridProps) {
         book={selected}
         open={!!selected}
         onOpenChange={(open) => !open && setSelected(null)}
-        isAdmin={isAdmin}
+        isOwner={isOwner}
+        showNotes={showNotes}
         onUpdated={(updated) => setSelected(updated)}
       />
     </>

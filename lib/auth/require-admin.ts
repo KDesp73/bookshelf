@@ -1,8 +1,17 @@
 import "server-only";
 
-import { isAdmin } from "@/lib/auth/session";
+import { getSessionUser } from "@/lib/auth/get-session-user";
+import type { SessionUser } from "@/lib/auth/get-session-user";
 
-export async function requireAdmin(): Promise<string | null> {
-  if (await isAdmin()) return null;
-  return "Admin login required.";
+export async function requireAdmin(): Promise<
+  { user: SessionUser; error: null } | { user: null; error: string }
+> {
+  const user = await getSessionUser();
+  if (!user) {
+    return { user: null, error: "Sign in required." };
+  }
+  if (!user.isAdmin) {
+    return { user: null, error: "Admin access required." };
+  }
+  return { user, error: null };
 }

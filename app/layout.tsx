@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Lora, Source_Sans_3 } from "next/font/google";
+import { AuthProvider } from "@/components/auth/session-provider";
 import { AppHeader } from "@/components/layout/app-header";
 import "./globals.css";
 
@@ -15,8 +16,8 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
-  title: "BookShelf — Personal Library",
-  description: "Scan, catalog, and organize your personal book collection.",
+  title: "BookShelf — Social Library",
+  description: "Catalog your books, rate your reads, and discover other readers' collections.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -39,8 +40,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${lora.variable} ${sourceSans.variable} h-full`}>
       <body className="min-h-full bg-[#f6f1ea] font-sans text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100">
-        <AppHeader />
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
+        <AuthProvider>
+          <AppHeader />
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
+        </AuthProvider>
       </body>
     </html>
   );

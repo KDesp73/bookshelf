@@ -1,9 +1,15 @@
 import { connectDB } from "@/lib/db";
-import { DEFAULT_USER_ID } from "@/lib/constants";
 import { Book, type IBook } from "@/models/Book";
-import type { BookDocument, LibraryFilters } from "@/types/book";
+import type {
+  BookDocument,
+  LibraryFilters,
+  PublicBookDocument,
+} from "@/types/book";
 import type { ReadingStatus } from "@/lib/constants";
-function toBookDocument(book: IBook & { _id: { toString(): string } }): BookDocument {
+
+function toBookDocument(
+  book: IBook & { _id: { toString(): string } },
+): BookDocument {
   return {
     _id: book._id.toString(),
     userId: book.userId,
@@ -19,36 +25,24 @@ function toBookDocument(book: IBook & { _id: { toString(): string } }): BookDocu
     status: book.status as ReadingStatus,
     tags: book.tags ?? [],
     notes: book.notes ?? undefined,
+    rating: book.rating ?? undefined,
     dateAdded: book.dateAdded.toISOString(),
   };
 }
 
-export async function findBookByIsbn(
-  isbn13: string,
-  userId = DEFAULT_USER_ID,
-): Promise<BookDocument | null> {
-  await connectDB();
-  const book = await Book.findOne({ userId, isbn13 }).lean();
-  if (!book) return null;
-  return toBookDocument(book as IBook & { _id: { toString(): string } });
+function toPublicBookDocument(
+  book: IBook & { _id: { toString(): string } },
+): PublicBookDocument {
+  const doc = toBookDocument(book);
+  const { notes: _unusedNotes, ...publicDoc } = doc;
+  void _unusedNotes;
+  return publicDoc;
 }
 
-export async function findBookById(
-  id: string,
-  userId = DEFAULT_USER_ID,
-): Promise<BookDocument | null> {
-  await connectDB();
-  const book = await Book.findOne({ _id: id, userId }).lean();
-  if (!book) return null;
-  return toBookDocument(book as IBook & { _id: { toString(): string } });
-}
-
-export async function listBooks(
-  filters: LibraryFilters = {},
-  userId = DEFAULT_USER_ID,
-): Promise<BookDocument[]> {
-  await connectDB();
-
+function buildBookQuery(
+  userId: string,
+  filters: LibraryFilters,
+): Record<string, unknown> {
   const query: Record<string, unknown> = { userId };
 
   if (filters.status) {
@@ -70,6 +64,36 @@ export async function listBooks(
     ];
   }
 
+  return query;
+}
+
+export async function findBookByIsbn(
+  isbn13: string,
+  userId: string,
+): Promise<BookDocument | null> {
+  await connectDB();
+  const book = await Book.findOne({ userId, isbn13 }).lean();
+  if (!book) return null;
+  return toBookDocument(book as IBook & { _id: { toString(): string } });
+}
+
+export async function findBookById(
+  id: string,
+  userId: string,
+): Promise<BookDocument | null> {
+  await connectDB();
+  const book = await Book.findOne({ _id: id, userId }).lean();
+  if (!book) return null;
+  return toBookDocument(book as IBook & { _id: { toString(): string } });
+}
+
+export async function listBooks(
+  userId: string,
+  filters: LibraryFilters = {},
+): Promise<BookDocument[]> {
+  await connectDB();
+
+  const query = buildBookQuery(userId, filters);
   const sortField = filters.sort === "title" ? "title" : "dateAdded";
   const sortOrder = filters.order === "asc" ? 1 : -1;
 
@@ -82,8 +106,33 @@ export async function listBooks(
   );
 }
 
-export async function getAllTags(userId = DEFAULT_USER_ID): Promise<string[]> {
+export async function listPublicBooks(
+  userId: string,
+  filters: LibraryFilters = {},
+): Promise<PublicBookDocument[]> {
+  await connectDB();
+
+  const query = buildBookQuery(userId, filters);
+  const sortField = filters.sort === "title" ? "title" : "dateAdded";
+  const sortOrder = filters.order === "asc" ? 1 : -1;
+
+  const books = await Book.find(query)
+    .select("-notes")
+    .sort({ [sortField]: sortOrder })
+    .lean();
+
+  return books.map((book) =>
+    toPublicBookDocument(book as IBook & { _id: { toString(): string } }),
+  );
+}
+
+export async function getAllTags(userId: string): Promise<string[]> {
   await connectDB();
   const tags = await Book.distinct("tags", { userId });
   return tags.filter(Boolean).sort((a, b) => a.localeCompare(b));
+}
+
+export async function getBookCount(userId: string): Promise<number> {
+  await connectDB();
+  return Book.countDocuments({ userId });
 }

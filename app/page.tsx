@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { listBooks, getAllTags } from "@/lib/books/queries";
-import { isAdmin } from "@/lib/auth/session";
+import { getSessionUser } from "@/lib/auth/get-session-user";
 import { parseLibraryFilters } from "@/lib/books/filters";
 import { LibraryFilters } from "@/components/library/library-filters";
 import { BookGrid } from "@/components/library/book-grid";
@@ -10,19 +10,22 @@ interface HomePageProps {
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
+  const user = await getSessionUser();
   const params = await searchParams;
   const filters = parseLibraryFilters(params);
 
   let books: Awaited<ReturnType<typeof listBooks>> = [];
   let tags: string[] = [];
-  let admin = false;
   let dbError: string | null = null;
 
+  if (!user?.id || !user.username) {
+    return null;
+  }
+
   try {
-    [books, tags, admin] = await Promise.all([
-      listBooks(filters),
-      getAllTags(),
-      isAdmin(),
+    [books, tags] = await Promise.all([
+      listBooks(user.id, filters),
+      getAllTags(user.id),
     ]);
   } catch {
     dbError =
@@ -50,7 +53,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <Suspense fallback={<div className="h-10 animate-pulse rounded-md bg-stone-200 dark:bg-stone-800" />}>
             <LibraryFilters tags={tags} />
           </Suspense>
-          <BookGrid books={books} isAdmin={admin} />
+          <BookGrid books={books} isOwner />
         </>
       )}
     </div>

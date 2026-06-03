@@ -15,9 +15,10 @@ import { READING_STATUSES } from "@/lib/constants";
 
 interface LibraryFiltersProps {
   tags: string[];
+  basePath?: string;
 }
 
-export function LibraryFilters({ tags }: LibraryFiltersProps) {
+export function LibraryFilters({ tags, basePath = "/" }: LibraryFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
@@ -38,10 +39,10 @@ export function LibraryFilters({ tags }: LibraryFiltersProps) {
         }
       }
       startTransition(() => {
-        router.push(`/?${params.toString()}`);
+        router.push(`${basePath}?${params.toString()}`);
       });
     },
-    [router, searchParams],
+    [router, searchParams, basePath],
   );
 
   return (

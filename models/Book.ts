@@ -1,12 +1,11 @@
 import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
-import { DEFAULT_USER_ID, READING_STATUSES } from "@/lib/constants";
+import { RATING_VALUES, READING_STATUSES } from "@/lib/constants";
 
 const bookSchema = new Schema(
   {
     userId: {
       type: String,
       required: true,
-      default: DEFAULT_USER_ID,
       index: true,
     },
     isbn13: {
@@ -30,6 +29,10 @@ const bookSchema = new Schema(
     },
     tags: { type: [String], default: [] },
     notes: { type: String },
+    rating: {
+      type: Number,
+      enum: RATING_VALUES,
+    },
     dateAdded: { type: Date, default: Date.now },
   },
   {
