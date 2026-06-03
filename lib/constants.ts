@@ -1,3 +1,6 @@
+export const AVATAR_TYPES = ["identicon", "initial", "image"] as const;
+export type AvatarType = (typeof AVATAR_TYPES)[number];
+
 export const READING_STATUSES = ["Unread", "Reading", "Read"] as const;
 export type ReadingStatus = (typeof READING_STATUSES)[number];
 

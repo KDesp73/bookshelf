@@ -4,6 +4,7 @@ import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { updateProfileAction } from "@/actions/auth";
 import type { UserProfile } from "@/types/user";
+import { AvatarPicker } from "@/components/social/avatar-picker";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -38,16 +39,18 @@ export function ProfileEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-serif">Edit profile</DialogTitle>
         </DialogHeader>
 
         <form
-          key={`${user.name ?? ""}-${user.bio ?? ""}`}
+          key={`${user.name ?? ""}-${user.bio ?? ""}-${user.avatarType ?? ""}-${user.image ?? ""}`}
           action={formAction}
           className="space-y-4"
         >
+          <AvatarPicker user={user} disabled={pending} />
+
           <div className="grid gap-2">
             <Label htmlFor="profile-name">Name</Label>
             <Input

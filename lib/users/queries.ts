@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db";
 import { User, type IUser } from "@/models/User";
+import type { AvatarType } from "@/lib/constants";
 import type { UserProfile } from "@/types/user";
 
 function toUserProfile(user: IUser & { _id: { toString(): string } }): UserProfile {
@@ -8,6 +9,7 @@ function toUserProfile(user: IUser & { _id: { toString(): string } }): UserProfi
     email: user.email,
     name: user.name ?? undefined,
     image: user.image ?? undefined,
+    avatarType: (user.avatarType as AvatarType | undefined) ?? undefined,
     username: user.username ?? undefined,
     bio: user.bio ?? undefined,
     isAdmin: user.isAdmin ?? false,

@@ -1,4 +1,5 @@
 import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
+import { AVATAR_TYPES } from "@/lib/constants";
 
 const userSchema = new Schema(
   {
@@ -11,6 +12,11 @@ const userSchema = new Schema(
     },
     name: { type: String, trim: true },
     image: { type: String, trim: true },
+    avatarType: {
+      type: String,
+      enum: AVATAR_TYPES,
+      default: "identicon",
+    },
     username: {
       type: String,
       unique: true,

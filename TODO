@@ -1,5 +1,4 @@
 TODO: API keys
-TODO: restricting/deleting users
 TODO: hash user image
 TODO: genre information
 TODO: recommendations
@@ -11,7 +10,8 @@ TODO: better discover page
 TODO: export collection
 TODO: share profile
 TODO: mobile ui
-TODO: wishlist
 TODO: reports (inappropriate custom covers or bios)
+TODO: restricting/deleting users
 DONE: about page
 DONE: landing page
+DONE: wishlist

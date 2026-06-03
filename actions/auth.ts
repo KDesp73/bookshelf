@@ -11,6 +11,14 @@ import { claimLegacyBooksForAdmin } from "@/lib/books/legacy";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { isValidUsername, normalizeUsername } from "@/lib/auth/username";
 import { requireUser } from "@/lib/auth/require-user";
+import {
+  AVATAR_TYPES,
+  type AvatarType,
+} from "@/lib/constants";
+import {
+  isAllowedAvatarMime,
+  MAX_AVATAR_BYTES,
+} from "@/lib/users/avatar";
 
 export type AuthActionState = {
   error?: string;
@@ -167,22 +175,71 @@ export async function updateProfileAction(
 
   const name = String(formData.get("name") ?? "").trim();
   const bio = String(formData.get("bio") ?? "").trim();
+  const avatarTypeRaw = String(formData.get("avatarType") ?? "identicon");
+  const avatarFile = formData.get("avatarFile");
 
   if (bio.length > 280) {
     return { error: "Bio must be 280 characters or fewer." };
   }
 
+  if (!AVATAR_TYPES.includes(avatarTypeRaw as AvatarType)) {
+    return { error: "Invalid profile picture type." };
+  }
+
+  const avatarType = avatarTypeRaw as AvatarType;
+  let imageUpdate: string | undefined;
+
+  if (avatarType === "image") {
+    if (avatarFile instanceof File && avatarFile.size > 0) {
+      if (!isAllowedAvatarMime(avatarFile.type)) {
+        return { error: "Use a JPEG, PNG, WebP, or GIF image." };
+      }
+
+      if (avatarFile.size > MAX_AVATAR_BYTES) {
+        return { error: "Image must be 512 KB or smaller." };
+      }
+
+      const buffer = Buffer.from(await avatarFile.arrayBuffer());
+      imageUpdate = `data:${avatarFile.type};base64,${buffer.toString("base64")}`;
+    } else if (!auth.user.image) {
+      return { error: "Choose a photo to upload." };
+    }
+  }
+
   try {
     await connectDB();
-    await User.findByIdAndUpdate(auth.user.id, {
+
+    const setFields: Record<string, unknown> = {
       name: name || undefined,
       bio: bio || undefined,
-    });
+      avatarType,
+    };
+
+    if (avatarType === "image" && imageUpdate) {
+      setFields.image = imageUpdate;
+    }
+
+    const updateQuery: Record<string, unknown> = { $set: setFields };
+    if (avatarType !== "image") {
+      updateQuery.$unset = { image: "" };
+    }
+
+    await User.findByIdAndUpdate(auth.user.id, updateQuery);
   } catch {
     return { error: "Could not update profile." };
   }
 
-  await unstable_update({ user: { name: name || undefined } });
+  let nextImage: string | null = null;
+  if (avatarType === "image") {
+    nextImage = imageUpdate ?? auth.user.image ?? null;
+  }
+
+  await unstable_update({
+    user: {
+      name: name || undefined,
+      image: nextImage,
+    },
+  });
   revalidatePath(`/u/${auth.user.username}`);
 
   return { success: true };

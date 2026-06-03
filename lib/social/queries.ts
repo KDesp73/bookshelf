@@ -2,6 +2,7 @@ import { connectDB } from "@/lib/db";
 import { Book } from "@/models/Book";
 import { CollectionLike } from "@/models/CollectionLike";
 import { User, type IUser } from "@/models/User";
+import type { AvatarType } from "@/lib/constants";
 import type { DiscoverFilters, UserListItem } from "@/types/user";
 
 export async function getLikeCount(userId: string): Promise<number> {
@@ -62,6 +63,7 @@ export async function listUsers(
         username: typedUser.username!,
         name: typedUser.name ?? undefined,
         image: typedUser.image ?? undefined,
+        avatarType: (typedUser.avatarType as AvatarType | undefined) ?? undefined,
         bio: typedUser.bio ?? undefined,
         bookCount: bookCountMap.get(id) ?? 0,
         likeCount: likeCountMap.get(id) ?? 0,

@@ -1,8 +1,11 @@
+import type { AvatarType } from "@/lib/constants";
+
 export interface UserProfile {
   _id: string;
   email: string;
   name?: string;
   image?: string;
+  avatarType?: AvatarType;
   username?: string;
   bio?: string;
   isAdmin?: boolean;
@@ -31,6 +34,7 @@ export interface UserListItem {
   username: string;
   name?: string;
   image?: string;
+  avatarType?: AvatarType;
   bio?: string;
   bookCount: number;
   likeCount: number;

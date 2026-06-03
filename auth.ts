@@ -83,7 +83,11 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         });
       } else {
         let changed = false;
-        if (user.image && dbUser.image !== user.image) {
+        if (
+          user.image &&
+          dbUser.image !== user.image &&
+          (!dbUser.avatarType || dbUser.avatarType === "image")
+        ) {
           dbUser.image = user.image;
           changed = true;
         }

@@ -8,6 +8,7 @@ import { logoutAction } from "@/actions/auth";
 import { toggleCollectionLikeAction } from "@/actions/social";
 import type { UserProfile } from "@/types/user";
 import { ProfileEditDialog } from "@/components/social/profile-edit-dialog";
+import { UserAvatar } from "@/components/users/user-avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -51,18 +52,7 @@ export function ProfileHeader({
       <div className="rounded-xl border border-stone-200/80 bg-white/60 p-6 dark:border-stone-700 dark:bg-stone-900/40">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-amber-100 text-xl font-semibold text-amber-900 dark:bg-amber-950 dark:text-amber-100">
-              {user.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.image}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                (user.name?.[0] ?? user.username?.[0] ?? "?").toUpperCase()
-              )}
-            </div>
+            <UserAvatar user={user} className="h-16 w-16 text-xl" />
             <div>
               <h1 className="font-serif text-2xl font-semibold text-amber-950 dark:text-amber-100">
                 {user.name ?? user.username}
