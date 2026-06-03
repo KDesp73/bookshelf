@@ -3,9 +3,10 @@
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
-import { signIn, signOut } from "@/auth";
+import { signIn, signOut, unstable_update } from "@/auth";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
+import { claimLegacyBooksForAdmin } from "@/lib/books/legacy";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { isValidUsername, normalizeUsername } from "@/lib/auth/username";
 import { requireUser } from "@/lib/auth/require-user";
@@ -138,9 +139,15 @@ export async function completeOnboardingAction(
       username,
       bio: bio || undefined,
     });
+
+    if (auth.user.isAdmin) {
+      await claimLegacyBooksForAdmin(auth.user.id);
+    }
   } catch {
     return { error: "Could not save profile. Try again." };
   }
+
+  await unstable_update({ user: { username } });
 
   redirect("/");
 }

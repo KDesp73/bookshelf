@@ -1,5 +1,7 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { listBooks, getAllTags } from "@/lib/books/queries";
+import { claimLegacyBooksForAdmin } from "@/lib/books/legacy";
 import { getSessionUser } from "@/lib/auth/get-session-user";
 import { parseLibraryFilters } from "@/lib/books/filters";
 import { LibraryFilters } from "@/components/library/library-filters";
@@ -14,13 +16,21 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams;
   const filters = parseLibraryFilters(params);
 
+  if (!user?.id) {
+    redirect("/login?callbackUrl=/");
+  }
+
+  if (!user.username) {
+    redirect("/onboarding");
+  }
+
+  if (user.isAdmin) {
+    await claimLegacyBooksForAdmin(user.id);
+  }
+
   let books: Awaited<ReturnType<typeof listBooks>> = [];
   let tags: string[] = [];
   let dbError: string | null = null;
-
-  if (!user?.id || !user.username) {
-    return null;
-  }
 
   try {
     [books, tags] = await Promise.all([

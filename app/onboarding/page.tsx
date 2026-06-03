@@ -1,6 +1,25 @@
+import { redirect } from "next/navigation";
+import { unstable_update } from "@/auth";
 import { OnboardingForm } from "@/components/auth/onboarding-form";
+import { getSessionUser } from "@/lib/auth/get-session-user";
+import { getUserById } from "@/lib/users/queries";
 
-export default function OnboardingPage() {
+export default async function OnboardingPage() {
+  const session = await getSessionUser();
+
+  if (!session) {
+    redirect("/login?callbackUrl=/onboarding");
+  }
+
+  const user = await getUserById(session.id);
+
+  if (user?.username) {
+    if (!session.username) {
+      await unstable_update({ user: { username: user.username } });
+    }
+    redirect("/");
+  }
+
   return (
     <div className="mx-auto max-w-md space-y-6 py-8">
       <div className="text-center">

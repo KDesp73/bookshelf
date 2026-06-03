@@ -61,7 +61,7 @@ if (process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET) {
   );
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
   ...authConfig,
   providers,
   callbacks: {
@@ -99,11 +99,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       user.isAdmin = dbUser.isAdmin ?? false;
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user?.id) {
         token.id = user.id;
         token.username = user.username ?? null;
         token.isAdmin = user.isAdmin === true;
+      }
+
+      if (trigger === "update" && session) {
+        const update = session as {
+          username?: string;
+          user?: { username?: string };
+        };
+        const nextUsername = update.username ?? update.user?.username;
+        if (typeof nextUsername === "string") {
+          token.username = nextUsername;
+        }
+        return token;
       }
 
       if (token.id) {
