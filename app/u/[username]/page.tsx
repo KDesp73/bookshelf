@@ -8,6 +8,7 @@ import { getLikeCount, hasLiked } from "@/lib/social/queries";
 import { parseLibraryFilters } from "@/lib/books/filters";
 import { profileUrl } from "@/lib/site-url";
 import { ProfileHeader } from "@/components/social/profile-header";
+import { ShelfThemeWrapper } from "@/components/shelf/shelf-theme-wrapper";
 import { CollectionIOMenu } from "@/components/library/collection-io-menu";
 import { LibraryFilters } from "@/components/library/library-filters";
 import { BookGrid } from "@/components/library/book-grid";
@@ -93,7 +94,11 @@ export default async function ProfilePage({
   const isOwner = viewer?.id === user._id;
 
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <ShelfThemeWrapper
+      username={user.username}
+      appearance={user.shelfAppearance}
+      className="space-y-5 p-3 sm:space-y-6 sm:p-4"
+    >
       <ProfileHeader
         user={user}
         bookCount={bookCount}
@@ -106,10 +111,10 @@ export default async function ProfilePage({
       <div className="space-y-3 sm:space-y-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-serif text-xl font-semibold text-amber-950 dark:text-amber-100">
+            <h2 className="shelf-title font-serif text-xl font-semibold">
               Collection
             </h2>
-            <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
+            <p className="shelf-stats mt-1 text-sm">
               {books.length} {books.length === 1 ? "book" : "books"}
               {filters.search ? ` matching “${filters.search}”` : ""}
             </p>
@@ -133,14 +138,16 @@ export default async function ProfilePage({
           <Suspense fallback={<div className="h-10 animate-pulse rounded-md bg-stone-200 dark:bg-stone-800" />}>
             <LibraryFilters tags={tags} basePath={`/u/${user.username}`} />
           </Suspense>
-          <BookGrid
-            books={books}
-            isOwner={isOwner}
-            showNotes={isOwner}
-            canAddToWishlist={!!viewer?.username && !isOwner}
-          />
+          <div className="shelf-grid">
+            <BookGrid
+              books={books}
+              isOwner={isOwner}
+              showNotes={isOwner}
+              canAddToWishlist={!!viewer?.username && !isOwner}
+            />
+          </div>
         </>
       )}
-    </div>
+    </ShelfThemeWrapper>
   );
 }

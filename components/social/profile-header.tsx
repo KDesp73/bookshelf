@@ -3,12 +3,13 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Heart, LogOut, Pencil } from "lucide-react";
+import { BookOpen, Heart, LogOut, Palette, Pencil } from "lucide-react";
 import { logoutAction } from "@/actions/auth";
 import { toggleCollectionLikeAction } from "@/actions/social";
 import type { UserProfile } from "@/types/user";
 import { ProfileEditDialog } from "@/components/social/profile-edit-dialog";
 import { ShareProfileButton } from "@/components/social/share-profile-button";
+import { ShelfAppearanceDialog } from "@/components/shelf/shelf-appearance-dialog";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ export function ProfileHeader({
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(likeCount);
   const [editOpen, setEditOpen] = useState(false);
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
 
   const displayName = user.name ?? user.username ?? "Reader";
 
@@ -52,7 +54,7 @@ export function ProfileHeader({
 
   return (
     <>
-      <div className="overflow-hidden rounded-xl border border-stone-200/80 bg-white/60 dark:border-stone-700 dark:bg-stone-900/40">
+      <div className="shelf-header overflow-hidden rounded-xl border">
         <div className="bg-gradient-to-b from-amber-100/50 to-transparent px-4 pb-4 pt-5 dark:from-amber-950/20 sm:px-6 sm:pb-6 sm:pt-6">
           <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
             <UserAvatar
@@ -60,11 +62,11 @@ export function ProfileHeader({
               className="h-20 w-20 text-2xl ring-4 ring-white/80 dark:ring-stone-900/80 sm:h-16 sm:w-16 sm:text-xl sm:ring-0"
             />
             <div className="mt-4 min-w-0 flex-1 sm:ml-4 sm:mt-0">
-              <h1 className="font-serif text-2xl font-semibold text-amber-950 dark:text-amber-100">
+              <h1 className="shelf-title font-serif text-2xl font-semibold text-amber-950 dark:text-amber-100">
                 {displayName}
               </h1>
               {user.username ? (
-                <p className="text-sm text-stone-500">@{user.username}</p>
+                <p className="shelf-muted text-sm text-stone-500">@{user.username}</p>
               ) : null}
               {user.bio ? (
                 <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-stone-700 dark:text-stone-300 sm:mx-0">
@@ -75,7 +77,7 @@ export function ProfileHeader({
                   Add a bio to tell people about your reading taste.
                 </p>
               ) : null}
-              <p className="mt-3 text-sm text-stone-600 dark:text-stone-400">
+              <p className="shelf-stats mt-3 text-sm text-stone-600 dark:text-stone-400">
                 <span className="font-medium text-stone-800 dark:text-stone-200">
                   {bookCount}
                 </span>{" "}
@@ -99,7 +101,7 @@ export function ProfileHeader({
           </div>
         </div>
 
-        <div className="border-t border-stone-200/80 px-4 py-3 dark:border-stone-700 sm:hidden">
+        <div className="shelf-section border-t px-4 py-3 sm:hidden">
           <div className="grid grid-cols-2 gap-2">
             <ShareProfileButton
               username={user.username!}
@@ -114,11 +116,18 @@ export function ProfileHeader({
       </div>
 
       {isOwner ? (
-        <ProfileEditDialog
-          user={user}
-          open={editOpen}
-          onOpenChange={setEditOpen}
-        />
+        <>
+          <ProfileEditDialog
+            user={user}
+            open={editOpen}
+            onOpenChange={setEditOpen}
+          />
+          <ShelfAppearanceDialog
+            user={user}
+            open={appearanceOpen}
+            onOpenChange={setAppearanceOpen}
+          />
+        </>
       ) : null}
     </>
   );
@@ -127,6 +136,10 @@ export function ProfileHeader({
     if (isOwner) {
       return (
         <>
+          <Button variant="outline" size="sm" onClick={() => setAppearanceOpen(true)}>
+            <Palette className="h-4 w-4" />
+            Customize shelf
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
             <Pencil className="h-4 w-4" />
             Edit profile
@@ -180,6 +193,15 @@ export function ProfileHeader({
     if (isOwner) {
       return (
         <>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-center"
+            onClick={() => setAppearanceOpen(true)}
+          >
+            <Palette className="h-4 w-4" />
+            Customize
+          </Button>
           <Button
             variant="outline"
             size="sm"

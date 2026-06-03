@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Lora, Source_Sans_3 } from "next/font/google";
 import { AuthProvider } from "@/components/auth/session-provider";
 import { AppHeader } from "@/components/layout/app-header";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css";
 
@@ -30,7 +31,10 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#f6f1ea",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f1ea" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0a09" },
+  ],
 };
 
 export default function RootLayout({
@@ -39,13 +43,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${lora.variable} ${sourceSans.variable} h-full`}>
-      <body className="min-h-full bg-[#f6f1ea] font-sans text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100">
-        <AuthProvider>
-          <AppHeader />
-          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-6 sm:py-6">{children}</main>
-          <Analytics />
-        </AuthProvider>
+    <html lang="en" suppressHydrationWarning className={`${lora.variable} ${sourceSans.variable} h-full`}>
+      <body className="min-h-full bg-background font-sans text-foreground antialiased">
+        <ThemeProvider>
+          <AuthProvider>
+            <AppHeader />
+            <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-6 sm:py-6">{children}</main>
+            <Analytics />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

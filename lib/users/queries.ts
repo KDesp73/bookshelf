@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db";
 import { User, type IUser } from "@/models/User";
 import type { AvatarType } from "@/lib/constants";
+import { getShelfAppearance } from "@/lib/shelf/appearance";
 import type { UserProfile } from "@/types/user";
 
 function toUserProfile(user: IUser & { _id: { toString(): string } }): UserProfile {
@@ -12,6 +13,7 @@ function toUserProfile(user: IUser & { _id: { toString(): string } }): UserProfi
     avatarType: (user.avatarType as AvatarType | undefined) ?? undefined,
     username: user.username ?? undefined,
     bio: user.bio ?? undefined,
+    shelfAppearance: getShelfAppearance(user),
     isAdmin: user.isAdmin ?? false,
     createdAt: user.createdAt.toISOString(),
   };

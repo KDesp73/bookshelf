@@ -1,4 +1,5 @@
 import type { AvatarType } from "@/lib/constants";
+import type { ShelfAppearance } from "@/types/shelf";
 
 export interface UserProfile {
   _id: string;
@@ -8,6 +9,7 @@ export interface UserProfile {
   avatarType?: AvatarType;
   username?: string;
   bio?: string;
+  shelfAppearance: ShelfAppearance;
   isAdmin?: boolean;
   createdAt: string;
 }

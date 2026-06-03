@@ -59,7 +59,7 @@ export function BookGrid({
             key={book._id}
             type="button"
             onClick={() => setSelected(book)}
-            className="group relative text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600/50 rounded-md"
+            className="group shelf-card relative text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600/50 rounded-md"
           >
             <BookCover
               title={book.title}

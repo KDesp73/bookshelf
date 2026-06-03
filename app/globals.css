@@ -1,9 +1,16 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f6f1ea;
   --foreground: #292524;
   --shelf-wood: #d4c4b0;
+}
+
+.dark {
+  --background: #0c0a09;
+  --foreground: #f5f5f4;
 }
 
 @theme inline {
@@ -11,13 +18,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-serif), ui-serif, Georgia, serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0c0a09;
-    --foreground: #f5f5f4;
-  }
 }
 
 body {
@@ -28,6 +28,39 @@ body {
 
 .font-serif {
   font-family: var(--font-serif);
+}
+
+.bookshelf-themed {
+  background: var(--shelf-bg);
+  color: var(--shelf-text);
+}
+
+.bookshelf-themed .shelf-header {
+  background: var(--shelf-surface);
+  border-color: var(--shelf-border);
+  color: var(--shelf-text);
+}
+
+.bookshelf-themed .shelf-title {
+  color: var(--shelf-text);
+}
+
+.bookshelf-themed .shelf-stats,
+.bookshelf-themed .shelf-muted {
+  color: var(--shelf-muted);
+}
+
+.bookshelf-themed .shelf-accent {
+  color: var(--shelf-accent);
+}
+
+.bookshelf-themed .shelf-card {
+  background: var(--shelf-surface);
+  border-color: var(--shelf-border);
+}
+
+.bookshelf-themed .shelf-section {
+  border-color: var(--shelf-border);
 }
 
 /* html5-qrcode video fills scanner region */
