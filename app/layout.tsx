@@ -43,7 +43,7 @@ export default function RootLayout({
       <body className="min-h-full bg-[#f6f1ea] font-sans text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100">
         <AuthProvider>
           <AppHeader />
-          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-6 sm:py-6">{children}</main>
           <Analytics />
         </AuthProvider>
       </body>

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getSessionUser } from "@/lib/auth/get-session-user";
@@ -5,6 +6,7 @@ import { getUserByUsername } from "@/lib/users/queries";
 import { listPublicBooks, getAllTags, getBookCount } from "@/lib/books/queries";
 import { getLikeCount, hasLiked } from "@/lib/social/queries";
 import { parseLibraryFilters } from "@/lib/books/filters";
+import { profileUrl } from "@/lib/site-url";
 import { ProfileHeader } from "@/components/social/profile-header";
 import { CollectionIOMenu } from "@/components/library/collection-io-menu";
 import { LibraryFilters } from "@/components/library/library-filters";
@@ -13,6 +15,41 @@ import { BookGrid } from "@/components/library/book-grid";
 interface ProfilePageProps {
   params: Promise<{ username: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export async function generateMetadata({
+  params,
+}: ProfilePageProps): Promise<Metadata> {
+  const { username } = await params;
+  const user = await getUserByUsername(username);
+
+  if (!user?.username) {
+    return { title: "Profile not found" };
+  }
+
+  const displayName = user.name ?? user.username;
+  const title = `${displayName} (@${user.username})`;
+  const description =
+    user.bio?.trim() ||
+    `Browse ${displayName}'s book collection on BookShelf.`;
+  const url = profileUrl(user.username);
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: "BookShelf",
+      type: "profile",
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
+  };
 }
 
 export default async function ProfilePage({
@@ -56,7 +93,7 @@ export default async function ProfilePage({
   const isOwner = viewer?.id === user._id;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <ProfileHeader
         user={user}
         bookCount={bookCount}
@@ -66,22 +103,25 @@ export default async function ProfilePage({
         viewerLoggedIn={!!viewer?.id}
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="font-serif text-xl font-semibold text-amber-950 dark:text-amber-100">
-            Collection
-          </h2>
-          <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
-            {books.length} {books.length === 1 ? "book" : "books"}
-            {filters.search ? ` matching “${filters.search}”` : ""}
-          </p>
+      <div className="space-y-3 sm:space-y-0">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-serif text-xl font-semibold text-amber-950 dark:text-amber-100">
+              Collection
+            </h2>
+            <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
+              {books.length} {books.length === 1 ? "book" : "books"}
+              {filters.search ? ` matching “${filters.search}”` : ""}
+            </p>
+          </div>
+          {isOwner && !dbError ? (
+            <CollectionIOMenu
+              list="library"
+              includeWishlistExports
+              className="grid w-full grid-cols-2 sm:flex sm:w-auto"
+            />
+          ) : null}
         </div>
-        {isOwner && !dbError ? (
-          <CollectionIOMenu
-            list="library"
-            includeWishlistExports
-          />
-        ) : null}
       </div>
 
       {dbError ? (

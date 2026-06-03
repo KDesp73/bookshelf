@@ -52,7 +52,7 @@ export function LibraryFilters({
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-      <div className="relative min-w-[200px] flex-1">
+      <div className="relative w-full sm:min-w-[200px] sm:flex-1">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
         <Input
           className="pl-9"
@@ -62,48 +62,50 @@ export function LibraryFilters({
         />
       </div>
 
-      {!hideStatusFilter ? (
-        <Select
-          value={status}
-          onValueChange={(v) => updateParams({ status: v })}
-        >
-          <SelectTrigger className="w-full sm:w-[140px]">
-            <SelectValue placeholder="Status" />
+      <div className="grid grid-cols-2 gap-2 sm:contents">
+        {!hideStatusFilter ? (
+          <Select
+            value={status}
+            onValueChange={(v) => updateParams({ status: v })}
+          >
+            <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {READING_STATUSES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null}
+
+        <Select value={tag} onValueChange={(v) => updateParams({ tag: v })}>
+          <SelectTrigger className="w-full sm:w-[160px]">
+            <SelectValue placeholder="Tag" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            {READING_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
+            <SelectItem value="all">All tags</SelectItem>
+            {tags.map((t) => (
+              <SelectItem key={t} value={t}>
+                {t}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-      ) : null}
 
-      <Select value={tag} onValueChange={(v) => updateParams({ tag: v })}>
-        <SelectTrigger className="w-full sm:w-[160px]">
-          <SelectValue placeholder="Tag" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All tags</SelectItem>
-          {tags.map((t) => (
-            <SelectItem key={t} value={t}>
-              {t}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      <Select value={sort} onValueChange={(v) => updateParams({ sort: v })}>
-        <SelectTrigger className="w-full sm:w-[160px]">
-          <SelectValue placeholder="Sort" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="dateAdded">Recently added</SelectItem>
-          <SelectItem value="title">Title A–Z</SelectItem>
-        </SelectContent>
-      </Select>
+        <Select value={sort} onValueChange={(v) => updateParams({ sort: v })}>
+          <SelectTrigger className="col-span-2 w-full sm:col-span-1 sm:w-[160px]">
+            <SelectValue placeholder="Sort" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="dateAdded">Recently added</SelectItem>
+            <SelectItem value="title">Title A–Z</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }

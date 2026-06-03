@@ -8,6 +8,7 @@ import { logoutAction } from "@/actions/auth";
 import { toggleCollectionLikeAction } from "@/actions/social";
 import type { UserProfile } from "@/types/user";
 import { ProfileEditDialog } from "@/components/social/profile-edit-dialog";
+import { ShareProfileButton } from "@/components/social/share-profile-button";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,8 @@ export function ProfileHeader({
   const [count, setCount] = useState(likeCount);
   const [editOpen, setEditOpen] = useState(false);
 
+  const displayName = user.name ?? user.username ?? "Reader";
+
   function handleLike() {
     if (!viewerLoggedIn) return;
 
@@ -49,80 +52,63 @@ export function ProfileHeader({
 
   return (
     <>
-      <div className="rounded-xl border border-stone-200/80 bg-white/60 p-6 dark:border-stone-700 dark:bg-stone-900/40">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-start gap-4">
-            <UserAvatar user={user} className="h-16 w-16 text-xl" />
-            <div>
+      <div className="overflow-hidden rounded-xl border border-stone-200/80 bg-white/60 dark:border-stone-700 dark:bg-stone-900/40">
+        <div className="bg-gradient-to-b from-amber-100/50 to-transparent px-4 pb-4 pt-5 dark:from-amber-950/20 sm:px-6 sm:pb-6 sm:pt-6">
+          <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
+            <UserAvatar
+              user={user}
+              className="h-20 w-20 text-2xl ring-4 ring-white/80 dark:ring-stone-900/80 sm:h-16 sm:w-16 sm:text-xl sm:ring-0"
+            />
+            <div className="mt-4 min-w-0 flex-1 sm:ml-4 sm:mt-0">
               <h1 className="font-serif text-2xl font-semibold text-amber-950 dark:text-amber-100">
-                {user.name ?? user.username}
+                {displayName}
               </h1>
               {user.username ? (
                 <p className="text-sm text-stone-500">@{user.username}</p>
               ) : null}
               {user.bio ? (
-                <p className="mt-2 max-w-xl text-sm text-stone-700 dark:text-stone-300">
+                <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-stone-700 dark:text-stone-300 sm:mx-0">
                   {user.bio}
                 </p>
               ) : isOwner ? (
-                <p className="mt-2 max-w-xl text-sm text-stone-500">
+                <p className="mx-auto mt-2 max-w-xl text-sm text-stone-500 sm:mx-0">
                   Add a bio to tell people about your reading taste.
                 </p>
               ) : null}
-              <p className="mt-2 text-sm text-stone-600 dark:text-stone-400">
-                {bookCount} {bookCount === 1 ? "book" : "books"} · {count}{" "}
+              <p className="mt-3 text-sm text-stone-600 dark:text-stone-400">
+                <span className="font-medium text-stone-800 dark:text-stone-200">
+                  {bookCount}
+                </span>{" "}
+                {bookCount === 1 ? "book" : "books"}
+                <span className="mx-2 text-stone-300 dark:text-stone-600">·</span>
+                <span className="font-medium text-stone-800 dark:text-stone-200">
+                  {count}
+                </span>{" "}
                 {count === 1 ? "like" : "likes"}
               </p>
             </div>
-          </div>
 
-          <div className="flex shrink-0 flex-wrap gap-2">
-            {isOwner ? (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditOpen(true)}
-                >
-                  <Pencil className="h-4 w-4" />
-                  Edit profile
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/wishlist">
-                    <Heart className="h-4 w-4" />
-                    Wishlist
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/">
-                    <BookOpen className="h-4 w-4" />
-                    My library
-                  </Link>
-                </Button>
-                <form action={logoutAction}>
-                  <Button variant="ghost" size="sm" type="submit">
-                    <LogOut className="h-4 w-4" />
-                    Log out
-                  </Button>
-                </form>
-              </>
-            ) : viewerLoggedIn ? (
-              <Button
-                variant={liked ? "default" : "outline"}
-                size="sm"
-                onClick={handleLike}
-                disabled={pending}
-              >
-                <Heart className={cn("h-4 w-4", liked && "fill-current")} />
-                {liked ? "Liked" : "Like collection"}
-              </Button>
-            ) : (
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/login?callbackUrl=/u/${user.username}`}>
-                  Sign in to like
-                </Link>
-              </Button>
-            )}
+            <div className="mt-4 hidden shrink-0 flex-wrap justify-end gap-2 sm:mt-0 sm:flex">
+              <ShareProfileButton
+                username={user.username!}
+                displayName={displayName}
+                bio={user.bio}
+              />
+              {renderDesktopActions()}
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-stone-200/80 px-4 py-3 dark:border-stone-700 sm:hidden">
+          <div className="grid grid-cols-2 gap-2">
+            <ShareProfileButton
+              username={user.username!}
+              displayName={displayName}
+              bio={user.bio}
+              className="col-span-2 w-full justify-center"
+              variant="default"
+            />
+            {renderMobileActions()}
           </div>
         </div>
       </div>
@@ -136,4 +122,116 @@ export function ProfileHeader({
       ) : null}
     </>
   );
+
+  function renderDesktopActions() {
+    if (isOwner) {
+      return (
+        <>
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+            <Pencil className="h-4 w-4" />
+            Edit profile
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/wishlist">
+              <Heart className="h-4 w-4" />
+              Wishlist
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/">
+              <BookOpen className="h-4 w-4" />
+              My library
+            </Link>
+          </Button>
+          <form action={logoutAction}>
+            <Button variant="ghost" size="sm" type="submit">
+              <LogOut className="h-4 w-4" />
+              Log out
+            </Button>
+          </form>
+        </>
+      );
+    }
+
+    if (viewerLoggedIn) {
+      return (
+        <Button
+          variant={liked ? "default" : "outline"}
+          size="sm"
+          onClick={handleLike}
+          disabled={pending}
+        >
+          <Heart className={cn("h-4 w-4", liked && "fill-current")} />
+          {liked ? "Liked" : "Like collection"}
+        </Button>
+      );
+    }
+
+    return (
+      <Button variant="outline" size="sm" asChild>
+        <Link href={`/login?callbackUrl=/u/${user.username}`}>
+          Sign in to like
+        </Link>
+      </Button>
+    );
+  }
+
+  function renderMobileActions() {
+    if (isOwner) {
+      return (
+        <>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-center"
+            onClick={() => setEditOpen(true)}
+          >
+            <Pencil className="h-4 w-4" />
+            Edit
+          </Button>
+          <Button variant="outline" size="sm" className="w-full justify-center" asChild>
+            <Link href="/wishlist">
+              <Heart className="h-4 w-4" />
+              Wishlist
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" className="w-full justify-center" asChild>
+            <Link href="/">
+              <BookOpen className="h-4 w-4" />
+              Library
+            </Link>
+          </Button>
+          <form action={logoutAction} className="col-span-2">
+            <Button variant="ghost" size="sm" type="submit" className="w-full justify-center">
+              <LogOut className="h-4 w-4" />
+              Log out
+            </Button>
+          </form>
+        </>
+      );
+    }
+
+    if (viewerLoggedIn) {
+      return (
+        <Button
+          variant={liked ? "default" : "outline"}
+          size="sm"
+          className="col-span-2 w-full justify-center"
+          onClick={handleLike}
+          disabled={pending}
+        >
+          <Heart className={cn("h-4 w-4", liked && "fill-current")} />
+          {liked ? "Liked" : "Like collection"}
+        </Button>
+      );
+    }
+
+    return (
+      <Button variant="outline" size="sm" className="col-span-2 w-full justify-center" asChild>
+        <Link href={`/login?callbackUrl=/u/${user.username}`}>
+          Sign in to like
+        </Link>
+      </Button>
+    );
+  }
 }

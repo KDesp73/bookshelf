@@ -14,6 +14,7 @@ import { importCollectionAction } from "@/actions/collection-io";
 import type { BookListKind } from "@/types/book";
 import type { ExportFormat } from "@/types/export";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +34,7 @@ interface CollectionIOMenuProps {
   list: BookListKind;
   showImport?: boolean;
   includeWishlistExports?: boolean;
+  className?: string;
 }
 
 const FORMAT_OPTIONS: {
@@ -53,6 +55,7 @@ export function CollectionIOMenu({
   list,
   showImport = true,
   includeWishlistExports = false,
+  className,
 }: CollectionIOMenuProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -112,10 +115,10 @@ export function CollectionIOMenu({
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className={cn("flex flex-wrap items-center gap-2", className)}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="w-full justify-center sm:w-auto">
               <Download className="h-4 w-4" />
               Export
               <ChevronDown className="h-3.5 w-3.5 opacity-70" />
@@ -138,6 +141,7 @@ export function CollectionIOMenu({
           <Button
             variant="outline"
             size="sm"
+            className="w-full justify-center sm:w-auto"
             onClick={() => {
               setImportOpen(true);
               setMessage(null);
