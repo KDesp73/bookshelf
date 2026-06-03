@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Lora, Source_Sans_3 } from "next/font/google";
 import { AuthProvider } from "@/components/auth/session-provider";
 import { AppHeader } from "@/components/layout/app-header";
+import { ShelfPresetStyles } from "@/components/shelf/shelf-preset-styles";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css";
@@ -46,6 +47,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${lora.variable} ${sourceSans.variable} h-full`}>
       <body className="min-h-full bg-background font-sans text-foreground antialiased">
         <ThemeProvider>
+          <ShelfPresetStyles />
           <AuthProvider>
             <AppHeader />
             <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-6 sm:py-6">{children}</main>

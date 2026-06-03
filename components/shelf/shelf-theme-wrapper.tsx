@@ -24,6 +24,7 @@ export function ShelfThemeWrapper({
   return (
     <div
       data-shelf={username}
+      data-preset={appearance.preset}
       className={`bookshelf-themed shelf-root rounded-2xl ${className ?? ""}`.trim()}
       style={buildShelfStyleVars(appearance)}
     >

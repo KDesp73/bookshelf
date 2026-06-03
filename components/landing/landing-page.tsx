@@ -127,7 +127,7 @@ export function LandingPage() {
             </div>
 
             <div className="space-y-6">
-              <div className="rounded-xl border border-stone-200/80 bg-[#f6f1ea]/80 p-6 dark:border-stone-700 dark:bg-stone-950/60">
+              <div className="rounded-xl border border-stone-200/80 bg-background/80 p-6 dark:border-stone-700">
                 <h3 className="flex items-center gap-2 font-serif text-lg font-semibold text-stone-900 dark:text-stone-100">
                   <BookOpen className="h-5 w-5 text-amber-800" />
                   How it works

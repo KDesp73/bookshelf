@@ -23,7 +23,7 @@ export function RegisterForm() {
           <span className="w-full border-t border-stone-200 dark:border-stone-700" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-[#f6f1ea] px-2 text-stone-500 dark:bg-stone-950">
+          <span className="bg-background px-2 text-stone-500">
             Or sign up with email
           </span>
         </div>

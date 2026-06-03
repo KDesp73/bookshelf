@@ -68,7 +68,79 @@ export const SHELF_PRESET_VARS: Record<ShelfPreset, ShelfThemeVars> = {
   },
 };
 
+export const SHELF_PRESET_VARS_DARK: Record<ShelfPreset, ShelfThemeVars> = {
+  default: {
+    background: "#0c0a09",
+    surface: "rgba(28, 25, 23, 0.85)",
+    border: "rgba(68, 64, 60, 0.6)",
+    accent: "#fbbf24",
+    accentSoft: "rgba(251, 191, 36, 0.12)",
+    text: "#f5f5f4",
+    muted: "#a8a29e",
+  },
+  warm: {
+    background: "#1c1410",
+    surface: "rgba(41, 31, 24, 0.88)",
+    border: "rgba(180, 83, 9, 0.25)",
+    accent: "#fbbf24",
+    accentSoft: "rgba(251, 191, 36, 0.12)",
+    text: "#fef3c7",
+    muted: "#d6a06a",
+  },
+  forest: {
+    background: "#0a120d",
+    surface: "rgba(20, 35, 26, 0.88)",
+    border: "rgba(34, 197, 94, 0.18)",
+    accent: "#4ade80",
+    accentSoft: "rgba(74, 222, 128, 0.12)",
+    text: "#dcfce7",
+    muted: "#86efac",
+  },
+  ocean: {
+    background: "#0a1018",
+    surface: "rgba(15, 28, 46, 0.88)",
+    border: "rgba(59, 130, 246, 0.2)",
+    accent: "#60a5fa",
+    accentSoft: "rgba(96, 165, 250, 0.12)",
+    text: "#dbeafe",
+    muted: "#93c5fd",
+  },
+  midnight: SHELF_PRESET_VARS.midnight,
+  rose: {
+    background: "#150810",
+    surface: "rgba(40, 18, 30, 0.88)",
+    border: "rgba(244, 114, 182, 0.18)",
+    accent: "#f472b6",
+    accentSoft: "rgba(244, 114, 182, 0.12)",
+    text: "#fce7f3",
+    muted: "#f9a8d4",
+  },
+};
+
 const HEX_COLOR = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+function varsToCssProperties(vars: ShelfThemeVars): string {
+  return [
+    `--shelf-bg: ${vars.background}`,
+    `--shelf-surface: ${vars.surface}`,
+    `--shelf-border: ${vars.border}`,
+    `--shelf-accent: ${vars.accent}`,
+    `--shelf-accent-soft: ${vars.accentSoft}`,
+    `--shelf-text: ${vars.text}`,
+    `--shelf-muted: ${vars.muted}`,
+  ].join("; ");
+}
+
+export function buildShelfPresetStylesheet(): string {
+  return SHELF_PRESETS.map((preset) => {
+    const light = SHELF_PRESET_VARS[preset];
+    const dark = SHELF_PRESET_VARS_DARK[preset];
+    return [
+      `.bookshelf-themed[data-preset="${preset}"] { ${varsToCssProperties(light)} }`,
+      `html.dark .bookshelf-themed[data-preset="${preset}"] { ${varsToCssProperties(dark)} }`,
+    ].join("\n");
+  }).join("\n");
+}
 
 export function isValidShelfColor(value: string | undefined): boolean {
   if (!value) return true;
@@ -95,15 +167,15 @@ export function normalizeShelfAppearance(input: Partial<ShelfAppearance>): Shelf
 export function buildShelfStyleVars(
   appearance: ShelfAppearance,
 ): Record<string, string> {
-  const preset = SHELF_PRESET_VARS[appearance.preset] ?? SHELF_PRESET_VARS.default;
+  const vars: Record<string, string> = {};
 
-  return {
-    "--shelf-bg": appearance.backgroundColor ?? preset.background,
-    "--shelf-surface": preset.surface,
-    "--shelf-border": preset.border,
-    "--shelf-accent": appearance.accentColor ?? preset.accent,
-    "--shelf-accent-soft": preset.accentSoft,
-    "--shelf-text": preset.text,
-    "--shelf-muted": preset.muted,
-  };
+  if (appearance.backgroundColor) {
+    vars["--shelf-bg"] = appearance.backgroundColor;
+  }
+
+  if (appearance.accentColor) {
+    vars["--shelf-accent"] = appearance.accentColor;
+  }
+
+  return vars;
 }
