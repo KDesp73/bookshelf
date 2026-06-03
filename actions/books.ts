@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { connectDB } from "@/lib/db";
-import { DEFAULT_USER_ID, READING_STATUSES } from "@/lib/constants";
+import { READING_STATUSES, isValidRating } from "@/lib/constants";
 import { Book } from "@/models/Book";
 import { normalizeIsbn } from "@/lib/books/isbn";
 import { fetchBookByIsbn } from "@/lib/books/lookup";
@@ -12,13 +12,51 @@ import {
   listBooks,
   getAllTags,
 } from "@/lib/books/queries";
-import { requireAdmin } from "@/lib/auth/require-admin";
+import { requireUserWithUsername } from "@/lib/auth/require-user";
 import type { BookDocument, BookInput, LibraryFilters } from "@/types/book";
 import type { ReadingStatus } from "@/lib/constants";
 
 export type ActionResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
+
+function serializeBook(book: {
+  _id: { toString(): string };
+  userId: string;
+  isbn13: string;
+  title: string;
+  subtitle?: string | null;
+  authors?: string[] | null;
+  publisher?: string | null;
+  publishedDate?: string | null;
+  description?: string | null;
+  pageCount?: number | null;
+  coverUrl?: string | null;
+  status: string;
+  tags?: string[] | null;
+  notes?: string | null;
+  rating?: number | null;
+  dateAdded: Date;
+}): BookDocument {
+  return {
+    _id: book._id.toString(),
+    userId: book.userId,
+    isbn13: book.isbn13,
+    title: book.title,
+    subtitle: book.subtitle ?? undefined,
+    authors: book.authors ?? [],
+    publisher: book.publisher ?? undefined,
+    publishedDate: book.publishedDate ?? undefined,
+    description: book.description ?? undefined,
+    pageCount: book.pageCount ?? undefined,
+    coverUrl: book.coverUrl ?? undefined,
+    status: book.status as ReadingStatus,
+    tags: book.tags ?? [],
+    notes: book.notes ?? undefined,
+    rating: book.rating ?? undefined,
+    dateAdded: book.dateAdded.toISOString(),
+  };
+}
 
 export async function lookupIsbnAction(
   rawIsbn: string,
@@ -28,8 +66,10 @@ export async function lookupIsbnAction(
     | { type: "preview"; preview: BookInput }
   >
 > {
-  const authError = await requireAdmin();
-  if (authError) return { success: false, error: authError };
+  const auth = await requireUserWithUsername();
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Sign in required." };
+  }
 
   const isbn13 = normalizeIsbn(rawIsbn);
   if (!isbn13) {
@@ -37,7 +77,7 @@ export async function lookupIsbnAction(
   }
 
   try {
-    const existing = await findBookByIsbn(isbn13);
+    const existing = await findBookByIsbn(isbn13, auth.user.id);
     if (existing) {
       return { success: true, data: { type: "existing", book: existing } };
     }
@@ -73,8 +113,10 @@ export async function lookupIsbnAction(
 export async function saveBookAction(
   input: BookInput,
 ): Promise<ActionResult<BookDocument>> {
-  const authError = await requireAdmin();
-  if (authError) return { success: false, error: authError };
+  const auth = await requireUserWithUsername();
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Sign in required." };
+  }
 
   const isbn13 = normalizeIsbn(input.isbn13) ?? input.isbn13;
 
@@ -82,11 +124,15 @@ export async function saveBookAction(
     return { success: false, error: "Title is required." };
   }
 
+  if (input.rating != null && !isValidRating(input.rating)) {
+    return { success: false, error: "Invalid rating." };
+  }
+
   try {
     await connectDB();
 
     const existing = await Book.findOne({
-      userId: DEFAULT_USER_ID,
+      userId: auth.user.id,
       isbn13,
     });
 
@@ -95,7 +141,7 @@ export async function saveBookAction(
     }
 
     const book = await Book.create({
-      userId: DEFAULT_USER_ID,
+      userId: auth.user.id,
       isbn13,
       title: input.title.trim(),
       subtitle: input.subtitle?.trim(),
@@ -108,31 +154,14 @@ export async function saveBookAction(
       status: input.status ?? "Unread",
       tags: input.tags?.map((t) => t.trim()).filter(Boolean) ?? [],
       notes: input.notes?.trim(),
+      rating: input.rating ?? undefined,
     });
 
     revalidatePath("/");
     revalidatePath("/scan");
+    revalidatePath(`/u/${auth.user.username}`);
 
-    return {
-      success: true,
-      data: {
-        _id: book._id.toString(),
-        userId: book.userId,
-        isbn13: book.isbn13,
-        title: book.title,
-        subtitle: book.subtitle ?? undefined,
-        authors: book.authors ?? [],
-        publisher: book.publisher ?? undefined,
-        publishedDate: book.publishedDate ?? undefined,
-        description: book.description ?? undefined,
-        pageCount: book.pageCount ?? undefined,
-        coverUrl: book.coverUrl ?? undefined,
-        status: book.status as ReadingStatus,
-        tags: book.tags ?? [],
-        notes: book.notes ?? undefined,
-        dateAdded: book.dateAdded.toISOString(),
-      },
-    };
+    return { success: true, data: serializeBook(book) };
   } catch {
     return { success: false, error: "Failed to save book." };
   }
@@ -140,20 +169,26 @@ export async function saveBookAction(
 
 export async function updateBookAction(
   id: string,
-  updates: Partial<BookInput> & { status?: ReadingStatus },
+  updates: Partial<BookInput> & { status?: ReadingStatus; rating?: number | null },
 ): Promise<ActionResult<BookDocument>> {
-  const authError = await requireAdmin();
-  if (authError) return { success: false, error: authError };
+  const auth = await requireUserWithUsername();
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Sign in required." };
+  }
 
   if (updates.status && !READING_STATUSES.includes(updates.status)) {
     return { success: false, error: "Invalid reading status." };
+  }
+
+  if (updates.rating !== undefined && updates.rating !== null && !isValidRating(updates.rating)) {
+    return { success: false, error: "Invalid rating." };
   }
 
   try {
     await connectDB();
 
     const book = await Book.findOneAndUpdate(
-      { _id: id, userId: DEFAULT_USER_ID },
+      { _id: id, userId: auth.user.id },
       {
         ...(updates.title !== undefined && { title: updates.title.trim() }),
         ...(updates.subtitle !== undefined && {
@@ -178,6 +213,9 @@ export async function updateBookAction(
           tags: updates.tags.map((t) => t.trim()).filter(Boolean),
         }),
         ...(updates.notes !== undefined && { notes: updates.notes?.trim() }),
+        ...(updates.rating !== undefined && {
+          rating: updates.rating === null ? undefined : updates.rating,
+        }),
       },
       { new: true },
     );
@@ -187,8 +225,9 @@ export async function updateBookAction(
     }
 
     revalidatePath("/");
+    revalidatePath(`/u/${auth.user.username}`);
 
-    const doc = await findBookById(id);
+    const doc = await findBookById(id, auth.user.id);
     if (!doc) {
       return { success: false, error: "Book not found after update." };
     }
@@ -200,16 +239,19 @@ export async function updateBookAction(
 }
 
 export async function deleteBookAction(id: string): Promise<ActionResult<null>> {
-  const authError = await requireAdmin();
-  if (authError) return { success: false, error: authError };
+  const auth = await requireUserWithUsername();
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Sign in required." };
+  }
 
   try {
     await connectDB();
-    const result = await Book.deleteOne({ _id: id, userId: DEFAULT_USER_ID });
+    const result = await Book.deleteOne({ _id: id, userId: auth.user.id });
     if (result.deletedCount === 0) {
       return { success: false, error: "Book not found." };
     }
     revalidatePath("/");
+    revalidatePath(`/u/${auth.user.username}`);
     return { success: true, data: null };
   } catch {
     return { success: false, error: "Failed to delete book." };
@@ -219,8 +261,13 @@ export async function deleteBookAction(id: string): Promise<ActionResult<null>> 
 export async function getLibraryBooksAction(
   filters: LibraryFilters,
 ): Promise<ActionResult<BookDocument[]>> {
+  const auth = await requireUserWithUsername();
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Sign in required." };
+  }
+
   try {
-    const books = await listBooks(filters);
+    const books = await listBooks(auth.user.id, filters);
     return { success: true, data: books };
   } catch {
     return { success: false, error: "Failed to load library." };
@@ -230,8 +277,13 @@ export async function getLibraryBooksAction(
 export async function getFilterOptionsAction(): Promise<
   ActionResult<{ tags: string[] }>
 > {
+  const auth = await requireUserWithUsername();
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Sign in required." };
+  }
+
   try {
-    const tags = await getAllTags();
+    const tags = await getAllTags(auth.user.id);
     return { success: true, data: { tags } };
   } catch {
     return { success: false, error: "Failed to load filter options." };

@@ -6,9 +6,10 @@ import {
   deleteBookAction,
   updateBookAction,
 } from "@/actions/books";
-import type { BookDocument } from "@/types/book";
+import type { BookDocument, PublicBookDocument } from "@/types/book";
 import { READING_STATUSES } from "@/lib/constants";
 import { BookCover } from "@/components/books/book-cover";
+import { StarRating } from "@/components/books/star-rating";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,10 +31,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 interface BookDetailsDialogProps {
-  book: BookDocument | null;
+  book: (BookDocument | PublicBookDocument) | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  isAdmin: boolean;
+  isOwner: boolean;
+  showNotes?: boolean;
   onUpdated: (book: BookDocument) => void;
 }
 
@@ -47,7 +49,8 @@ export function BookDetailsDialog({
   book,
   open,
   onOpenChange,
-  isAdmin,
+  isOwner,
+  showNotes = isOwner,
   onUpdated,
 }: BookDetailsDialogProps) {
   if (!book) return null;
@@ -58,7 +61,8 @@ export function BookDetailsDialog({
         <BookDetailsContent
           key={book._id}
           book={book}
-          isAdmin={isAdmin}
+          isOwner={isOwner}
+          showNotes={showNotes}
           onOpenChange={onOpenChange}
           onUpdated={onUpdated}
         />
@@ -69,12 +73,14 @@ export function BookDetailsDialog({
 
 function BookDetailsContent({
   book,
-  isAdmin,
+  isOwner,
+  showNotes,
   onOpenChange,
   onUpdated,
 }: {
-  book: BookDocument;
-  isAdmin: boolean;
+  book: BookDocument | PublicBookDocument;
+  isOwner: boolean;
+  showNotes: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdated: (book: BookDocument) => void;
 }) {
@@ -85,7 +91,10 @@ function BookDetailsContent({
   const [status, setStatus] = useState(book.status);
   const [coverUrl, setCoverUrl] = useState(book.coverUrl ?? "");
   const [tagsInput, setTagsInput] = useState(book.tags.join(", "));
-  const [notes, setNotes] = useState(book.notes ?? "");
+  const [notes, setNotes] = useState(
+    "notes" in book ? (book.notes ?? "") : "",
+  );
+  const [rating, setRating] = useState<number | undefined>(book.rating);
 
   function handleSave() {
     setError(null);
@@ -98,6 +107,7 @@ function BookDetailsContent({
           .map((t) => t.trim())
           .filter(Boolean),
         notes: notes || undefined,
+        rating: rating ?? null,
       });
 
       if (!result.success) {
@@ -131,7 +141,7 @@ function BookDetailsContent({
         <DialogTitle className="font-serif pr-2 text-xl leading-snug">
           {book.title}
         </DialogTitle>
-        {isAdmin && !editing && (
+        {isOwner && !editing && (
           <Button
             variant="outline"
             size="sm"
@@ -157,6 +167,11 @@ function BookDetailsContent({
           </div>
 
           <div className="grid gap-3">
+            <div className="grid gap-2">
+              <Label>Rating</Label>
+              <StarRating value={rating} onChange={setRating} />
+            </div>
+
             <div className="grid gap-2">
               <Label>Cover image URL</Label>
               <Input
@@ -240,6 +255,9 @@ function BookDetailsContent({
               <p className="text-sm font-medium text-stone-800 dark:text-stone-200">
                 {book.authors.join(", ")}
               </p>
+              {book.rating != null ? (
+                <StarRating value={book.rating} readOnly />
+              ) : null}
               <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   className={cn(
@@ -298,7 +316,7 @@ function BookDetailsContent({
             </div>
           )}
 
-          {book.notes && (
+          {showNotes && "notes" in book && book.notes && (
             <div className="rounded-lg border border-amber-200/60 bg-amber-50/50 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-950/20">
               <p className="text-xs font-medium uppercase tracking-wide text-amber-900/70 dark:text-amber-200/70">
                 Notes

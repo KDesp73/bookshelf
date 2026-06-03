@@ -20,6 +20,7 @@ export interface BookInput extends BookMetadata {
   status?: ReadingStatus;
   tags?: string[];
   notes?: string;
+  rating?: number | null;
 }
 
 export interface BookDocument extends BookInput {
@@ -28,7 +29,10 @@ export interface BookDocument extends BookInput {
   status: ReadingStatus;
   tags: string[];
   dateAdded: string;
+  rating?: number;
 }
+
+export type PublicBookDocument = Omit<BookDocument, "notes">;
 
 export interface LibraryFilters {
   search?: string;

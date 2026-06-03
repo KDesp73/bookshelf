@@ -1,10 +1,11 @@
 # BookShelf
 
-A private, mobile-responsive web app to catalog your personal book collection. Scan ISBN barcodes with your phone camera, fetch metadata from Open Library and Google Books, and browse your library with server-side search and filters.
+A social book catalog: scan ISBN barcodes, rate your reads Letterboxd-style, and discover other readers' collections.
 
 ## Stack
 
 - **Next.js 16** (App Router, React 19, Server Actions)
+- **Auth.js (NextAuth v5)** — email/password + optional Google/GitHub OAuth
 - **MongoDB** + Mongoose
 - **Tailwind CSS 4** + Radix UI primitives
 - **html5-qrcode** for barcode scanning
@@ -17,7 +18,7 @@ A private, mobile-responsive web app to catalog your personal book collection. S
 cp .env.example .env.local
 ```
 
-2. Start MongoDB locally (or use Atlas) and set `MONGODB_URI` in `.env.local`.
+2. Set `MONGODB_URI` and `AUTH_SECRET` in `.env.local`. Optionally add OAuth credentials.
 
 3. Install and run:
 
@@ -26,7 +27,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000). Guests are redirected to `/discover`; sign up to create your shelf.
 
 ### Troubleshooting dev server
 
@@ -38,32 +39,38 @@ If you see a Turbopack panic (`Next.js package not found` on `/add` or other rou
 
 ## Features
 
-- **Scan flow** — Camera scans EAN-13 ISBN barcodes, beeps on success, looks up metadata, confirms before save
-- **Duplicate detection** — Alerts if the ISBN is already in your library
-- **Dashboard** — Responsive cover grid with hover details
+- **Personal library** — Scan or manually add books scoped to your account
+- **Half-star ratings** — Rate books 0.5–5 stars, visible on your public profile
+- **Public profiles** — `/u/username` shows a reader's collection (notes stay private)
+- **Collection likes** — Like other users' shelves from their profile
+- **Discover** — Browse and search readers by username
+- **Admin panel** — `/admin` for platform admins to manage users and collections
 - **URL filters** — `?search=dune&status=Read&tag=Sci-Fi&sort=title`
-- **Manual entry** — Multi-step form for books without reliable API metadata
-- **Admin login** — Password-protected editing; guests browse read-only
-- **Book details** — Read-only detail view; admins can edit status, tags, notes, and cover
 
 ## Environment
 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `MONGODB_URI` | Yes | MongoDB connection string |
-| `ADMIN_PASSWORD` | Prod | Admin password (dev default: `admin` if unset) |
-| `SESSION_SECRET` | Prod | Random string for signing session cookies |
-| `BOOKSHELF_USER_ID` | No | User isolation key (default: `default-user`) |
+| `AUTH_SECRET` | Yes | Random string for Auth.js session signing |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | No | Google OAuth (optional) |
+| `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | No | GitHub OAuth (optional) |
+| `ADMIN_EMAIL` | No | Email address auto-promoted to admin on sign-in |
 | `GOOGLE_BOOKS_API_KEY` | No | Optional Google Books API key |
 | `THEBOOKDB_API_KEY` | No | Optional TheBookDB metadata API key |
 | `ISBNDB_API_KEY` | No | Optional ISBNdb API key (higher coverage) |
 
+## Migration note
+
+Books stored under the legacy `default-user` id are not automatically assigned to a new account. Create an account and re-add books, or migrate data manually in MongoDB.
+
 ## Project structure
 
 ```
-app/              # Routes (dashboard, scan, add)
+app/              # Routes (library, discover, profiles, auth)
 actions/          # Server Actions
-components/       # UI, scanner, library
+components/       # UI, scanner, library, social
 lib/books/        # ISBN utils, API lookup, queries
-models/           # Mongoose Book schema
+lib/social/       # Likes and discover queries
+models/           # User, Book, CollectionLike schemas
 ```
