@@ -105,7 +105,7 @@ export async function loginWithCredentialsAction(
 }
 
 export async function logoutAction(): Promise<void> {
-  await signOut({ redirectTo: "/discover" });
+  await signOut({ redirectTo: "/" });
 }
 
 export async function completeOnboardingAction(

@@ -35,11 +35,7 @@ export default auth((req) => {
   const isDiscover = pathname.startsWith("/discover");
   const isOnboarding = pathname.startsWith("/onboarding");
 
-  if (pathname === "/" && !isLoggedIn) {
-    return NextResponse.redirect(new URL("/discover", req.url));
-  }
-
-  const protectedPaths = ["/", "/add", "/scan"];
+  const protectedPaths = ["/add", "/scan"];
   const needsAuth = protectedPaths.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
   );
@@ -50,7 +46,7 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isLoggedIn && !hasUsername && needsAuth && !isOnboarding) {
+  if (isLoggedIn && !hasUsername && !isOnboarding && !isAuthPage) {
     return NextResponse.redirect(new URL("/onboarding", req.url));
   }
 

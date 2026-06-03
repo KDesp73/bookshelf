@@ -11,13 +11,18 @@ export async function AppHeader() {
     <header className="sticky top-0 z-40 border-b border-stone-200/80 bg-[#f6f1ea]/90 backdrop-blur-md dark:border-stone-700 dark:bg-stone-950/90">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
         <Link
-          href={user?.username ? "/" : "/discover"}
+          href="/"
           className="flex items-center gap-2 font-serif text-lg font-semibold text-amber-950 dark:text-amber-100"
         >
           <BookOpen className="h-5 w-5 text-amber-800" />
           BookShelf
         </Link>
         <nav className="flex items-center gap-2">
+          {!user ? (
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/#about">About</Link>
+            </Button>
+          ) : null}
           <Button variant="ghost" size="sm" asChild>
             <Link href="/discover">
               <Compass className="h-4 w-4" />

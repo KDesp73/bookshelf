@@ -5,6 +5,7 @@ import { claimLegacyBooksForAdmin } from "@/lib/books/legacy";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { getSessionUser } from "@/lib/auth/get-session-user";
 import { parseLibraryFilters } from "@/lib/books/filters";
+import { LandingPage } from "@/components/landing/landing-page";
 import { LibraryFilters } from "@/components/library/library-filters";
 import { BookGrid } from "@/components/library/book-grid";
 
@@ -15,15 +16,16 @@ interface HomePageProps {
 export default async function HomePage({ searchParams }: HomePageProps) {
   const user = await getSessionUser();
   const params = await searchParams;
-  const filters = parseLibraryFilters(params);
 
   if (!user?.id) {
-    redirect("/login?callbackUrl=/");
+    return <LandingPage />;
   }
 
   if (!user.username) {
     redirect("/onboarding");
   }
+
+  const filters = parseLibraryFilters(params);
 
   if (user.isAdmin || isAdminEmail(user.email)) {
     await claimLegacyBooksForAdmin(user.id);

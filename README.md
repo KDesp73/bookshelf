@@ -27,7 +27,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Guests are redirected to `/discover`; sign up to create your shelf.
+Open [http://localhost:3000](http://localhost:3000). Guests see the landing page at `/`; sign up to create your shelf.
 
 ### Troubleshooting dev server
 
