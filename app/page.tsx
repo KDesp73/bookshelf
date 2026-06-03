@@ -8,6 +8,7 @@ import { parseLibraryFilters } from "@/lib/books/filters";
 import { LandingPage } from "@/components/landing/landing-page";
 import { LibraryFilters } from "@/components/library/library-filters";
 import { BookGrid } from "@/components/library/book-grid";
+import { CollectionIOMenu } from "@/components/library/collection-io-menu";
 
 interface HomePageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -47,14 +48,17 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-serif text-2xl font-semibold text-amber-950 dark:text-amber-100 sm:text-3xl">
-          My Library
-        </h1>
-        <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
-          {books.length} {books.length === 1 ? "book" : "books"}
-          {filters.search ? ` matching “${filters.search}”` : ""}
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="font-serif text-2xl font-semibold text-amber-950 dark:text-amber-100 sm:text-3xl">
+            My Library
+          </h1>
+          <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
+            {books.length} {books.length === 1 ? "book" : "books"}
+            {filters.search ? ` matching “${filters.search}”` : ""}
+          </p>
+        </div>
+        {!dbError ? <CollectionIOMenu list="library" /> : null}
       </div>
 
       {dbError ? (

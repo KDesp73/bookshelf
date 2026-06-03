@@ -1,5 +1,4 @@
 TODO: API keys
-TODO: hash user image
 TODO: genre information
 TODO: recommendations
 TODO: favicon
@@ -15,3 +14,4 @@ TODO: restricting/deleting users
 DONE: about page
 DONE: landing page
 DONE: wishlist
+DONE: hash user image

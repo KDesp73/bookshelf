@@ -6,6 +6,7 @@ import { listPublicBooks, getAllTags, getBookCount } from "@/lib/books/queries";
 import { getLikeCount, hasLiked } from "@/lib/social/queries";
 import { parseLibraryFilters } from "@/lib/books/filters";
 import { ProfileHeader } from "@/components/social/profile-header";
+import { CollectionIOMenu } from "@/components/library/collection-io-menu";
 import { LibraryFilters } from "@/components/library/library-filters";
 import { BookGrid } from "@/components/library/book-grid";
 
@@ -65,14 +66,22 @@ export default async function ProfilePage({
         viewerLoggedIn={!!viewer?.id}
       />
 
-      <div>
-        <h2 className="font-serif text-xl font-semibold text-amber-950 dark:text-amber-100">
-          Collection
-        </h2>
-        <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
-          {books.length} {books.length === 1 ? "book" : "books"}
-          {filters.search ? ` matching “${filters.search}”` : ""}
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="font-serif text-xl font-semibold text-amber-950 dark:text-amber-100">
+            Collection
+          </h2>
+          <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
+            {books.length} {books.length === 1 ? "book" : "books"}
+            {filters.search ? ` matching “${filters.search}”` : ""}
+          </p>
+        </div>
+        {isOwner && !dbError ? (
+          <CollectionIOMenu
+            list="library"
+            includeWishlistExports
+          />
+        ) : null}
       </div>
 
       {dbError ? (
