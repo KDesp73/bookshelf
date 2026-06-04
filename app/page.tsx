@@ -31,7 +31,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const filters = parseLibraryFilters(params);
 
   if (user.isAdmin || isAdminEmail(user.email)) {
-    await claimLegacyBooksForAdmin(user.id);
+    try {
+      await claimLegacyBooksForAdmin(user.id);
+    } catch {
+      // Non-fatal; library still loads if legacy claim fails.
+    }
   }
 
   let books: Awaited<ReturnType<typeof listBooks>> = [];

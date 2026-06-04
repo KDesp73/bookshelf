@@ -24,21 +24,25 @@ const providers: NextAuthConfig["providers"] = [
 
       if (!email || !password) return null;
 
-      await connectDB();
-      const user = await User.findOne({ email }).select("+passwordHash").lean();
-      if (!user?.passwordHash) return null;
+      try {
+        await connectDB();
+        const user = await User.findOne({ email }).select("+passwordHash").lean();
+        if (!user?.passwordHash) return null;
 
-      const valid = await bcrypt.compare(password, user.passwordHash);
-      if (!valid) return null;
+        const valid = await bcrypt.compare(password, user.passwordHash);
+        if (!valid) return null;
 
-      return {
-        id: user._id.toString(),
-        email: user.email,
-        name: user.name ?? undefined,
-        image: user.image ?? undefined,
-        username: user.username ?? null,
-        isAdmin: user.isAdmin ?? false,
-      };
+        return {
+          id: user._id.toString(),
+          email: user.email,
+          name: user.name ?? undefined,
+          image: user.image ?? undefined,
+          username: user.username ?? null,
+          isAdmin: user.isAdmin ?? false,
+        };
+      } catch {
+        return null;
+      }
     },
   }),
 ];
@@ -128,19 +132,23 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       }
 
       if (token.id) {
-        await connectDB();
-        const dbUser = await User.findById(token.id)
-          .select("username isAdmin email")
-          .lean();
+        try {
+          await connectDB();
+          const dbUser = await User.findById(token.id)
+            .select("username isAdmin email")
+            .lean();
 
-        if (dbUser) {
-          if (isAdminEmail(dbUser.email) && !dbUser.isAdmin) {
-            await User.findByIdAndUpdate(token.id, { isAdmin: true });
-            token.isAdmin = true;
-          } else {
-            token.isAdmin = dbUser.isAdmin ?? false;
+          if (dbUser) {
+            if (isAdminEmail(dbUser.email) && !dbUser.isAdmin) {
+              await User.findByIdAndUpdate(token.id, { isAdmin: true });
+              token.isAdmin = true;
+            } else {
+              token.isAdmin = dbUser.isAdmin ?? false;
+            }
+            token.username = dbUser.username ?? null;
           }
-          token.username = dbUser.username ?? null;
+        } catch {
+          // Keep session usable if the database is temporarily unavailable.
         }
       }
 

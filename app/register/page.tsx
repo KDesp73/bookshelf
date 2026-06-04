@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { RegisterForm } from "@/components/auth/register-form";
+import { getEnabledOAuthProviders } from "@/lib/auth/oauth-providers";
 
 export default function RegisterPage() {
+  const oauthProviders = getEnabledOAuthProviders();
+
   return (
     <div className="mx-auto max-w-md space-y-6 py-8">
       <div className="text-center">
@@ -11,7 +14,7 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      <RegisterForm />
+      <RegisterForm oauthProviders={oauthProviders} />
 
       <p className="text-center text-sm text-stone-500">
         Already have an account?{" "}

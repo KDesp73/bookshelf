@@ -73,7 +73,7 @@ export async function registerAction(
     await signIn("credentials", {
       email,
       password,
-      redirectTo: "/onboarding",
+      redirect: false,
     });
   } catch (error) {
     if (error instanceof AuthError) {
@@ -108,7 +108,7 @@ export async function loginWithCredentialsAction(
     await signIn("credentials", {
       email,
       password,
-      redirectTo,
+      redirect: false,
     });
   } catch (error) {
     if (error instanceof AuthError) {

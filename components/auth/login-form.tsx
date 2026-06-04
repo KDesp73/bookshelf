@@ -5,6 +5,7 @@ import {
   loginWithCredentialsAction,
   type AuthActionState,
 } from "@/actions/auth";
+import type { OAuthProviderId } from "@/lib/auth/oauth-providers";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,28 +13,38 @@ import { Label } from "@/components/ui/label";
 
 interface LoginFormProps {
   callbackUrl?: string;
+  oauthProviders?: OAuthProviderId[];
 }
 
-export function LoginForm({ callbackUrl = "/" }: LoginFormProps) {
+export function LoginForm({
+  callbackUrl = "/",
+  oauthProviders = [],
+}: LoginFormProps) {
   const [state, formAction, pending] = useActionState<AuthActionState, FormData>(
     loginWithCredentialsAction,
     {},
   );
 
+  const showOAuth = oauthProviders.length > 0;
+
   return (
     <div className="mx-auto w-full max-w-sm space-y-6">
-      <OAuthButtons callbackUrl={callbackUrl} />
+      {showOAuth ? (
+        <>
+          <OAuthButtons providers={oauthProviders} callbackUrl={callbackUrl} />
 
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-stone-200 dark:border-stone-700" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-stone-500">
-            Or continue with email
-          </span>
-        </div>
-      </div>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-stone-200 dark:border-stone-700" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-stone-500">
+                Or continue with email
+              </span>
+            </div>
+          </div>
+        </>
+      ) : null}
 
       <form action={formAction} className="space-y-4">
         <input type="hidden" name="callbackUrl" value={callbackUrl} />

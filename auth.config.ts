@@ -9,6 +9,7 @@ export const authConfig = {
   },
   providers: [],
   session: { strategy: "jwt" },
+  trustHost: true,
   callbacks: {
     async jwt({ token, user }) {
       if (user?.id) {

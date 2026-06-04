@@ -19,18 +19,29 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  await connectDB();
-  const dbUser = await User.findById(session.user.id)
-    .select("avatarType image name username email isAdmin")
-    .lean();
+  try {
+    await connectDB();
+    const dbUser = await User.findById(session.user.id)
+      .select("avatarType image name username email isAdmin")
+      .lean();
 
-  return {
-    id: session.user.id,
-    email: dbUser?.email ?? session.user.email ?? "",
-    name: dbUser?.name ?? session.user.name,
-    image: dbUser?.image ?? undefined,
-    avatarType: (dbUser?.avatarType as AvatarType | undefined) ?? undefined,
-    username: dbUser?.username ?? session.user.username,
-    isAdmin: dbUser?.isAdmin === true || session.user.isAdmin === true,
-  };
+    return {
+      id: session.user.id,
+      email: dbUser?.email ?? session.user.email ?? "",
+      name: dbUser?.name ?? session.user.name,
+      image: dbUser?.image ?? undefined,
+      avatarType: (dbUser?.avatarType as AvatarType | undefined) ?? undefined,
+      username: dbUser?.username ?? session.user.username,
+      isAdmin: dbUser?.isAdmin === true || session.user.isAdmin === true,
+    };
+  } catch {
+    return {
+      id: session.user.id,
+      email: session.user.email ?? "",
+      name: session.user.name,
+      image: session.user.image ?? undefined,
+      username: session.user.username,
+      isAdmin: session.user.isAdmin === true,
+    };
+  }
 }

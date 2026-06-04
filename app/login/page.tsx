@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LoginForm } from "@/components/auth/login-form";
+import { getEnabledOAuthProviders } from "@/lib/auth/oauth-providers";
 
 interface LoginPageProps {
   searchParams: Promise<{ callbackUrl?: string }>;
@@ -8,6 +9,7 @@ interface LoginPageProps {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const callbackUrl = params.callbackUrl ?? "/";
+  const oauthProviders = getEnabledOAuthProviders();
 
   return (
     <div className="mx-auto max-w-md space-y-6 py-8">
@@ -18,7 +20,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </p>
       </div>
 
-      <LoginForm callbackUrl={callbackUrl} />
+      <LoginForm callbackUrl={callbackUrl} oauthProviders={oauthProviders} />
 
       <p className="text-center text-sm text-stone-500">
         No account yet?{" "}
