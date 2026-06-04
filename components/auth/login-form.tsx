@@ -1,10 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
-import {
-  loginWithCredentialsAction,
-  type AuthActionState,
-} from "@/actions/auth";
+import { useState } from "react";
+import { signIn } from "next-auth/react";
 import type { OAuthProviderId } from "@/lib/auth/oauth-providers";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button } from "@/components/ui/button";
@@ -20,12 +17,52 @@ export function LoginForm({
   callbackUrl = "/",
   oauthProviders = [],
 }: LoginFormProps) {
-  const [state, formAction, pending] = useActionState<AuthActionState, FormData>(
-    loginWithCredentialsAction,
-    {},
-  );
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const showOAuth = oauthProviders.length > 0;
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setPending(true);
+
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "")
+      .trim()
+      .toLowerCase();
+    const password = String(formData.get("password") ?? "");
+
+    if (!email || !password) {
+      setError("Email and password are required.");
+      setPending(false);
+      return;
+    }
+
+    const redirectTo =
+      callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")
+        ? callbackUrl
+        : "/";
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Invalid email or password.");
+        setPending(false);
+        return;
+      }
+
+      window.location.assign(redirectTo);
+    } catch {
+      setError("Could not sign in. Try again.");
+      setPending(false);
+    }
+  }
 
   return (
     <div className="mx-auto w-full max-w-sm space-y-6">
@@ -46,9 +83,7 @@ export function LoginForm({
         </>
       ) : null}
 
-      <form action={formAction} className="space-y-4">
-        <input type="hidden" name="callbackUrl" value={callbackUrl} />
-
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid gap-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -57,6 +92,7 @@ export function LoginForm({
             type="email"
             autoComplete="email"
             required
+            disabled={pending}
           />
         </div>
 
@@ -68,12 +104,13 @@ export function LoginForm({
             type="password"
             autoComplete="current-password"
             required
+            disabled={pending}
           />
         </div>
 
-        {state.error && (
-          <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>
-        )}
+        {error ? (
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        ) : null}
 
         <Button type="submit" className="w-full" disabled={pending}>
           {pending ? "Signing in…" : "Sign in"}

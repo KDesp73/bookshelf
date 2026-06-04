@@ -27,6 +27,8 @@ import {
 export type AuthActionState = {
   error?: string;
   success?: boolean;
+  redirectTo?: string;
+  username?: string;
 };
 
 export async function registerAction(
@@ -69,20 +71,7 @@ export async function registerAction(
     return { error: "Could not create account. Try again." };
   }
 
-  try {
-    await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-  } catch (error) {
-    if (error instanceof AuthError) {
-      return { error: "Account created but sign-in failed. Try logging in." };
-    }
-    throw error;
-  }
-
-  redirect("/onboarding");
+  return { success: true, redirectTo: "/onboarding" };
 }
 
 export async function loginWithCredentialsAction(
@@ -161,9 +150,7 @@ export async function completeOnboardingAction(
     return { error: "Could not save profile. Try again." };
   }
 
-  await unstable_update({ user: { username } });
-
-  redirect("/");
+  return { success: true, redirectTo: "/", username };
 }
 
 export async function updateProfileAction(

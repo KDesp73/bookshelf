@@ -46,13 +46,9 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isLoggedIn && !hasUsername && !isOnboarding && !isAuthPage) {
-    return NextResponse.redirect(new URL("/onboarding", req.url));
-  }
-
-  if (isLoggedIn && hasUsername && isOnboarding) {
-    return NextResponse.redirect(new URL("/", req.url));
-  }
+  // Username checks use the database in server pages (getSessionUser), not here.
+  // Middleware only reads the JWT, which can lag behind the database and cause
+  // redirect loops between / and /onboarding.
 
   if (isLoggedIn && isAuthPage) {
     return NextResponse.redirect(
