@@ -35,6 +35,7 @@ const userSchema = new Schema(
     shelfAccent: { type: String, trim: true, maxlength: 7 },
     shelfBackground: { type: String, trim: true, maxlength: 7 },
     shelfCustomCss: { type: String, maxlength: 12000 },
+    wishlistPublic: { type: Boolean, default: false },
     isAdmin: { type: Boolean, default: false, index: true },
     passwordHash: { type: String, select: false },
   },

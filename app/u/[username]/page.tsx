@@ -4,15 +4,16 @@ import { notFound } from "next/navigation";
 import { getSessionUser } from "@/lib/auth/get-session-user";
 import { userHasPassword } from "@/lib/auth/password";
 import { getUserByUsername } from "@/lib/users/queries";
-import { listPublicBooks, getAllTags, getBookCount } from "@/lib/books/queries";
 import {
   getLikeCount,
   hasLiked,
   listCollectionLikers,
 } from "@/lib/social/queries";
+import { getBookCount, getWishlistCount, listPublicBooks, getAllTags } from "@/lib/books/queries";
 import { parseLibraryFilters } from "@/lib/books/filters";
 import { profileUrl } from "@/lib/site-url";
 import { ProfileHeader } from "@/components/social/profile-header";
+import { ProfileListNav } from "@/components/social/profile-list-nav";
 import { ShelfThemeWrapper } from "@/components/shelf/shelf-theme-wrapper";
 import { CollectionIOMenu } from "@/components/library/collection-io-menu";
 import { LibraryFilters } from "@/components/library/library-filters";
@@ -79,14 +80,16 @@ export default async function ProfilePage({
   let likeCount = 0;
   let likers: Awaited<ReturnType<typeof listCollectionLikers>> = [];
   let liked = false;
+  let wishlistCount = 0;
   let dbError: string | null = null;
 
   try {
-    [books, tags, bookCount, likeCount] = await Promise.all([
+    [books, tags, bookCount, likeCount, wishlistCount] = await Promise.all([
       listPublicBooks(user._id, filters),
       getAllTags(user._id),
       getBookCount(user._id),
       getLikeCount(user._id),
+      getWishlistCount(user._id),
     ]);
 
     if (likeCount > 0) {
@@ -119,6 +122,15 @@ export default async function ProfilePage({
         isOwner={isOwner}
         hasPassword={hasPassword}
         viewerLoggedIn={!!viewer?.id}
+        wishlistPublic={user.wishlistPublic}
+      />
+
+      <ProfileListNav
+        username={user.username}
+        active="collection"
+        wishlistPublic={user.wishlistPublic}
+        isOwner={isOwner}
+        wishlistCount={wishlistCount}
       />
 
       <div className="space-y-3 sm:space-y-0">

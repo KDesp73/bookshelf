@@ -10,6 +10,7 @@ export interface UserProfile {
   username?: string;
   bio?: string;
   shelfAppearance: ShelfAppearance;
+  wishlistPublic: boolean;
   isAdmin?: boolean;
   createdAt: string;
 }

@@ -8,6 +8,7 @@ import { LibraryFilters } from "@/components/library/library-filters";
 import { BookGrid } from "@/components/library/book-grid";
 import { CollectionIOMenu } from "@/components/library/collection-io-menu";
 import { ShelfThemeWrapper } from "@/components/shelf/shelf-theme-wrapper";
+import { WishlistVisibilityToggle } from "@/components/wishlist/wishlist-visibility-toggle";
 
 interface WishlistPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -52,6 +53,8 @@ export default async function WishlistPage({ searchParams }: WishlistPageProps) 
       appearance={profile.shelfAppearance}
       className="space-y-6 p-3 sm:p-4"
     >
+      <WishlistVisibilityToggle wishlistPublic={profile.wishlistPublic} />
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="shelf-title font-serif text-2xl font-semibold sm:text-3xl">

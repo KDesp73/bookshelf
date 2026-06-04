@@ -25,6 +25,7 @@ interface ProfileHeaderProps {
   isOwner: boolean;
   hasPassword?: boolean;
   viewerLoggedIn: boolean;
+  wishlistPublic?: boolean;
 }
 
 export function ProfileHeader({
@@ -36,6 +37,7 @@ export function ProfileHeader({
   isOwner,
   hasPassword = false,
   viewerLoggedIn,
+  wishlistPublic = false,
 }: ProfileHeaderProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -192,15 +194,25 @@ export function ProfileHeader({
 
     if (viewerLoggedIn) {
       return (
-        <Button
-          variant={liked ? "default" : "outline"}
-          size="sm"
-          onClick={handleLike}
-          disabled={pending}
-        >
-          <Heart className={cn("h-4 w-4", liked && "fill-current")} />
-          {liked ? "Liked" : "Like collection"}
-        </Button>
+        <>
+          {wishlistPublic && user.username ? (
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/u/${user.username}/wishlist`}>
+                <Heart className="h-4 w-4" />
+                Wishlist
+              </Link>
+            </Button>
+          ) : null}
+          <Button
+            variant={liked ? "default" : "outline"}
+            size="sm"
+            onClick={handleLike}
+            disabled={pending}
+          >
+            <Heart className={cn("h-4 w-4", liked && "fill-current")} />
+            {liked ? "Liked" : "Like collection"}
+          </Button>
+        </>
       );
     }
 
@@ -270,16 +282,31 @@ export function ProfileHeader({
 
     if (viewerLoggedIn) {
       return (
-        <Button
-          variant={liked ? "default" : "outline"}
-          size="sm"
-          className="col-span-2 w-full justify-center"
-          onClick={handleLike}
-          disabled={pending}
-        >
-          <Heart className={cn("h-4 w-4", liked && "fill-current")} />
-          {liked ? "Liked" : "Like collection"}
-        </Button>
+        <>
+          {wishlistPublic && user.username ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="col-span-2 w-full justify-center"
+              asChild
+            >
+              <Link href={`/u/${user.username}/wishlist`}>
+                <Heart className="h-4 w-4" />
+                View wishlist
+              </Link>
+            </Button>
+          ) : null}
+          <Button
+            variant={liked ? "default" : "outline"}
+            size="sm"
+            className="col-span-2 w-full justify-center"
+            onClick={handleLike}
+            disabled={pending}
+          >
+            <Heart className={cn("h-4 w-4", liked && "fill-current")} />
+            {liked ? "Liked" : "Like collection"}
+          </Button>
+        </>
       );
     }
 

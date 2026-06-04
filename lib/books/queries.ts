@@ -149,6 +149,26 @@ export async function listPublicBooks(
   );
 }
 
+export async function listPublicWishlistBooks(
+  userId: string,
+  filters: LibraryFilters = {},
+): Promise<PublicBookDocument[]> {
+  await connectDB();
+
+  const query = buildBookQuery(userId, { ...filters, list: "wishlist" });
+  const sortField = filters.sort === "title" ? "title" : "dateAdded";
+  const sortOrder = filters.order === "asc" ? 1 : -1;
+
+  const books = await Book.find(query)
+    .select("-notes")
+    .sort({ [sortField]: sortOrder })
+    .lean();
+
+  return books.map((book) =>
+    toPublicBookDocument(book as IBook & { _id: { toString(): string } }),
+  );
+}
+
 export async function getAllTags(
   userId: string,
   list: LibraryFilters["list"] = "library",
