@@ -12,6 +12,7 @@ import {
 import type { BookDocument, PublicBookDocument } from "@/types/book";
 import { READING_STATUSES } from "@/lib/constants";
 import { BookCover } from "@/components/books/book-cover";
+import { CoverPicker } from "@/components/books/cover-picker";
 import { StarRating } from "@/components/books/star-rating";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -230,10 +231,16 @@ function BookDetailsContent({
               coverUrl={coverUrl || book.coverUrl}
               className="w-28 shrink-0"
             />
-            <p className="text-sm text-stone-500">
-              Update the cover URL to change the image shown in your library.
-            </p>
           </div>
+
+          <CoverPicker
+            title={book.title}
+            authors={book.authors}
+            isbn13={book.isbn13.startsWith("manual-") ? undefined : book.isbn13}
+            initialCoverUrl={book.coverUrl}
+            selectedUrl={coverUrl}
+            onSelect={setCoverUrl}
+          />
 
           <div className="grid gap-3">
             {!isWishlist ? (
@@ -242,15 +249,6 @@ function BookDetailsContent({
                 <StarRating value={rating} onChange={setRating} />
               </div>
             ) : null}
-
-            <div className="grid gap-2">
-              <Label>Cover image URL</Label>
-              <Input
-                value={coverUrl}
-                onChange={(e) => setCoverUrl(e.target.value)}
-                placeholder="https://…"
-              />
-            </div>
 
             {!isWishlist ? (
               <div className="grid gap-2">

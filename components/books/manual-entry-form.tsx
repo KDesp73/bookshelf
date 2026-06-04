@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { CoverPicker } from "@/components/books/cover-picker";
 
 interface ManualEntryFormProps {
   initialIsbn?: string;
@@ -139,15 +140,16 @@ export function ManualEntryForm({ initialIsbn = "" }: ManualEntryFormProps) {
               onChange={(e) => setPublisher(e.target.value)}
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="cover">Cover image URL</Label>
-            <Input
-              id="cover"
-              value={coverUrl}
-              onChange={(e) => setCoverUrl(e.target.value)}
-              placeholder="https://…"
-            />
-          </div>
+          <CoverPicker
+            title={title.trim()}
+            authors={authors
+              .split(",")
+              .map((a) => a.trim())
+              .filter(Boolean)}
+            isbn13={isbn.trim() ? (normalizeIsbn(isbn) ?? undefined) : undefined}
+            selectedUrl={coverUrl}
+            onSelect={setCoverUrl}
+          />
           <Button onClick={goToStep2}>Continue</Button>
         </div>
       ) : (

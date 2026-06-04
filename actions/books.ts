@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db";
 import { READING_STATUSES, isValidRating } from "@/lib/constants";
 import { Book } from "@/models/Book";
 import { normalizeIsbn } from "@/lib/books/isbn";
+import { fetchCoverOptions } from "@/lib/books/covers";
 import { fetchBookByIsbn } from "@/lib/books/lookup";
 import {
   findBookByIsbn,
@@ -66,6 +67,38 @@ function revalidateBookPaths(username: string) {
   revalidatePath("/scan");
   revalidatePath("/add");
   revalidatePath(`/u/${username}`);
+}
+
+export async function fetchCoverOptionsAction(input: {
+  title: string;
+  authors: string[];
+  isbn13?: string;
+  initialCoverUrl?: string;
+}): Promise<ActionResult<Awaited<ReturnType<typeof fetchCoverOptions>>>> {
+  const auth = await requireUserWithUsername();
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Sign in required." };
+  }
+
+  if (!input.title?.trim()) {
+    return { success: false, error: "Title is required to search for covers." };
+  }
+
+  if (!input.authors?.length) {
+    return { success: false, error: "At least one author is required." };
+  }
+
+  try {
+    const options = await fetchCoverOptions({
+      title: input.title.trim(),
+      authors: input.authors.filter(Boolean),
+      isbn13: input.isbn13?.trim(),
+      initialCoverUrl: input.initialCoverUrl?.trim(),
+    });
+    return { success: true, data: options };
+  } catch {
+    return { success: false, error: "Could not load cover options." };
+  }
 }
 
 export async function lookupIsbnAction(

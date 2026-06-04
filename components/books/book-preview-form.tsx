@@ -6,6 +6,7 @@ import { saveBookAction } from "@/actions/books";
 import type { BookInput } from "@/types/book";
 import { READING_STATUSES } from "@/lib/constants";
 import { BookCover } from "@/components/books/book-cover";
+import { CoverPicker } from "@/components/books/cover-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -90,17 +91,16 @@ export function BookPreviewForm({ initial }: BookPreviewFormProps) {
         </p>
       )}
 
-      <div className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="cover">Cover image URL</Label>
-          <Input
-            id="cover"
-            value={coverUrl}
-            onChange={(e) => setCoverUrl(e.target.value)}
-            placeholder="https://…"
-          />
-        </div>
+      <CoverPicker
+        title={initial.title}
+        authors={initial.authors ?? []}
+        isbn13={initial.isbn13}
+        initialCoverUrl={initial.coverUrl}
+        selectedUrl={coverUrl}
+        onSelect={setCoverUrl}
+      />
 
+      <div className="grid gap-4">
         <div className="grid gap-2">
           <Label htmlFor="status">Reading status</Label>
           <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
