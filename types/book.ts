@@ -1,6 +1,17 @@
 import type { ReadingStatus } from "@/lib/constants";
 
-export interface BookMetadata {
+/** Fields used for discovery, filtering, and future recommendations. */
+export interface BookRecommendationMetadata {
+  genres?: string[];
+  subjects?: string[];
+  categories?: string[];
+  language?: string;
+  publishYear?: number;
+  openLibraryWorkKey?: string;
+  googleVolumeId?: string;
+}
+
+export interface BookMetadata extends BookRecommendationMetadata {
   isbn13: string;
   title: string;
   subtitle?: string;

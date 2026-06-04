@@ -22,6 +22,14 @@ const bookSchema = new Schema(
     description: { type: String },
     pageCount: { type: Number },
     coverUrl: { type: String, trim: true },
+    genres: { type: [String], default: [] },
+    subjects: { type: [String], default: [] },
+    categories: { type: [String], default: [] },
+    language: { type: String, trim: true, lowercase: true },
+    publishYear: { type: Number },
+    openLibraryWorkKey: { type: String, trim: true },
+    googleVolumeId: { type: String, trim: true },
+    metadataEnrichedAt: { type: Date },
     status: {
       type: String,
       enum: READING_STATUSES,
@@ -44,6 +52,8 @@ const bookSchema = new Schema(
 
 bookSchema.index({ userId: 1, isbn13: 1 }, { unique: true });
 bookSchema.index({ userId: 1, title: "text", authors: "text" });
+bookSchema.index({ userId: 1, genres: 1 });
+bookSchema.index({ metadataEnrichedAt: 1 });
 
 export type IBook = InferSchemaType<typeof bookSchema>;
 

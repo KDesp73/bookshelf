@@ -7,6 +7,7 @@ import { Book } from "@/models/Book";
 import { normalizeIsbn } from "@/lib/books/isbn";
 import { fetchCoverOptions } from "@/lib/books/covers";
 import { fetchBookByIsbn } from "@/lib/books/lookup";
+import { metadataFieldsFromInput } from "@/lib/books/persist-metadata";
 import {
   findBookByIsbn,
   findBookById,
@@ -33,6 +34,13 @@ function serializeBook(book: {
   description?: string | null;
   pageCount?: number | null;
   coverUrl?: string | null;
+  genres?: string[] | null;
+  subjects?: string[] | null;
+  categories?: string[] | null;
+  language?: string | null;
+  publishYear?: number | null;
+  openLibraryWorkKey?: string | null;
+  googleVolumeId?: string | null;
   status: string;
   tags?: string[] | null;
   notes?: string | null;
@@ -52,6 +60,13 @@ function serializeBook(book: {
     description: book.description ?? undefined,
     pageCount: book.pageCount ?? undefined,
     coverUrl: book.coverUrl ?? undefined,
+    genres: book.genres?.length ? book.genres : undefined,
+    subjects: book.subjects?.length ? book.subjects : undefined,
+    categories: book.categories?.length ? book.categories : undefined,
+    language: book.language ?? undefined,
+    publishYear: book.publishYear ?? undefined,
+    openLibraryWorkKey: book.openLibraryWorkKey ?? undefined,
+    googleVolumeId: book.googleVolumeId ?? undefined,
     status: book.status as ReadingStatus,
     tags: book.tags ?? [],
     notes: book.notes ?? undefined,
@@ -199,6 +214,7 @@ export async function saveBookAction(
       description: input.description?.trim(),
       pageCount: input.pageCount,
       coverUrl: input.coverUrl?.trim(),
+      ...metadataFieldsFromInput(input),
       status: input.isWishlist ? "Unread" : (input.status ?? "Unread"),
       tags: input.tags?.map((t) => t.trim()).filter(Boolean) ?? [],
       notes: input.notes?.trim(),

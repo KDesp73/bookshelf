@@ -13,6 +13,11 @@ export interface ExportedBook {
   description?: string;
   pageCount?: number;
   coverUrl?: string;
+  genres?: string[];
+  subjects?: string[];
+  categories?: string[];
+  language?: string;
+  publishYear?: number;
   status: ReadingStatus;
   tags: string[];
   notes?: string;

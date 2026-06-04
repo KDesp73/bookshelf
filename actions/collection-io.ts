@@ -8,6 +8,7 @@ import {
   normalizeImportBook,
   parseImportJson,
 } from "@/lib/books/import";
+import { metadataFieldsFromInput } from "@/lib/books/persist-metadata";
 import { requireUserWithUsername } from "@/lib/auth/require-user";
 import { isValidRating } from "@/lib/constants";
 import type { BookListKind } from "@/types/book";
@@ -108,6 +109,7 @@ export async function importCollectionAction(
           description: book.description,
           pageCount: book.pageCount,
           coverUrl: book.coverUrl,
+          ...metadataFieldsFromInput(book),
           status: book.isWishlist ? "Unread" : (book.status ?? "Unread"),
           tags: book.tags ?? [],
           notes: book.notes,

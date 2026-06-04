@@ -1,5 +1,6 @@
 import { READING_STATUSES, isValidRating } from "@/lib/constants";
 import { normalizeIsbn } from "@/lib/books/isbn";
+import { mergeStringArrays, parsePublishYear } from "@/lib/books/metadata";
 import {
   EXPORT_VERSION,
   type BookExportEnvelope,
@@ -104,6 +105,17 @@ export function normalizeImportBook(
       notes: raw.notes?.trim() || undefined,
       rating: isWishlist ? undefined : raw.rating ?? undefined,
       isWishlist,
+      genres: mergeStringArrays([normalizeAuthors(raw.genres)]),
+      subjects: mergeStringArrays([normalizeAuthors(raw.subjects)]),
+      categories: mergeStringArrays([normalizeAuthors(raw.categories)]),
+      language:
+        typeof raw.language === "string" ? raw.language.trim().toLowerCase() : undefined,
+      publishYear:
+        typeof raw.publishYear === "number" && Number.isFinite(raw.publishYear)
+          ? raw.publishYear
+          : parsePublishYear(
+              typeof raw.publishedDate === "string" ? raw.publishedDate : undefined,
+            ),
     },
   };
 }

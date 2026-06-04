@@ -1,7 +1,47 @@
 import type { BookMetadata, BookPreview } from "@/types/book";
 import { normalizeIsbn } from "@/lib/books/isbn";
+import {
+  buildGenres,
+  mergeStringArrays,
+  parsePublishYear,
+} from "@/lib/books/metadata";
 
 type PartialMetadata = Partial<BookMetadata>;
+
+function parseOpenLibrarySubjects(
+  subjects: Array<string | { name?: string }> | undefined,
+): string[] {
+  if (!subjects?.length) return [];
+  return mergeStringArrays([
+    subjects.map((item) =>
+      typeof item === "string" ? item : (item.name ?? ""),
+    ),
+  ]);
+}
+
+async function fetchOpenLibraryWorkMetadata(
+  workKey: string,
+): Promise<Pick<PartialMetadata, "subjects" | "openLibraryWorkKey">> {
+  try {
+    const res = await fetch(`https://openlibrary.org${workKey}.json`, {
+      next: { revalidate: 3600 },
+      headers: OPEN_LIBRARY_HEADERS,
+    });
+    if (!res.ok) return { openLibraryWorkKey: workKey };
+
+    const data = (await res.json()) as {
+      subjects?: Array<string | { name?: string }>;
+    };
+
+    const subjects = parseOpenLibrarySubjects(data.subjects);
+    return {
+      openLibraryWorkKey: workKey,
+      ...(subjects.length ? { subjects } : {}),
+    };
+  } catch {
+    return { openLibraryWorkKey: workKey };
+  }
+}
 
 const OPEN_LIBRARY_HEADERS = {
   "User-Agent": "BookShelf/1.0 (personal library app; contact: local)",
@@ -102,6 +142,8 @@ async function fetchOpenLibraryEdition(
       description?: string | { value?: string };
       authors?: Array<{ key?: string }>;
       covers?: number[];
+      works?: Array<{ key?: string }>;
+      languages?: Array<{ key?: string }>;
     };
 
     const description =
@@ -135,6 +177,14 @@ async function fetchOpenLibraryEdition(
       authors = authorResults.filter((n): n is string => Boolean(n));
     }
 
+    const workKey = data.works?.[0]?.key;
+    const workMeta = workKey
+      ? await fetchOpenLibraryWorkMetadata(workKey)
+      : {};
+
+    const languageKey = data.languages?.[0]?.key;
+    const language = languageKey?.replace(/^\/languages\//, "");
+
     return {
       title: data.title,
       subtitle: data.subtitle,
@@ -144,6 +194,9 @@ async function fetchOpenLibraryEdition(
       pageCount: data.number_of_pages,
       description,
       coverUrl,
+      publishYear: parsePublishYear(data.publish_date),
+      ...(language ? { language } : {}),
+      ...workMeta,
     };
   } catch {
     return {};
@@ -170,6 +223,9 @@ async function fetchOpenLibrarySearch(
         first_publish_year?: number;
         number_of_pages_median?: number;
         cover_i?: number;
+        subject?: string[];
+        language?: string[];
+        key?: string;
       }>;
     };
 
@@ -180,6 +236,9 @@ async function fetchOpenLibrarySearch(
       ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`
       : undefined;
 
+    const subjects = mergeStringArrays([doc.subject]);
+    const language = doc.language?.[0]?.replace(/^\/languages\//, "");
+
     return {
       title: doc.title,
       subtitle: doc.subtitle,
@@ -188,6 +247,10 @@ async function fetchOpenLibrarySearch(
       publishedDate: doc.first_publish_year?.toString(),
       pageCount: doc.number_of_pages_median,
       coverUrl,
+      publishYear: doc.first_publish_year,
+      ...(subjects.length ? { subjects } : {}),
+      ...(language ? { language } : {}),
+      ...(doc.key ? { openLibraryWorkKey: doc.key } : {}),
     };
   } catch {
     return {};
@@ -212,6 +275,7 @@ async function fetchGoogleBooks(isbn13: string): Promise<PartialMetadata> {
 
     const data = (await res.json()) as {
       items?: Array<{
+        id?: string;
         volumeInfo?: {
           title?: string;
           subtitle?: string;
@@ -220,6 +284,8 @@ async function fetchGoogleBooks(isbn13: string): Promise<PartialMetadata> {
           publishedDate?: string;
           description?: string;
           pageCount?: number;
+          categories?: string[];
+          language?: string;
           imageLinks?: {
             extraLarge?: string;
             large?: string;
@@ -231,7 +297,8 @@ async function fetchGoogleBooks(isbn13: string): Promise<PartialMetadata> {
       }>;
     };
 
-    const info = data.items?.[0]?.volumeInfo;
+    const item = data.items?.[0];
+    const info = item?.volumeInfo;
     if (!info) return {};
 
     const links = info.imageLinks;
@@ -242,6 +309,8 @@ async function fetchGoogleBooks(isbn13: string): Promise<PartialMetadata> {
       links?.thumbnail?.replace("http:", "https:") ??
       links?.smallThumbnail?.replace("http:", "https:");
 
+    const categories = mergeStringArrays([info.categories]);
+
     return {
       title: info.title,
       subtitle: info.subtitle,
@@ -251,6 +320,10 @@ async function fetchGoogleBooks(isbn13: string): Promise<PartialMetadata> {
       description: info.description,
       pageCount: info.pageCount,
       coverUrl: coverUrl?.replace("&edge=curl", ""),
+      publishYear: parsePublishYear(info.publishedDate),
+      ...(categories.length ? { categories } : {}),
+      ...(info.language ? { language: info.language } : {}),
+      ...(item.id ? { googleVolumeId: item.id } : {}),
     };
   } catch {
     return {};
@@ -323,11 +396,14 @@ async function fetchIsbnDb(isbn13: string): Promise<PartialMetadata> {
         synopsis?: string;
         pages?: number;
         image?: string;
+        subjects?: string[];
       };
     };
 
     const book = data.book;
     if (!book) return {};
+
+    const subjects = mergeStringArrays([book.subjects]);
 
     return {
       title: book.title ?? book.title_long,
@@ -337,6 +413,8 @@ async function fetchIsbnDb(isbn13: string): Promise<PartialMetadata> {
       description: book.synopsis,
       pageCount: book.pages,
       coverUrl: book.image,
+      publishYear: parsePublishYear(book.date_published),
+      ...(subjects.length ? { subjects } : {}),
     };
   } catch {
     return {};
@@ -375,6 +453,14 @@ function mergeMetadata(
     return best;
   };
 
+  const subjects = mergeStringArrays(sources.map((s) => s.subjects));
+  const categories = mergeStringArrays(sources.map((s) => s.categories));
+  const genres = buildGenres(subjects, categories);
+
+  const publishYear =
+    sources.find((s) => s.publishYear != null)?.publishYear ??
+    parsePublishYear(pick("publishedDate"));
+
   return {
     isbn13,
     title: pick("title") ?? "",
@@ -385,6 +471,13 @@ function mergeMetadata(
     description: pick("description"),
     pageCount: pick("pageCount"),
     coverUrl: pickCover(),
+    ...(genres.length ? { genres } : {}),
+    ...(subjects.length ? { subjects } : {}),
+    ...(categories.length ? { categories } : {}),
+    language: pick("language"),
+    ...(publishYear ? { publishYear } : {}),
+    openLibraryWorkKey: pick("openLibraryWorkKey"),
+    googleVolumeId: pick("googleVolumeId"),
   };
 }
 
