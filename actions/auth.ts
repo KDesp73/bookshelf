@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
@@ -106,7 +105,7 @@ export async function loginWithCredentialsAction(
     throw error;
   }
 
-  redirect(redirectTo);
+  return { success: true, redirectTo };
 }
 
 export async function logoutAction(): Promise<void> {

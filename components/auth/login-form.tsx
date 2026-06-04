@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { loginWithCredentialsAction } from "@/actions/auth";
 import type { OAuthProviderId } from "@/lib/auth/oauth-providers";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button } from "@/components/ui/button";
@@ -28,40 +28,17 @@ export function LoginForm({
     setPending(true);
 
     const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "")
-      .trim()
-      .toLowerCase();
-    const password = String(formData.get("password") ?? "");
+    formData.set("callbackUrl", callbackUrl);
 
-    if (!email || !password) {
-      setError("Email and password are required.");
+    const result = await loginWithCredentialsAction({}, formData);
+
+    if (result.error) {
+      setError(result.error);
       setPending(false);
       return;
     }
 
-    const redirectTo =
-      callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")
-        ? callbackUrl
-        : "/";
-
-    try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError("Invalid email or password.");
-        setPending(false);
-        return;
-      }
-
-      window.location.assign(redirectTo);
-    } catch {
-      setError("Could not sign in. Try again.");
-      setPending(false);
-    }
+    window.location.assign(result.redirectTo ?? "/");
   }
 
   return (
