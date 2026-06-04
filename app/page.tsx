@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { listBooks, getAllTags } from "@/lib/books/queries";
-import { claimLegacyBooksForAdmin } from "@/lib/books/legacy";
-import { isAdminEmail } from "@/lib/auth/admin";
 import { getSessionUser } from "@/lib/auth/get-session-user";
 import { getUserByUsername } from "@/lib/users/queries";
 import { parseLibraryFilters } from "@/lib/books/filters";
@@ -29,14 +27,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   }
 
   const filters = parseLibraryFilters(params);
-
-  if (user.isAdmin || isAdminEmail(user.email)) {
-    try {
-      await claimLegacyBooksForAdmin(user.id);
-    } catch {
-      // Non-fatal; library still loads if legacy claim fails.
-    }
-  }
 
   let books: Awaited<ReturnType<typeof listBooks>> = [];
   let tags: string[] = [];

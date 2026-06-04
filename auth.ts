@@ -112,6 +112,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         token.id = user.id;
         token.username = user.username ?? null;
         token.isAdmin = user.isAdmin === true;
+        return token;
       }
 
       if (trigger === "update" && session) {

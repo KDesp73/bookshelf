@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { loginWithCredentialsAction } from "@/actions/auth";
+import { signIn } from "next-auth/react";
 import type { OAuthProviderId } from "@/lib/auth/oauth-providers";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button } from "@/components/ui/button";
@@ -11,14 +11,24 @@ import { Label } from "@/components/ui/label";
 interface LoginFormProps {
   callbackUrl?: string;
   oauthProviders?: OAuthProviderId[];
+  initialError?: string | null;
+}
+
+function resolveCallbackUrl(callbackUrl: string): string {
+  const path =
+    callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")
+      ? callbackUrl
+      : "/";
+  return new URL(path, window.location.origin).href;
 }
 
 export function LoginForm({
   callbackUrl = "/",
   oauthProviders = [],
+  initialError = null,
 }: LoginFormProps) {
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError);
 
   const showOAuth = oauthProviders.length > 0;
 
@@ -28,17 +38,30 @@ export function LoginForm({
     setPending(true);
 
     const formData = new FormData(event.currentTarget);
-    formData.set("callbackUrl", callbackUrl);
+    const email = String(formData.get("email") ?? "")
+      .trim()
+      .toLowerCase();
+    const password = String(formData.get("password") ?? "");
 
-    const result = await loginWithCredentialsAction({}, formData);
-
-    if (result.error) {
-      setError(result.error);
+    if (!email || !password) {
+      setError("Email and password are required.");
       setPending(false);
       return;
     }
 
-    window.location.assign(result.redirectTo ?? "/");
+    try {
+      // redirect: true (default) — redirect: false throws on relative callback URLs.
+      await signIn("credentials", {
+        email,
+        password,
+        callbackUrl: resolveCallbackUrl(callbackUrl),
+      });
+    } catch {
+      setError(
+        "Could not reach the server. Check your connection and try again.",
+      );
+      setPending(false);
+    }
   }
 
   return (

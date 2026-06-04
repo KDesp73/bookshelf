@@ -6,7 +6,6 @@ import { AuthError } from "next-auth";
 import { signIn, signOut, unstable_update } from "@/auth";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
-import { claimLegacyBooksForAdmin } from "@/lib/books/legacy";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { isValidUsername, normalizeUsername } from "@/lib/auth/username";
 import {
@@ -143,8 +142,6 @@ export async function completeOnboardingAction(
       username,
       bio: bio || undefined,
     });
-
-    await claimLegacyBooksForAdmin(auth.user.id);
   } catch {
     return { error: "Could not save profile. Try again." };
   }

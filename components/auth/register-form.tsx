@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { loginWithCredentialsAction, registerAction } from "@/actions/auth";
+import { signIn } from "next-auth/react";
+import { registerAction } from "@/actions/auth";
 import type { OAuthProviderId } from "@/lib/auth/oauth-providers";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,10 @@ export function RegisterForm({ oauthProviders = [] }: RegisterFormProps) {
     setPending(true);
 
     const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "")
+      .trim()
+      .toLowerCase();
+    const password = String(formData.get("password") ?? "");
 
     const result = await registerAction({}, formData);
 
@@ -34,17 +39,20 @@ export function RegisterForm({ oauthProviders = [] }: RegisterFormProps) {
       return;
     }
 
-    formData.set("callbackUrl", result.redirectTo ?? "/onboarding");
-    const loginResult = await loginWithCredentialsAction({}, formData);
-
-    if (loginResult.error) {
-      setError("Account created but sign-in failed. Try logging in.");
-      setPending(false);
-      return;
-    }
-
-    window.location.assign(loginResult.redirectTo ?? "/onboarding");
+    try {
+    await signIn("credentials", {
+      email,
+      password,
+      callbackUrl: new URL(
+        result.redirectTo ?? "/onboarding",
+        window.location.origin,
+      ).href,
+    });
+  } catch {
+    setError("Account created but sign-in failed. Try logging in.");
+    setPending(false);
   }
+}
 
   return (
     <div className="mx-auto w-full max-w-sm space-y-6">

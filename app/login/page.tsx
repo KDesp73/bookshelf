@@ -3,13 +3,20 @@ import { LoginForm } from "@/components/auth/login-form";
 import { getEnabledOAuthProviders } from "@/lib/auth/oauth-providers";
 
 interface LoginPageProps {
-  searchParams: Promise<{ callbackUrl?: string }>;
+  searchParams: Promise<{ callbackUrl?: string; error?: string }>;
+}
+
+function loginErrorMessage(error?: string): string | null {
+  if (!error) return null;
+  if (error === "CredentialsSignin") return "Invalid email or password.";
+  return "Could not sign in. Try again.";
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const callbackUrl = params.callbackUrl ?? "/";
   const oauthProviders = getEnabledOAuthProviders();
+  const initialError = loginErrorMessage(params.error);
 
   return (
     <div className="mx-auto max-w-md space-y-6 py-8">
@@ -20,7 +27,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </p>
       </div>
 
-      <LoginForm callbackUrl={callbackUrl} oauthProviders={oauthProviders} />
+      <LoginForm
+        callbackUrl={callbackUrl}
+        oauthProviders={oauthProviders}
+        initialError={initialError}
+      />
 
       <p className="text-center text-sm text-stone-500">
         No account yet?{" "}
