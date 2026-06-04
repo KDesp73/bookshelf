@@ -3,10 +3,11 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Heart, LogOut, Palette, Pencil } from "lucide-react";
+import { BookOpen, Heart, KeyRound, LogOut, Palette, Pencil } from "lucide-react";
 import { logoutAction } from "@/actions/auth";
 import { toggleCollectionLikeAction } from "@/actions/social";
 import type { UserProfile } from "@/types/user";
+import { ChangePasswordDialog } from "@/components/social/change-password-dialog";
 import { ProfileEditDialog } from "@/components/social/profile-edit-dialog";
 import { ShareProfileButton } from "@/components/social/share-profile-button";
 import { ShelfAppearanceDialog } from "@/components/shelf/shelf-appearance-dialog";
@@ -20,6 +21,7 @@ interface ProfileHeaderProps {
   likeCount: number;
   liked: boolean;
   isOwner: boolean;
+  hasPassword?: boolean;
   viewerLoggedIn: boolean;
 }
 
@@ -29,6 +31,7 @@ export function ProfileHeader({
   likeCount,
   liked: initialLiked,
   isOwner,
+  hasPassword = false,
   viewerLoggedIn,
 }: ProfileHeaderProps) {
   const router = useRouter();
@@ -37,6 +40,7 @@ export function ProfileHeader({
   const [count, setCount] = useState(likeCount);
   const [editOpen, setEditOpen] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
   const displayName = user.name ?? user.username ?? "Reader";
 
@@ -127,6 +131,12 @@ export function ProfileHeader({
             open={appearanceOpen}
             onOpenChange={setAppearanceOpen}
           />
+          {hasPassword ? (
+            <ChangePasswordDialog
+              open={passwordOpen}
+              onOpenChange={setPasswordOpen}
+            />
+          ) : null}
         </>
       ) : null}
     </>
@@ -144,6 +154,16 @@ export function ProfileHeader({
             <Pencil className="h-4 w-4" />
             Edit profile
           </Button>
+          {hasPassword ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPasswordOpen(true)}
+            >
+              <KeyRound className="h-4 w-4" />
+              Password
+            </Button>
+          ) : null}
           <Button variant="outline" size="sm" asChild>
             <Link href="/wishlist">
               <Heart className="h-4 w-4" />
@@ -211,6 +231,17 @@ export function ProfileHeader({
             <Pencil className="h-4 w-4" />
             Edit
           </Button>
+          {hasPassword ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-center"
+              onClick={() => setPasswordOpen(true)}
+            >
+              <KeyRound className="h-4 w-4" />
+              Password
+            </Button>
+          ) : null}
           <Button variant="outline" size="sm" className="w-full justify-center" asChild>
             <Link href="/wishlist">
               <Heart className="h-4 w-4" />

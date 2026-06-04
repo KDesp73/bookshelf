@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getSessionUser } from "@/lib/auth/get-session-user";
+import { userHasPassword } from "@/lib/auth/password";
 import { getUserByUsername } from "@/lib/users/queries";
 import { listPublicBooks, getAllTags, getBookCount } from "@/lib/books/queries";
 import { getLikeCount, hasLiked } from "@/lib/social/queries";
@@ -92,6 +93,7 @@ export default async function ProfilePage({
   }
 
   const isOwner = viewer?.id === user._id;
+  const hasPassword = isOwner && viewer?.id ? await userHasPassword(viewer.id) : false;
 
   return (
     <ShelfThemeWrapper
@@ -105,6 +107,7 @@ export default async function ProfilePage({
         likeCount={likeCount}
         liked={liked}
         isOwner={isOwner}
+        hasPassword={hasPassword}
         viewerLoggedIn={!!viewer?.id}
       />
 

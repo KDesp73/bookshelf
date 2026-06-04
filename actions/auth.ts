@@ -10,6 +10,10 @@ import { User } from "@/models/User";
 import { claimLegacyBooksForAdmin } from "@/lib/books/legacy";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { isValidUsername, normalizeUsername } from "@/lib/auth/username";
+import {
+  MIN_PASSWORD_LENGTH,
+  validateNewPassword,
+} from "@/lib/auth/password";
 import { requireUser } from "@/lib/auth/require-user";
 import {
   AVATAR_TYPES,
@@ -38,8 +42,10 @@ export async function registerAction(
 
   if (!email) return { error: "Email is required." };
   if (!password) return { error: "Password is required." };
-  if (password.length < 8) {
-    return { error: "Password must be at least 8 characters." };
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return {
+      error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
+    };
   }
   if (password !== confirmPassword) {
     return { error: "Passwords do not match." };
@@ -241,6 +247,58 @@ export async function updateProfileAction(
     },
   });
   revalidatePath(`/u/${auth.user.username}`);
+
+  return { success: true };
+}
+
+export async function changePasswordAction(
+  _prevState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const auth = await requireUser();
+  if (auth.error || !auth.user) {
+    return { error: auth.error ?? "Sign in required." };
+  }
+
+  const currentPassword = String(formData.get("currentPassword") ?? "");
+  const newPassword = String(formData.get("newPassword") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+  if (!currentPassword) {
+    return { error: "Current password is required." };
+  }
+
+  const passwordError = validateNewPassword(newPassword, confirmPassword);
+  if (passwordError) {
+    return { error: passwordError };
+  }
+
+  try {
+    await connectDB();
+    const user = await User.findById(auth.user.id).select("+passwordHash");
+
+    if (!user?.passwordHash) {
+      return {
+        error:
+          "Your account uses Google or GitHub sign-in and has no password to change.",
+      };
+    }
+
+    const currentValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!currentValid) {
+      return { error: "Current password is incorrect." };
+    }
+
+    const sameAsCurrent = await bcrypt.compare(newPassword, user.passwordHash);
+    if (sameAsCurrent) {
+      return { error: "New password must be different from your current password." };
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, 12);
+    await user.save();
+  } catch {
+    return { error: "Could not update password. Try again." };
+  }
 
   return { success: true };
 }
