@@ -53,12 +53,32 @@ If you see a Turbopack panic (`Next.js package not found` on `/add` or other rou
 |----------|----------|-------------|
 | `MONGODB_URI` | Yes | MongoDB connection string |
 | `AUTH_SECRET` | Yes | Random string for Auth.js session signing |
-| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | No | Google OAuth (optional) |
-| `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | No | GitHub OAuth (optional) |
+| `AUTH_URL` | Recommended | Public site URL, e.g. `https://your-app.vercel.app` (no trailing slash). Required for OAuth on Vercel. |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | No | Google OAuth — see [Google OAuth setup](#google-oauth-setup) |
+| `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | No | GitHub OAuth — callback: `https://YOUR-DOMAIN/api/auth/callback/github` |
 | `ADMIN_EMAIL` | No | Email address auto-promoted to admin on sign-in |
 | `GOOGLE_BOOKS_API_KEY` | No | Optional Google Books API key |
 | `THEBOOKDB_API_KEY` | No | Optional TheBookDB metadata API key |
 | `ISBNDB_API_KEY` | No | Optional ISBNdb API key (higher coverage) |
+
+### Google OAuth setup
+
+`redirect_uri_mismatch` means Google Cloud Console does not list the exact callback URL your app uses.
+
+1. In [Google Cloud Console](https://console.cloud.google.com/) → **APIs & Services** → **Credentials** → your **OAuth 2.0 Client ID** (Web application).
+2. Under **Authorized redirect URIs**, add every URL you sign in from:
+   - Local: `http://localhost:3000/api/auth/callback/google`
+   - Production: `https://YOUR-DOMAIN/api/auth/callback/google`  
+     Use your real Vercel URL or custom domain — must match exactly (including `https`, no trailing slash on the path).
+3. Under **Authorized JavaScript origins**, add:
+   - `http://localhost:3000`
+   - `https://YOUR-DOMAIN`
+4. In Vercel → **Settings** → **Environment Variables**, set:
+   - `AUTH_URL=https://YOUR-DOMAIN` (same origin as step 2, no trailing slash)
+   - `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` from the same OAuth client
+5. Redeploy after changing env vars.
+
+**Note:** Preview deployments (`*.vercel.app` branch URLs) use a different domain unless you add each one to Google — test OAuth on your main production URL.
 
 ## Migration note
 
