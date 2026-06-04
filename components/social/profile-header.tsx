@@ -6,7 +6,8 @@ import Link from "next/link";
 import { BookOpen, Heart, KeyRound, LogOut, Palette, Pencil } from "lucide-react";
 import { logoutAction } from "@/actions/auth";
 import { toggleCollectionLikeAction } from "@/actions/social";
-import type { UserProfile } from "@/types/user";
+import type { CollectionLiker, UserProfile } from "@/types/user";
+import { CollectionLikers } from "@/components/social/collection-likers";
 import { ChangePasswordDialog } from "@/components/social/change-password-dialog";
 import { ProfileEditDialog } from "@/components/social/profile-edit-dialog";
 import { ShareProfileButton } from "@/components/social/share-profile-button";
@@ -19,6 +20,7 @@ interface ProfileHeaderProps {
   user: UserProfile;
   bookCount: number;
   likeCount: number;
+  likers: CollectionLiker[];
   liked: boolean;
   isOwner: boolean;
   hasPassword?: boolean;
@@ -29,6 +31,7 @@ export function ProfileHeader({
   user,
   bookCount,
   likeCount,
+  likers,
   liked: initialLiked,
   isOwner,
   hasPassword = false,
@@ -92,6 +95,7 @@ export function ProfileHeader({
                 </span>{" "}
                 {count === 1 ? "like" : "likes"}
               </p>
+              <CollectionLikers likers={likers} totalCount={count} />
             </div>
 
             <div className="mt-4 hidden shrink-0 flex-wrap justify-end gap-2 sm:mt-0 sm:flex">

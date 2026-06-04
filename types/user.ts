@@ -48,3 +48,13 @@ export interface DiscoverFilters {
   search?: string;
   sort?: "likes" | "books" | "recent";
 }
+
+/** Public profile snippet for someone who liked a collection. */
+export interface CollectionLiker {
+  _id: string;
+  name?: string;
+  username?: string;
+  image?: string;
+  avatarType?: AvatarType;
+  likedAt: string;
+}

@@ -5,7 +5,11 @@ import { getSessionUser } from "@/lib/auth/get-session-user";
 import { userHasPassword } from "@/lib/auth/password";
 import { getUserByUsername } from "@/lib/users/queries";
 import { listPublicBooks, getAllTags, getBookCount } from "@/lib/books/queries";
-import { getLikeCount, hasLiked } from "@/lib/social/queries";
+import {
+  getLikeCount,
+  hasLiked,
+  listCollectionLikers,
+} from "@/lib/social/queries";
 import { parseLibraryFilters } from "@/lib/books/filters";
 import { profileUrl } from "@/lib/site-url";
 import { ProfileHeader } from "@/components/social/profile-header";
@@ -73,6 +77,7 @@ export default async function ProfilePage({
   let tags: string[] = [];
   let bookCount = 0;
   let likeCount = 0;
+  let likers: Awaited<ReturnType<typeof listCollectionLikers>> = [];
   let liked = false;
   let dbError: string | null = null;
 
@@ -83,6 +88,10 @@ export default async function ProfilePage({
       getBookCount(user._id),
       getLikeCount(user._id),
     ]);
+
+    if (likeCount > 0) {
+      likers = await listCollectionLikers(user._id);
+    }
 
     if (viewer?.id) {
       liked = await hasLiked(viewer.id, user._id);
@@ -105,6 +114,7 @@ export default async function ProfilePage({
         user={user}
         bookCount={bookCount}
         likeCount={likeCount}
+        likers={likers}
         liked={liked}
         isOwner={isOwner}
         hasPassword={hasPassword}

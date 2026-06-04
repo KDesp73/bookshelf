@@ -4,7 +4,11 @@ import { CollectionLike } from "@/models/CollectionLike";
 import { User, type IUser } from "@/models/User";
 import type { AvatarType } from "@/lib/constants";
 import { getShelfAppearance } from "@/lib/shelf/appearance";
-import type { DiscoverFilters, UserListItem } from "@/types/user";
+import type {
+  CollectionLiker,
+  DiscoverFilters,
+  UserListItem,
+} from "@/types/user";
 
 export async function getLikeCount(userId: string): Promise<number> {
   await connectDB();
@@ -18,6 +22,50 @@ export async function hasLiked(
   await connectDB();
   const like = await CollectionLike.findOne({ likerId, targetUserId }).lean();
   return !!like;
+}
+
+export async function listCollectionLikers(
+  targetUserId: string,
+  limit = 24,
+): Promise<CollectionLiker[]> {
+  await connectDB();
+
+  const likes = await CollectionLike.find({ targetUserId })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .lean();
+
+  if (likes.length === 0) return [];
+
+  const likerIds = likes.map((like) => like.likerId);
+  const users = await User.find({ _id: { $in: likerIds } })
+    .select("name username image avatarType")
+    .lean();
+
+  const userMap = new Map(
+    users.map((u) => [
+      (u as IUser & { _id: { toString(): string } })._id.toString(),
+      u as IUser & { _id: { toString(): string } },
+    ]),
+  );
+
+  const likers: CollectionLiker[] = [];
+
+  for (const like of likes) {
+    const liker = userMap.get(like.likerId);
+    if (!liker) continue;
+
+    likers.push({
+      _id: like.likerId,
+      name: liker.name ?? undefined,
+      username: liker.username ?? undefined,
+      image: liker.image ?? undefined,
+      avatarType: (liker.avatarType as AvatarType | undefined) ?? undefined,
+      likedAt: like.createdAt.toISOString(),
+    });
+  }
+
+  return likers;
 }
 
 export async function listUsers(
