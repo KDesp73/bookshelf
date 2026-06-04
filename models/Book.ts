@@ -25,7 +25,8 @@ const bookSchema = new Schema(
     genres: { type: [String], default: [] },
     subjects: { type: [String], default: [] },
     categories: { type: [String], default: [] },
-    language: { type: String, trim: true, lowercase: true },
+    // Not "language" — MongoDB text indexes treat that field as a search-language override.
+    langCode: { type: String, trim: true, lowercase: true },
     publishYear: { type: Number },
     openLibraryWorkKey: { type: String, trim: true },
     googleVolumeId: { type: String, trim: true },
@@ -51,7 +52,10 @@ const bookSchema = new Schema(
 );
 
 bookSchema.index({ userId: 1, isbn13: 1 }, { unique: true });
-bookSchema.index({ userId: 1, title: "text", authors: "text" });
+bookSchema.index(
+  { userId: 1, title: "text", authors: "text" },
+  { language_override: "searchLanguage" },
+);
 bookSchema.index({ userId: 1, genres: 1 });
 bookSchema.index({ metadataEnrichedAt: 1 });
 

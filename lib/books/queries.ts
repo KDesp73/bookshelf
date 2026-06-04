@@ -25,7 +25,10 @@ function toBookDocument(
     genres: book.genres?.length ? book.genres : undefined,
     subjects: book.subjects?.length ? book.subjects : undefined,
     categories: book.categories?.length ? book.categories : undefined,
-    language: book.language ?? undefined,
+    language:
+      book.langCode ??
+      (book as IBook & { language?: string }).language ??
+      undefined,
     publishYear: book.publishYear ?? undefined,
     openLibraryWorkKey: book.openLibraryWorkKey ?? undefined,
     googleVolumeId: book.googleVolumeId ?? undefined,

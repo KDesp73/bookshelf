@@ -59,11 +59,12 @@ export type RecommendationFieldUpdate = Pick<
   | "genres"
   | "subjects"
   | "categories"
-  | "language"
   | "publishYear"
   | "openLibraryWorkKey"
   | "googleVolumeId"
->;
+> & {
+  langCode?: string;
+};
 
 export function recommendationFieldsFromMetadata(
   meta: Partial<BookMetadata>,
@@ -80,7 +81,9 @@ export function recommendationFieldsFromMetadata(
   if (genres.length) fields.genres = genres;
   if (subjects.length) fields.subjects = subjects;
   if (categories.length) fields.categories = categories;
-  if (meta.language?.trim()) fields.language = meta.language.trim().toLowerCase();
+  if (meta.language?.trim()) {
+    fields.langCode = meta.language.trim().toLowerCase();
+  }
   const publishYear = meta.publishYear ?? parsePublishYear(meta.publishedDate);
   if (publishYear) fields.publishYear = publishYear;
   if (meta.openLibraryWorkKey?.trim()) {
@@ -100,7 +103,7 @@ export function hasRecommendationMetadata(
     fields.genres?.length ||
       fields.subjects?.length ||
       fields.categories?.length ||
-      fields.language ||
+      fields.langCode ||
       fields.publishYear ||
       fields.openLibraryWorkKey ||
       fields.googleVolumeId,

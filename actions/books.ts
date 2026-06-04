@@ -37,6 +37,7 @@ function serializeBook(book: {
   genres?: string[] | null;
   subjects?: string[] | null;
   categories?: string[] | null;
+  langCode?: string | null;
   language?: string | null;
   publishYear?: number | null;
   openLibraryWorkKey?: string | null;
@@ -63,7 +64,7 @@ function serializeBook(book: {
     genres: book.genres?.length ? book.genres : undefined,
     subjects: book.subjects?.length ? book.subjects : undefined,
     categories: book.categories?.length ? book.categories : undefined,
-    language: book.language ?? undefined,
+    language: book.langCode ?? book.language ?? undefined,
     publishYear: book.publishYear ?? undefined,
     openLibraryWorkKey: book.openLibraryWorkKey ?? undefined,
     googleVolumeId: book.googleVolumeId ?? undefined,
@@ -225,7 +226,8 @@ export async function saveBookAction(
     revalidateBookPaths(auth.user.username!);
 
     return { success: true, data: serializeBook(book) };
-  } catch {
+  } catch (error) {
+    console.error("[saveBookAction]", error);
     return { success: false, error: "Failed to save book." };
   }
 }
