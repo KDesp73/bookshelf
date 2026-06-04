@@ -27,6 +27,7 @@ export type AuthActionState = {
   success?: boolean;
   redirectTo?: string;
   username?: string;
+  needsPassword?: boolean;
 };
 
 export async function registerAction(
@@ -92,6 +93,19 @@ export async function loginWithCredentialsAction(
       : "/";
 
   try {
+    await connectDB();
+    const existing = await User.findOne({ email })
+      .select("+passwordHash")
+      .lean();
+
+    if (existing && !existing.passwordHash) {
+      return {
+        error:
+          "This account has no password yet. Set one on the link below, then sign in.",
+        needsPassword: true,
+      };
+    }
+
     await signIn("credentials", {
       email,
       password,
@@ -106,6 +120,64 @@ export async function loginWithCredentialsAction(
   }
 
   return { success: true, redirectTo };
+}
+
+export async function setInitialPasswordAction(
+  _prevState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const email = String(formData.get("email") ?? "")
+    .trim()
+    .toLowerCase();
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+  if (!email) return { error: "Email is required." };
+
+  const passwordError = validateNewPassword(password, confirmPassword);
+  if (passwordError) return { error: passwordError };
+
+  try {
+    await connectDB();
+    const user = await User.findOne({ email }).select("+passwordHash");
+
+    if (!user) {
+      return { error: "No account found for that email." };
+    }
+
+    if (user.passwordHash) {
+      return {
+        error:
+          "This account already has a password. Sign in normally or change it from your profile.",
+      };
+    }
+
+    user.passwordHash = await bcrypt.hash(password, 12);
+    if (isAdminEmail(email)) {
+      user.isAdmin = true;
+    }
+    await user.save();
+  } catch {
+    return { error: "Could not set password. Try again." };
+  }
+
+  try {
+    await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+      redirectTo: "/",
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return {
+        error: "Password saved but sign-in failed. Try signing in manually.",
+      };
+    }
+    return { error: "Password saved but sign-in failed. Try signing in manually." };
+  }
+
+  return { success: true, redirectTo: "/" };
 }
 
 export async function logoutAction(): Promise<void> {

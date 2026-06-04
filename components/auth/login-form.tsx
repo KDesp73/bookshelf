@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { loginWithCredentialsAction } from "@/actions/auth";
 import type { OAuthProviderId } from "@/lib/auth/oauth-providers";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
@@ -21,6 +22,7 @@ export function LoginForm({
 }: LoginFormProps) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(initialError);
+  const [showSetPasswordHint, setShowSetPasswordHint] = useState(false);
 
   const showOAuth = oauthProviders.length > 0;
 
@@ -37,6 +39,7 @@ export function LoginForm({
 
       if (result.error) {
         setError(result.error);
+        setShowSetPasswordHint(result.needsPassword === true);
         setPending(false);
         return;
       }
@@ -96,10 +99,31 @@ export function LoginForm({
           <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         ) : null}
 
+        {showSetPasswordHint ? (
+          <p className="text-sm">
+            <Link
+              href="/login/set-password"
+              className="font-medium text-amber-800 underline-offset-2 hover:underline dark:text-amber-300"
+            >
+              Set a password for this account
+            </Link>
+          </p>
+        ) : null}
+
         <Button type="submit" className="w-full" disabled={pending}>
           {pending ? "Signing in…" : "Sign in"}
         </Button>
       </form>
+
+      <p className="text-center text-sm text-stone-500">
+        Existing account without a password?{" "}
+        <Link
+          href="/login/set-password"
+          className="font-medium text-amber-800 underline-offset-2 hover:underline dark:text-amber-300"
+        >
+          Set one here
+        </Link>
+      </p>
     </div>
   );
 }

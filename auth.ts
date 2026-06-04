@@ -38,7 +38,7 @@ const providers: NextAuthConfig["providers"] = [
           name: user.name ?? undefined,
           image: user.image ?? undefined,
           username: user.username ?? null,
-          isAdmin: user.isAdmin ?? false,
+          isAdmin: user.isAdmin === true || isAdminEmail(user.email),
         };
       } catch (error) {
         console.error("[auth] credentials authorize failed:", error);
