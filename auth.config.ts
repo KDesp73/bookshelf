@@ -17,6 +17,8 @@ export const authConfig = {
         token.username = user.username ?? null;
         token.isAdmin = user.isAdmin === true;
       }
+      delete token.picture;
+      delete token.image;
       return token;
     },
     async session({ session, token }) {
@@ -25,6 +27,8 @@ export const authConfig = {
         session.user.username =
           typeof token.username === "string" ? token.username : null;
         session.user.isAdmin = token.isAdmin === true;
+        // Avatars are loaded from the database, not stored in the JWT cookie.
+        delete session.user.image;
       }
       return session;
     },

@@ -2,10 +2,13 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
-import bcrypt from "bcryptjs";
 import { authConfig } from "@/auth.config";
 import { connectDB } from "@/lib/db";
 import { isAdminEmail } from "@/lib/auth/admin";
+import { compactAuthToken } from "@/lib/auth/jwt-token";
+import {
+  verifyCredentials,
+} from "@/lib/auth/verify-credentials";
 import { User } from "@/models/User";
 import type { NextAuthConfig } from "next-auth";
 
@@ -25,21 +28,16 @@ const providers: NextAuthConfig["providers"] = [
       if (!email || !password) return null;
 
       try {
-        await connectDB();
-        const user = await User.findOne({ email }).select("+passwordHash").lean();
-        if (!user?.passwordHash) return null;
+        const result = await verifyCredentials(email, password);
+        if (!result.ok) {
+          console.error(
+            `[auth] credentials rejected for ${email}: ${result.reason}`,
+          );
+          return null;
+        }
 
-        const valid = await bcrypt.compare(password, user.passwordHash);
-        if (!valid) return null;
-
-        return {
-          id: user._id.toString(),
-          email: user.email,
-          name: user.name ?? undefined,
-          image: user.image ?? undefined,
-          username: user.username ?? null,
-          isAdmin: user.isAdmin === true || isAdminEmail(user.email),
-        };
+        // Never attach image — large data-URI avatars exceed the session cookie limit.
+        return result.user;
       } catch (error) {
         console.error("[auth] credentials authorize failed:", error);
         return null;
@@ -113,7 +111,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         token.id = user.id;
         token.username = user.username ?? null;
         token.isAdmin = user.isAdmin === true;
-        return token;
+        return compactAuthToken(token);
       }
 
       if (trigger === "update" && session) {
@@ -130,7 +128,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         if (typeof nextName === "string") {
           token.name = nextName;
         }
-        return token;
+        return compactAuthToken(token);
       }
 
       if (token.id) {
@@ -154,7 +152,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         }
       }
 
-      return token;
+      return compactAuthToken(token);
     },
   },
 });
