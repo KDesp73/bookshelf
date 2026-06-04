@@ -96,12 +96,13 @@ export async function loginWithCredentialsAction(
       email,
       password,
       redirect: false,
+      redirectTo,
     });
   } catch (error) {
     if (error instanceof AuthError) {
       return { error: "Invalid email or password." };
     }
-    throw error;
+    return { error: "Sign-in failed. Please try again." };
   }
 
   return { success: true, redirectTo };

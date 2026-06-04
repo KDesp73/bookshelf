@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { loginWithCredentialsAction } from "@/actions/auth";
 import type { OAuthProviderId } from "@/lib/auth/oauth-providers";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button } from "@/components/ui/button";
@@ -12,14 +12,6 @@ interface LoginFormProps {
   callbackUrl?: string;
   oauthProviders?: OAuthProviderId[];
   initialError?: string | null;
-}
-
-function resolveCallbackUrl(callbackUrl: string): string {
-  const path =
-    callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")
-      ? callbackUrl
-      : "/";
-  return new URL(path, window.location.origin).href;
 }
 
 export function LoginForm({
@@ -38,28 +30,20 @@ export function LoginForm({
     setPending(true);
 
     const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "")
-      .trim()
-      .toLowerCase();
-    const password = String(formData.get("password") ?? "");
-
-    if (!email || !password) {
-      setError("Email and password are required.");
-      setPending(false);
-      return;
-    }
+    formData.set("callbackUrl", callbackUrl);
 
     try {
-      // redirect: true (default) — redirect: false throws on relative callback URLs.
-      await signIn("credentials", {
-        email,
-        password,
-        callbackUrl: resolveCallbackUrl(callbackUrl),
-      });
+      const result = await loginWithCredentialsAction({}, formData);
+
+      if (result.error) {
+        setError(result.error);
+        setPending(false);
+        return;
+      }
+
+      window.location.assign(result.redirectTo ?? "/");
     } catch {
-      setError(
-        "Could not reach the server. Check your connection and try again.",
-      );
+      setError("Sign-in failed. Please try again.");
       setPending(false);
     }
   }
