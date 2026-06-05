@@ -5,18 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.3.0] - 2026-06-05 
+
+### Added
+
+- Settings page
+- News share
+- Email 2FA using Resend
+- Displaying reactions in /news
+
+### Changed
+
+- Profile cleanup
+
+
 ## [1.2.0] - 2026-06-05 
 
 ### Added
 
-- Displaying collection likes
-- Collecting more metadata about the books
-- Public wishlist option
-- Skeleton screens while content is loading
-- Change password
 - Share profile as svg
 - News
 - Add docker support (@creatorkostas)
+- Collecting more metadata about the books
+- Change password
+- Displaying collection likes
+- Public wishlist option
+- Skeleton screens while content is loading
 
 ### Fixed
 
@@ -27,11 +41,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- Share profile
-- Landing page
 - Wishlist
+- Landing page
 - Profile icons and images
 - Import/Export collection
+- Share profile
 - Theme toggle
 - Custom bookshelf appearence
 - Selecting which cover matches the physical book
@@ -58,4 +72,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 [1.0.0]: https://github.com/KDesp73/bookshelf/releases/tag/v1.0.0
 [1.1.0]: https://github.com/KDesp73/bookshelf/releases/tag/v1.1.0
 [1.2.0]: https://github.com/KDesp73/bookshelf/releases/tag/v1.2.0
+[1.3.0]: https://github.com/KDesp73/bookshelf/releases/tag/v1.3.0
 
