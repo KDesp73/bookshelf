@@ -1,13 +1,18 @@
+"use client";
+
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { BookOpen, Compass, LogIn, Shield } from "lucide-react";
-import { getSessionUser } from "@/lib/auth/get-session-user";
 import { AddBookMenu } from "@/components/layout/add-book-menu";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { UserAvatar } from "@/components/users/user-avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
-export async function AppHeader() {
-  const user = await getSessionUser();
+export function AppHeader() {
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const isLoading = status === "loading";
 
   return (
     <header className="sticky top-0 z-40 border-b border-stone-200/80 bg-background/90 backdrop-blur-md dark:border-stone-700">
@@ -28,7 +33,9 @@ export async function AppHeader() {
             </Link>
           </Button>
 
-          {user ? (
+          {isLoading ? (
+            <Skeleton className="h-8 w-8 rounded-full" />
+          ) : user ? (
             <>
               {user.isAdmin ? (
                 <Button variant="ghost" size="sm" asChild>
@@ -49,11 +56,9 @@ export async function AppHeader() {
                     >
                       <UserAvatar
                         user={{
-                          _id: user.id,
+                          _id: user.id!,
                           name: user.name,
                           username: user.username,
-                          image: user.image,
-                          avatarType: user.avatarType,
                         }}
                         className="h-7 w-7 text-xs"
                       />

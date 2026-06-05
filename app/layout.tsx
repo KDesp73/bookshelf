@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Lora, Source_Sans_3 } from "next/font/google";
 import { AuthProvider } from "@/components/auth/session-provider";
 import { AppHeader } from "@/components/layout/app-header";
+import { NavigationProgress } from "@/components/layout/navigation-progress";
 import { ShelfPresetStyles } from "@/components/shelf/shelf-preset-styles";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Analytics } from "@vercel/analytics/next"
@@ -49,6 +51,9 @@ export default function RootLayout({
         <ThemeProvider>
           <ShelfPresetStyles />
           <AuthProvider>
+            <Suspense fallback={null}>
+              <NavigationProgress />
+            </Suspense>
             <AppHeader />
             <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-6 sm:py-6">{children}</main>
             <Analytics />
