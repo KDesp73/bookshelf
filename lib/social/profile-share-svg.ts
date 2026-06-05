@@ -19,14 +19,14 @@ const MAX_COVERS = MAX_FAVORITE_BOOKS;
 const MAX_COVER_BYTES = 180_000;
 const COVER_FETCH_TIMEOUT_MS = 4_000;
 
-const AVATAR_SIZE = 32;
-const COVER_WIDTH = 26;
-const COVER_HEIGHT = 40;
-const COVER_GAP = 3;
-const TEXT_X = 40;
+const AVATAR_SIZE = 36;
+const COVER_WIDTH = 34;
+const COVER_HEIGHT = 52;
+const COVER_GAP = 4;
+const TEXT_X = 44;
 const PADDING_X = 0;
 const PADDING_Y = 0;
-const ROW_HEIGHT = 56;
+const ROW_HEIGHT = 68;
 
 export interface ProfileShareCardData {
   displayName: string;
@@ -72,7 +72,7 @@ function computeCardWidth(coverCount: number): number {
     coverCount > 0
       ? coverCount * COVER_WIDTH + (coverCount - 1) * COVER_GAP
       : 0;
-  const textWidth = 220;
+  const textWidth = 230;
   const gap = coverCount > 0 ? 12 : 0;
   return PADDING_X * 2 + TEXT_X + textWidth + gap + coversWidth;
 }
@@ -115,8 +115,8 @@ function placeholderCoverMarkup(
   const hue = hashHue(title);
   const initial = escapeXml(title.trim()[0]?.toUpperCase() ?? "?");
   return [
-    `<rect x="${x}" y="${y}" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" rx="3" fill="hsl(${hue}, 30%, 42%)" />`,
-    `<text x="${x + COVER_WIDTH / 2}" y="${y + COVER_HEIGHT / 2 + 4}" text-anchor="middle" font-family="Georgia, serif" font-size="12" font-weight="600" fill="hsl(${hue}, 45%, 90%)">${initial}</text>`,
+    `<rect x="${x}" y="${y}" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" rx="4" fill="hsl(${hue}, 30%, 42%)" />`,
+    `<text x="${x + COVER_WIDTH / 2}" y="${y + COVER_HEIGHT / 2 + 5}" text-anchor="middle" font-family="Georgia, serif" font-size="14" font-weight="600" fill="hsl(${hue}, 45%, 90%)">${initial}</text>`,
   ].join("");
 }
 
@@ -137,7 +137,7 @@ function buildAvatarMarkup(
     const initial = escapeXml(getInitial(user));
     return [
       `<circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}" fill="${accentSoft}" />`,
-      `<text x="${size / 2}" y="${size / 2 + 5}" text-anchor="middle" font-family="Georgia, serif" font-size="14" font-weight="600" fill="${accent}">${initial}</text>`,
+      `<text x="${size / 2}" y="${size / 2 + 6}" text-anchor="middle" font-family="Georgia, serif" font-size="15" font-weight="600" fill="${accent}">${initial}</text>`,
     ].join("");
   }
 
@@ -171,7 +171,7 @@ async function buildCoverMarkupsAsync(
     if (coverDataUri) {
       const clipId = `cover-clip-${index}`;
       coverMarkups.push(
-        `<clipPath id="${clipId}"><rect x="${x}" y="${coverY}" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" rx="3" /></clipPath>`,
+        `<clipPath id="${clipId}"><rect x="${x}" y="${coverY}" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" rx="4" /></clipPath>`,
         `<image href="${coverDataUri}" x="${x}" y="${coverY}" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})" />`,
       );
     } else {
@@ -259,16 +259,16 @@ export function renderProfileShareSvg(data: ProfileShareCardData): string {
   );
 
   const avatarY = PADDING_Y + (ROW_HEIGHT - AVATAR_SIZE) / 2;
-  const nameY = PADDING_Y + 20;
-  const handleY = PADDING_Y + 34;
-  const statsY = PADDING_Y + 48;
+  const nameY = PADDING_Y + 24;
+  const handleY = PADDING_Y + 40;
+  const statsY = PADDING_Y + 56;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${cardWidth}" height="${cardHeight}" viewBox="0 0 ${cardWidth} ${cardHeight}" role="img" aria-label="${displayName} on BookShelf">
   <style>
-    .title { fill: #1f2328; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; font-weight: 700; }
-    .meta { fill: #656d76; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 10px; }
-    .stats { fill: ${data.accent}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 10px; font-weight: 600; }
+    .title { fill: #1f2328; font-family: Georgia, 'Times New Roman', serif; font-size: 15px; font-weight: 700; }
+    .meta { fill: #656d76; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; }
+    .stats { fill: ${data.accent}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; }
     @media (prefers-color-scheme: dark) {
       .title { fill: #f0f6fc; }
       .meta { fill: #8b949e; }
