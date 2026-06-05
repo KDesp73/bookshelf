@@ -42,8 +42,13 @@ export function RegisterForm({ oauthProviders = [] }: RegisterFormProps) {
       const loginResult = await loginWithCredentialsAction({}, formData);
 
       if (loginResult.error) {
-        setError("Account created but sign-in failed. Try logging in.");
+        setError(loginResult.error);
         setPending(false);
+        return;
+      }
+
+      if (loginResult.needsTwoFactor) {
+        window.location.assign(loginResult.redirectTo ?? "/login/verify");
         return;
       }
 

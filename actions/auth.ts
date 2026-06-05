@@ -11,6 +11,15 @@ import {
   credentialsErrorMessage,
   verifyCredentials,
 } from "@/lib/auth/verify-credentials";
+import {
+  getActiveLoginChallenge,
+  getLoginChallengeIdFromCookie,
+  resendEmailLoginCode,
+  startEmailLoginChallenge,
+  userRequiresEmailTwoFactor,
+  verifyEmailLoginCode,
+} from "@/lib/auth/login-challenge";
+import { isEmailConfigured } from "@/lib/email/send-login-code";
 import { isValidUsername, normalizeUsername } from "@/lib/auth/username";
 import {
   MIN_PASSWORD_LENGTH,
@@ -31,6 +40,8 @@ export type AuthActionState = {
   success?: boolean;
   redirectTo?: string;
   username?: string;
+  needsTwoFactor?: boolean;
+  maskedEmail?: string;
 };
 
 export async function registerAction(
@@ -76,6 +87,23 @@ export async function registerAction(
   return { success: true, redirectTo: "/onboarding" };
 }
 
+function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  if (!local || !domain) return email;
+  if (local.length <= 2) {
+    return `${local[0] ?? "*"}***@${domain}`;
+  }
+  return `${local.slice(0, 2)}***@${domain}`;
+}
+
+function normalizeCallbackUrl(value: string): string {
+  const callbackUrl = value.trim();
+  if (callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")) {
+    return callbackUrl;
+  }
+  return "/";
+}
+
 export async function loginWithCredentialsAction(
   _prevState: AuthActionState,
   formData: FormData,
@@ -84,38 +112,112 @@ export async function loginWithCredentialsAction(
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") ?? "");
-  const callbackUrl = String(formData.get("callbackUrl") ?? "").trim();
+  const callbackUrl = normalizeCallbackUrl(String(formData.get("callbackUrl") ?? ""));
 
   if (!email || !password) {
     return { error: "Email and password are required." };
   }
-
-  const redirectTo =
-    callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")
-      ? callbackUrl
-      : "/";
 
   const verified = await verifyCredentials(email, password);
   if (!verified.ok) {
     return { error: credentialsErrorMessage(verified.reason) };
   }
 
+  const requiresTwoFactor = await userRequiresEmailTwoFactor(verified.user.id);
+  if (!requiresTwoFactor) {
+    return { error: "This account cannot sign in with email and password." };
+  }
+
+  if (!isEmailConfigured()) {
+    return {
+      error: "Email verification is not configured. Contact support.",
+    };
+  }
+
+  const challenge = await startEmailLoginChallenge(
+    verified.user.id,
+    verified.user.email,
+    callbackUrl,
+  );
+
+  if (!challenge.ok) {
+    return { error: challenge.error };
+  }
+
+  return {
+    success: true,
+    needsTwoFactor: true,
+    redirectTo: `/login/verify?callbackUrl=${encodeURIComponent(callbackUrl)}`,
+    maskedEmail: maskEmail(verified.user.email),
+  };
+}
+
+export async function verifyLoginCodeAction(
+  _prevState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const code = String(formData.get("code") ?? "").trim();
+  const callbackUrl = normalizeCallbackUrl(String(formData.get("callbackUrl") ?? ""));
+
+  const challengeId = await getLoginChallengeIdFromCookie();
+  if (!challengeId) {
+    return { error: "Sign-in session expired. Try again." };
+  }
+
+  const verified = await verifyEmailLoginCode(challengeId, code);
+  if (!verified.ok) {
+    return { error: verified.error };
+  }
+
   try {
     await signIn("credentials", {
-      email,
-      password,
+      loginToken: verified.loginToken,
       redirect: false,
-      redirectTo,
+      redirectTo: callbackUrl,
     });
   } catch (error) {
     if (error instanceof AuthError) {
-      return { error: "Invalid email or password." };
+      return { error: "Could not complete sign-in. Try again." };
     }
-    console.error("[login] signIn failed after verify:", error);
+    console.error("[login] signIn failed after OTP:", error);
     return { error: "Sign-in failed. Please try again." };
   }
 
-  return { success: true, redirectTo };
+  return { success: true, redirectTo: callbackUrl };
+}
+
+export async function resendLoginCodeAction(): Promise<AuthActionState> {
+  const challengeId = await getLoginChallengeIdFromCookie();
+  if (!challengeId) {
+    return { error: "Sign-in session expired. Try again." };
+  }
+
+  const result = await resendEmailLoginCode(challengeId);
+  if (!result.ok) {
+    return { error: result.error };
+  }
+
+  return { success: true };
+}
+
+export async function getLoginVerifyContextAction(): Promise<{
+  email: string | null;
+  callbackUrl: string;
+}> {
+  const challengeId = await getLoginChallengeIdFromCookie();
+  if (!challengeId) {
+    return { email: null, callbackUrl: "/" };
+  }
+
+  const challenge = await getActiveLoginChallenge(challengeId);
+  if (!challenge) {
+    return { email: null, callbackUrl: "/" };
+  }
+
+  return {
+    email: maskEmail(challenge.email),
+    callbackUrl: challenge.callbackUrl,
+  };
 }
 
 export async function logoutAction(): Promise<void> {

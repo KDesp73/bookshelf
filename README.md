@@ -57,9 +57,20 @@ If you see a Turbopack panic (`Next.js package not found` on `/add` or other rou
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | No | Google OAuth — see [Google OAuth setup](#google-oauth-setup) |
 | `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | No | GitHub OAuth — callback: `https://YOUR-DOMAIN/api/auth/callback/github` |
 | `ADMIN_EMAIL` | No | Email address auto-promoted to admin on sign-in |
+| `RESEND_API_KEY` | Yes* | Resend API key for email/password 2FA codes |
+| `EMAIL_FROM` | Yes* | Verified sender, e.g. `BookShelf <noreply@yourdomain.com>` |
 | `GOOGLE_BOOKS_API_KEY` | No | Optional Google Books API key |
 | `THEBOOKDB_API_KEY` | No | Optional TheBookDB metadata API key |
 | `ISBNDB_API_KEY` | No | Optional ISBNdb API key (higher coverage) |
+
+\*Required for email/password sign-in and registration. Google/GitHub OAuth is unaffected.
+
+### Email 2FA (Resend)
+
+Email/password accounts must verify a 6-digit code sent on each sign-in (including after registration).
+
+1. Create an account at [resend.com](https://resend.com) and add a verified domain (or use their sandbox sender for testing).
+2. Set `RESEND_API_KEY` and `EMAIL_FROM` in `.env.local` / Vercel.
 
 ### Google OAuth setup
 
