@@ -7,7 +7,8 @@ TODO: achievements
 TODO: preview user collections on discover page
 TODO: bookshop non-intrusive ads
 TODO: live feed
-TODO: batch email sending to users
+TODO: allow users to delete their account
+TODO: import from goodreads
 DONE: about page
 DONE: landing page
 DONE: wishlist
@@ -20,3 +21,4 @@ DONE: customize bookshelf appearence (custom css)
 DONE: genre information
 DONE: restricting/deleting users
 DONE: email verification
+DONE: batch email sending to users
