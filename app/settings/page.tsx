@@ -7,6 +7,7 @@ import { ChangePasswordForm } from "@/components/settings/change-password-form";
 import { ProfileSettingsForm } from "@/components/settings/profile-settings-form";
 import { PromotionalEmailsToggle } from "@/components/settings/promotional-emails-toggle";
 import { SettingsSection } from "@/components/settings/settings-section";
+import { ThemeSettings } from "@/components/settings/theme-settings";
 import { ShelfAppearanceForm } from "@/components/shelf/shelf-appearance-form";
 import { WishlistVisibilityToggle } from "@/components/wishlist/wishlist-visibility-toggle";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,13 @@ export default async function SettingsPage() {
         description="How you appear on your public bookshelf."
       >
         <ProfileSettingsForm user={settings} />
+      </SettingsSection>
+
+      <SettingsSection
+        title="Theme"
+        description="Choose light, dark, or match your system setting."
+      >
+        <ThemeSettings />
       </SettingsSection>
 
       <SettingsSection

@@ -25,7 +25,7 @@ export function AppHeader() {
           BookShelf
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
-          <ThemeToggle />
+          {!isLoading && !user ? <ThemeToggle /> : null}
           <Button variant="ghost" size="sm" asChild>
             <Link href="/discover">
               <Compass className="h-4 w-4" />
