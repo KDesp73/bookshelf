@@ -91,6 +91,60 @@ export async function slugExists(slug: string, excludeId?: string): Promise<bool
   return !!post;
 }
 
+export async function getBulkPostReactionSummaries(
+  postIds: string[],
+  userId?: string,
+): Promise<Map<string, BlogReactionSummary[]>> {
+  const result = new Map<string, BlogReactionSummary[]>();
+  if (postIds.length === 0) return result;
+
+  await connectDB();
+
+  const counts = await BlogReaction.aggregate<{
+    _id: { postId: string; emoji: string };
+    count: number;
+  }>([
+    { $match: { postId: { $in: postIds } } },
+    { $group: { _id: { postId: "$postId", emoji: "$emoji" }, count: { $sum: 1 } } },
+  ]);
+
+  const countMap = new Map<string, number>();
+  for (const row of counts) {
+    countMap.set(`${row._id.postId}:${row._id.emoji}`, row.count);
+  }
+
+  let userReactionMap = new Map<string, Set<string>>();
+  if (userId) {
+    const userReactions = await BlogReaction.find({
+      postId: { $in: postIds },
+      userId,
+    })
+      .select("postId emoji")
+      .lean();
+
+    userReactionMap = new Map();
+    for (const reaction of userReactions) {
+      const set = userReactionMap.get(reaction.postId) ?? new Set<string>();
+      set.add(reaction.emoji);
+      userReactionMap.set(reaction.postId, set);
+    }
+  }
+
+  for (const postId of postIds) {
+    const userEmojis = userReactionMap.get(postId) ?? new Set<string>();
+    result.set(
+      postId,
+      BLOG_REACTION_EMOJIS.map((emoji) => ({
+        emoji,
+        count: countMap.get(`${postId}:${emoji}`) ?? 0,
+        reacted: userEmojis.has(emoji),
+      })),
+    );
+  }
+
+  return result;
+}
+
 export async function getPostReactionSummaries(
   postId: string,
   userId?: string,

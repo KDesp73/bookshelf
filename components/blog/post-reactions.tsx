@@ -11,12 +11,14 @@ interface PostReactionsProps {
   postId: string;
   initialReactions: BlogReactionSummary[];
   viewerLoggedIn: boolean;
+  compact?: boolean;
 }
 
 export function PostReactions({
   postId,
   initialReactions,
   viewerLoggedIn,
+  compact = false,
 }: PostReactionsProps) {
   const [pending, startTransition] = useTransition();
   const [reactions, setReactions] = useState(initialReactions);
@@ -37,17 +39,37 @@ export function PostReactions({
   }
 
   return (
-    <div className="space-y-2">
-      <p className="text-sm font-medium text-stone-700 dark:text-stone-300">
-        Reactions
-      </p>
-      <div className="flex flex-wrap gap-2">
+    <div className={compact ? "space-y-2" : "space-y-2"}>
+      {!compact ? (
+        <p className="text-sm font-medium text-stone-700 dark:text-stone-300">
+          Reactions
+        </p>
+      ) : null}
+      <div className="flex flex-wrap gap-1.5 sm:gap-2">
         {BLOG_REACTION_EMOJIS.map((emoji) => {
           const summary = reactions.find((item) => item.emoji === emoji) ?? {
             emoji,
             count: 0,
             reacted: false,
           };
+
+          if (compact && !viewerLoggedIn && summary.count === 0) {
+            return null;
+          }
+
+          if (compact && !viewerLoggedIn) {
+            return (
+              <span
+                key={emoji}
+                className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-white/70 px-2 py-1 text-xs text-stone-700 dark:border-stone-700 dark:bg-stone-900/40 dark:text-stone-300"
+              >
+                <span aria-hidden>{emoji}</span>
+                <span className="tabular-nums">{summary.count}</span>
+              </span>
+            );
+          }
+
+          const showCount = summary.count > 0 || !compact;
 
           return (
             <button
@@ -56,7 +78,8 @@ export function PostReactions({
               disabled={!viewerLoggedIn || pending}
               onClick={() => handleToggle(emoji)}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition",
+                "inline-flex items-center gap-1 rounded-full border transition",
+                compact ? "px-2 py-1 text-xs" : "gap-1.5 px-3 py-1.5 text-sm",
                 summary.reacted
                   ? "border-amber-400 bg-amber-100 text-amber-950 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-100"
                   : "border-stone-200 bg-white/70 text-stone-700 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900/40 dark:text-stone-300 dark:hover:bg-stone-900",
@@ -71,12 +94,14 @@ export function PostReactions({
               }
             >
               <span aria-hidden>{emoji}</span>
-              <span className="tabular-nums">{summary.count}</span>
+              {showCount ? (
+                <span className="tabular-nums">{summary.count}</span>
+              ) : null}
             </button>
           );
         })}
       </div>
-      {!viewerLoggedIn ? (
+      {!viewerLoggedIn && !compact ? (
         <p className="text-sm text-stone-500">
           <Link href="/login" className="font-medium text-amber-800 dark:text-amber-300">
             Sign in

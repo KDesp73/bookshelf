@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { listPublishedPosts } from "@/lib/blog/queries";
+import { NewsPostCard } from "@/components/blog/news-post-card";
+import { getSessionUser } from "@/lib/auth/get-session-user";
+import {
+  getBulkPostReactionSummaries,
+  listPublishedPosts,
+} from "@/lib/blog/queries";
+import type { BlogReactionSummary } from "@/types/blog";
 
 function formatDate(value?: string) {
   if (!value) return "";
@@ -16,6 +22,20 @@ export default async function NewsPage() {
     posts = await listPublishedPosts();
   } catch {
     dbError = "Could not load news. Check your database connection.";
+  }
+
+  const viewer = await getSessionUser();
+  let reactionMap = new Map<string, BlogReactionSummary[]>();
+
+  if (posts.length > 0) {
+    try {
+      reactionMap = await getBulkPostReactionSummaries(
+        posts.map((post) => post._id),
+        viewer?.id,
+      );
+    } catch {
+      // Reactions are optional on the list page.
+    }
   }
 
   return (
@@ -43,27 +63,33 @@ export default async function NewsPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {posts.map((post) => (
-            <article
-              key={post._id}
-              className="rounded-xl border border-stone-200/80 bg-white/60 p-6 transition hover:border-amber-300 dark:border-stone-700 dark:bg-stone-900/40 dark:hover:border-amber-800"
-            >
-              <Link href={`/news/${post.slug}`} className="group block space-y-2">
-                <h2 className="font-serif text-xl font-semibold text-amber-950 group-hover:underline dark:text-amber-100">
-                  {post.title}
-                </h2>
-                {post.excerpt ? (
-                  <p className="text-stone-600 dark:text-stone-400">{post.excerpt}</p>
-                ) : null}
-                <p className="text-xs text-stone-500">
-                  {formatDate(post.publishedAt)}
-                  {post.authorName ? ` · ${post.authorName}` : ""}
-                </p>
-              </Link>
-            </article>
-          ))}
-        </div>
+        <>
+          {!viewer ? (
+            <p className="text-sm text-stone-500">
+              <Link
+                href="/login"
+                className="font-medium text-amber-800 dark:text-amber-300"
+              >
+                Sign in
+              </Link>{" "}
+              to react to posts.
+            </p>
+          ) : null}
+          <div className="space-y-4">
+            {posts.map((post) => (
+              <NewsPostCard
+                key={post._id}
+                post={post}
+                reactions={
+                  reactionMap.get(post._id) ??
+                  []
+                }
+                viewerLoggedIn={!!viewer}
+                formattedDate={formatDate(post.publishedAt)}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

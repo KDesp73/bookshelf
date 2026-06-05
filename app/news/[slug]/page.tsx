@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MarkdownContent } from "@/components/blog/markdown-content";
 import { PostReactions } from "@/components/blog/post-reactions";
+import { SharePostButton } from "@/components/blog/share-post-button";
 import { getSessionUser } from "@/lib/auth/get-session-user";
 import {
   getPostReactionSummaries,
@@ -39,13 +40,23 @@ export default async function NewsPostPage({ params }: NewsPostPageProps) {
         >
           ← All news
         </Link>
-        <h1 className="font-serif text-3xl font-semibold text-amber-950 dark:text-amber-100">
-          {post.title}
-        </h1>
-        <p className="text-sm text-stone-500">
-          {formatDate(post.publishedAt)}
-          {post.authorName ? ` · ${post.authorName}` : ""}
-        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <h1 className="font-serif text-3xl font-semibold text-amber-950 dark:text-amber-100">
+              {post.title}
+            </h1>
+            <p className="text-sm text-stone-500">
+              {formatDate(post.publishedAt)}
+              {post.authorName ? ` · ${post.authorName}` : ""}
+            </p>
+          </div>
+          <SharePostButton
+            slug={post.slug}
+            title={post.title}
+            excerpt={post.excerpt}
+            className="shrink-0"
+          />
+        </div>
       </div>
 
       <MarkdownContent content={post.body} />
