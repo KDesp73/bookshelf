@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { BookDocument, PublicBookDocument } from "@/types/book";
 import { BookCover } from "@/components/books/book-cover";
 import { StarRating } from "@/components/books/star-rating";
@@ -31,9 +32,14 @@ export function BookGrid({
   emptyMessage,
   canAddToWishlist = false,
 }: BookGridProps) {
+  const pathname = usePathname();
   const [selected, setSelected] = useState<BookDocument | PublicBookDocument | null>(
     null,
   );
+
+  useEffect(() => {
+    setSelected(null);
+  }, [pathname]);
 
   if (books.length === 0) {
     return (
@@ -55,11 +61,19 @@ export function BookGrid({
       <PreloadBookCovers books={books} />
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {books.map((book, index) => (
-          <button
+          <div
             key={book._id}
-            type="button"
+            role="button"
+            tabIndex={0}
+            aria-label={`View ${book.title}`}
             onClick={() => setSelected(book)}
-            className="group shelf-card relative text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600/50 rounded-md"
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setSelected(book);
+              }
+            }}
+            className="group shelf-card relative cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600/50 rounded-md"
           >
             <BookCover
               title={book.title}
@@ -88,7 +102,7 @@ export function BookGrid({
                 <StarRating value={book.rating} readOnly size="sm" showValue={false} />
               </div>
             ) : null}
-          </button>
+          </div>
         ))}
       </div>
 

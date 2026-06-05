@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { BookOpen, Compass, LogIn, Shield } from "lucide-react";
 import { AddBookMenu } from "@/components/layout/add-book-menu";
+import { HeaderProfileAvatar } from "@/components/layout/header-profile-avatar";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { UserAvatar } from "@/components/users/user-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
@@ -54,12 +54,10 @@ export function AppHeader() {
                       aria-label="Your profile"
                       title="Your profile"
                     >
-                      <UserAvatar
-                        user={{
-                          _id: user.id!,
-                          name: user.name,
-                          username: user.username,
-                        }}
+                      <HeaderProfileAvatar
+                        userId={user.id}
+                        name={user.name}
+                        username={user.username}
                         className="h-7 w-7 text-xs"
                       />
                     </Link>

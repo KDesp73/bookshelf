@@ -49,16 +49,34 @@ export function StarRating({
         {Array.from({ length: 5 }).map((_, index) => {
           const starNumber = index + 1;
           const fillAmount = getFillAmount(starNumber);
+          const starClassName = cn(starSize, "text-stone-300 dark:text-stone-600");
+          const filledStarClassName = cn(starSize, "fill-amber-500 text-amber-500");
+
+          if (readOnly) {
+            return (
+              <span
+                key={starNumber}
+                className="relative inline-block p-0.5"
+                aria-hidden
+              >
+                <Star className={starClassName} />
+                <span
+                  className="absolute inset-y-0 left-0 overflow-hidden p-0.5"
+                  style={{ width: `${fillAmount * 100}%` }}
+                >
+                  <Star className={filledStarClassName} />
+                </span>
+              </span>
+            );
+          }
 
           return (
             <button
               key={starNumber}
               type="button"
-              disabled={readOnly}
               className="relative p-0.5 disabled:cursor-default"
               aria-label={`Rate ${starNumber} stars`}
               onMouseMove={(event) => {
-                if (readOnly) return;
                 const rect = event.currentTarget.getBoundingClientRect();
                 const isLeftHalf = event.clientX - rect.left < rect.width / 2;
                 setHoverValue(isLeftHalf ? starNumber - 0.5 : starNumber);
@@ -69,13 +87,13 @@ export function StarRating({
                 handleSelect(starNumber, isLeftHalf);
               }}
             >
-              <Star className={cn(starSize, "text-stone-300 dark:text-stone-600")} />
-              <div
+              <Star className={starClassName} />
+              <span
                 className="absolute inset-y-0 left-0 overflow-hidden p-0.5"
                 style={{ width: `${fillAmount * 100}%` }}
               >
-                <Star className={cn(starSize, "fill-amber-500 text-amber-500")} />
-              </div>
+                <Star className={filledStarClassName} />
+              </span>
             </button>
           );
         })}
