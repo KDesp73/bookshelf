@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { FavoriteToggleButton } from "@/components/social/profile-favorites";
 import { cn } from "@/lib/utils";
 
 interface BookDetailsDialogProps {
@@ -41,7 +42,9 @@ interface BookDetailsDialogProps {
   isOwner: boolean;
   showNotes?: boolean;
   canAddToWishlist?: boolean;
-  onUpdated: (book: BookDocument) => void;
+  favoriteBookIds?: string[];
+  canManageFavorites?: boolean;
+  onUpdated?: (book: BookDocument) => void;
 }
 
 const statusColors: Record<string, string> = {
@@ -58,6 +61,8 @@ export function BookDetailsDialog({
   isOwner,
   showNotes = isOwner,
   canAddToWishlist = false,
+  favoriteBookIds = [],
+  canManageFavorites = false,
   onUpdated,
 }: BookDetailsDialogProps) {
   if (!book) return null;
@@ -71,6 +76,8 @@ export function BookDetailsDialog({
           isOwner={isOwner}
           showNotes={showNotes}
           canAddToWishlist={canAddToWishlist}
+          favoriteBookIds={favoriteBookIds}
+          canManageFavorites={canManageFavorites}
           onOpenChange={onOpenChange}
           onUpdated={onUpdated}
         />
@@ -84,6 +91,8 @@ function BookDetailsContent({
   isOwner,
   showNotes,
   canAddToWishlist,
+  favoriteBookIds,
+  canManageFavorites,
   onOpenChange,
   onUpdated,
 }: {
@@ -91,8 +100,10 @@ function BookDetailsContent({
   isOwner: boolean;
   showNotes: boolean;
   canAddToWishlist: boolean;
+  favoriteBookIds: string[];
+  canManageFavorites: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpdated: (book: BookDocument) => void;
+  onUpdated?: (book: BookDocument) => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -131,7 +142,7 @@ function BookDetailsContent({
         return;
       }
 
-      onUpdated(result.data);
+      onUpdated?.(result.data);
       setEditing(false);
       router.refresh();
     });
@@ -185,7 +196,7 @@ function BookDetailsContent({
         setError(result.error);
         return;
       }
-      onUpdated(result.data);
+      onUpdated?.(result.data);
       onOpenChange(false);
       router.refresh();
     });
@@ -199,7 +210,7 @@ function BookDetailsContent({
         setError(result.error);
         return;
       }
-      onUpdated(result.data);
+      onUpdated?.(result.data);
       onOpenChange(false);
       router.refresh();
     });
@@ -418,6 +429,14 @@ function BookDetailsContent({
               <Button onClick={handleMoveToLibrary} disabled={pending}>
                 {pending ? "Moving…" : "Move to library"}
               </Button>
+            ) : null}
+            {isOwner && !isWishlist && canManageFavorites ? (
+              <FavoriteToggleButton
+                bookId={book._id}
+                isFavorite={favoriteBookIds.includes(book._id)}
+                canManage
+                variant="button"
+              />
             ) : null}
             {isOwner && !isWishlist ? (
               <Button

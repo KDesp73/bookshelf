@@ -11,6 +11,7 @@ export interface UserProfile {
   bio?: string;
   shelfAppearance: ShelfAppearance;
   wishlistPublic: boolean;
+  favoriteBookIds: string[];
   isAdmin?: boolean;
   createdAt: string;
 }

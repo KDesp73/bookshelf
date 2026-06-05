@@ -8,6 +8,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { deleteUserAndData, listAllUsers } from "@/lib/admin/queries";
 import { getUserById } from "@/lib/users/queries";
 import { listBooks } from "@/lib/books/queries";
+import { removeFavoriteBookId } from "@/lib/books/favorites";
 import {
   backfillBookMetadata,
   countBooksNeedingMetadataEnrichment,
@@ -94,6 +95,7 @@ export async function deleteBookAsAdminAction(
     if (result.deletedCount === 0) {
       return { success: false, error: "Book not found." };
     }
+    await removeFavoriteBookId(userId, bookId);
 
     const user = await getUserById(userId);
     revalidatePath("/admin");

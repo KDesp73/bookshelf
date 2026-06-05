@@ -8,6 +8,7 @@ import { StarRating } from "@/components/books/star-rating";
 import { Badge } from "@/components/ui/badge";
 import { BookDetailsDialog } from "@/components/library/book-details-dialog";
 import { PreloadBookCovers } from "@/components/library/preload-book-covers";
+import { FavoriteToggleButton } from "@/components/social/profile-favorites";
 import { cn } from "@/lib/utils";
 
 interface BookGridProps {
@@ -16,6 +17,8 @@ interface BookGridProps {
   showNotes?: boolean;
   emptyMessage?: string;
   canAddToWishlist?: boolean;
+  favoriteBookIds?: string[];
+  canManageFavorites?: boolean;
 }
 
 const statusColors: Record<string, string> = {
@@ -31,6 +34,8 @@ export function BookGrid({
   showNotes = isOwner,
   emptyMessage,
   canAddToWishlist = false,
+  favoriteBookIds = [],
+  canManageFavorites = false,
 }: BookGridProps) {
   const pathname = usePathname();
   const [selected, setSelected] = useState<BookDocument | PublicBookDocument | null>(
@@ -102,6 +107,15 @@ export function BookGrid({
                 <StarRating value={book.rating} readOnly size="sm" showValue={false} />
               </div>
             ) : null}
+            {canManageFavorites && !book.isWishlist ? (
+              <div className="absolute bottom-1.5 right-1.5">
+                <FavoriteToggleButton
+                  bookId={book._id}
+                  isFavorite={favoriteBookIds.includes(book._id)}
+                  canManage
+                />
+              </div>
+            ) : null}
           </div>
         ))}
       </div>
@@ -113,6 +127,8 @@ export function BookGrid({
         isOwner={isOwner}
         showNotes={showNotes}
         canAddToWishlist={canAddToWishlist}
+        favoriteBookIds={favoriteBookIds}
+        canManageFavorites={canManageFavorites}
         onUpdated={(updated) => setSelected(updated)}
       />
     </>

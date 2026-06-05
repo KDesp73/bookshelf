@@ -15,6 +15,7 @@ function toUserProfile(user: IUser & { _id: { toString(): string } }): UserProfi
     bio: user.bio ?? undefined,
     shelfAppearance: getShelfAppearance(user),
     wishlistPublic: user.wishlistPublic === true,
+    favoriteBookIds: user.favoriteBookIds ?? [],
     isAdmin: user.isAdmin ?? false,
     createdAt: user.createdAt.toISOString(),
   };

@@ -1,5 +1,5 @@
-import { Book } from "@/models/Book";
 import { connectDB } from "@/lib/db";
+import { getFavoriteBooksForShare } from "@/lib/books/favorites";
 import { getLikeCount } from "@/lib/social/queries";
 import { getUserByUsername } from "@/lib/users/queries";
 import {
@@ -11,12 +11,14 @@ import {
   SHELF_PRESET_VARS,
   buildShelfStyleVars,
 } from "@/lib/shelf/presets";
+import { MAX_FAVORITE_BOOKS } from "@/lib/constants";
 import { profileUrl } from "@/lib/site-url";
+import { Book } from "@/models/Book";
 
-const CARD_WIDTH = 1200;
-const CARD_HEIGHT = 630;
+const CARD_WIDTH = 960;
+const CARD_HEIGHT = 400;
+const MAX_COVERS = MAX_FAVORITE_BOOKS;
 const MAX_COVER_BYTES = 180_000;
-const MAX_COVERS = 6;
 const COVER_FETCH_TIMEOUT_MS = 4_000;
 
 export interface ProfileShareCardData {
@@ -101,9 +103,9 @@ function placeholderCoverMarkup(
   const hue = hashHue(title);
   const initial = escapeXml(title.trim()[0]?.toUpperCase() ?? "?");
   return [
-    `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="8" fill="hsl(${hue}, 35%, 28%)" />`,
-    `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="8" fill="url(#cover-shine)" opacity="0.35" />`,
-    `<text x="${x + width / 2}" y="${y + height / 2 + 12}" text-anchor="middle" font-family="Georgia, serif" font-size="42" font-weight="600" fill="hsl(${hue}, 55%, 88%)">${initial}</text>`,
+    `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="6" fill="hsl(${hue}, 35%, 28%)" />`,
+    `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="6" fill="url(#cover-shine)" opacity="0.35" />`,
+    `<text x="${x + width / 2}" y="${y + height / 2 + 8}" text-anchor="middle" font-family="Georgia, serif" font-size="24" font-weight="600" fill="hsl(${hue}, 55%, 88%)">${initial}</text>`,
   ].join("");
 }
 
@@ -113,7 +115,7 @@ function buildAvatarMarkup(
   accent: string,
   accentSoft: string,
 ): string {
-  const size = 96;
+  const size = 56;
   const avatarType = resolveAvatarType(user);
 
   if (avatarType === "image" && avatarDataUri) {
@@ -124,15 +126,56 @@ function buildAvatarMarkup(
     const initial = escapeXml(getInitial(user));
     return [
       `<circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}" fill="${accentSoft}" />`,
-      `<text x="${size / 2}" y="${size / 2 + 14}" text-anchor="middle" font-family="Georgia, serif" font-size="42" font-weight="600" fill="${accent}">${initial}</text>`,
+      `<text x="${size / 2}" y="${size / 2 + 8}" text-anchor="middle" font-family="Georgia, serif" font-size="24" font-weight="600" fill="${accent}">${initial}</text>`,
     ].join("");
   }
 
   const identicon = generateIdenticonSvg(user._id, size);
-  const inner = identicon
-    .replace(/^<svg[^>]*>/, "")
-    .replace(/<\/svg>$/, "");
-  return inner;
+  return identicon.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "");
+}
+
+async function buildCoverMarkupsAsync(
+  favoriteBooks: Array<{ title: string; coverUrl?: string }>,
+  theme: ProfileShareCardData["theme"],
+): Promise<string[]> {
+  const coverWidth = 52;
+  const coverHeight = 78;
+  const coverGap = 8;
+  const coverStartX =
+    CARD_WIDTH - 32 - MAX_COVERS * coverWidth - (MAX_COVERS - 1) * coverGap;
+  const coverY = 72;
+  const coverMarkups: string[] = [];
+
+  for (let index = 0; index < MAX_COVERS; index++) {
+    const x = coverStartX + index * (coverWidth + coverGap);
+    const book = favoriteBooks[index];
+
+    if (!book) {
+      coverMarkups.push(
+        `<rect x="${x}" y="${coverY}" width="${coverWidth}" height="${coverHeight}" rx="6" fill="${theme.border}" opacity="0.3" />`,
+      );
+      continue;
+    }
+
+    let coverDataUri: string | null = null;
+    if (book.coverUrl) {
+      coverDataUri = await fetchImageDataUri(book.coverUrl);
+    }
+
+    if (coverDataUri) {
+      const clipId = `cover-clip-${index}`;
+      coverMarkups.push(
+        `<clipPath id="${clipId}"><rect x="${x}" y="${coverY}" width="${coverWidth}" height="${coverHeight}" rx="6" /></clipPath>`,
+        `<image href="${coverDataUri}" x="${x}" y="${coverY}" width="${coverWidth}" height="${coverHeight}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})" />`,
+      );
+    } else {
+      coverMarkups.push(
+        placeholderCoverMarkup(book.title, x, coverY, coverWidth, coverHeight),
+      );
+    }
+  }
+
+  return coverMarkups;
 }
 
 export async function loadProfileShareCardData(
@@ -143,7 +186,7 @@ export async function loadProfileShareCardData(
 
   await connectDB();
 
-  const [bookCount, readCount, readingCount, likeCount, recentBooks] =
+  const [bookCount, readCount, readingCount, likeCount, favoriteBooks] =
     await Promise.all([
       Book.countDocuments({ userId: user._id, isWishlist: { $ne: true } }),
       Book.countDocuments({
@@ -157,11 +200,7 @@ export async function loadProfileShareCardData(
         status: "Reading",
       }),
       getLikeCount(user._id),
-      Book.find({ userId: user._id, isWishlist: { $ne: true } })
-        .sort({ dateAdded: -1 })
-        .limit(MAX_COVERS)
-        .select("title coverUrl")
-        .lean(),
+      getFavoriteBooksForShare(user._id, user.favoriteBookIds, MAX_COVERS),
     ]);
 
   const presetVars = SHELF_PRESET_VARS[user.shelfAppearance.preset];
@@ -186,44 +225,7 @@ export async function loadProfileShareCardData(
     }
   }
 
-  const coverWidth = 118;
-  const coverHeight = 176;
-  const coverGap = 16;
-  const coverStartX =
-    CARD_WIDTH - 72 - MAX_COVERS * coverWidth - (MAX_COVERS - 1) * coverGap;
-  const coverY = 300;
-
-  const coverMarkups: string[] = [];
-
-  for (let index = 0; index < MAX_COVERS; index++) {
-    const x = coverStartX + index * (coverWidth + coverGap);
-    const book = recentBooks[index];
-
-    if (!book) {
-      coverMarkups.push(
-        `<rect x="${x}" y="${coverY}" width="${coverWidth}" height="${coverHeight}" rx="8" fill="${theme.border}" opacity="0.35" />`,
-      );
-      continue;
-    }
-
-    let coverDataUri: string | null = null;
-    if (book.coverUrl) {
-      coverDataUri = await fetchImageDataUri(book.coverUrl);
-    }
-
-    if (coverDataUri) {
-      const clipId = `cover-clip-${index}`;
-      coverMarkups.push(
-        `<rect x="${x - 2}" y="${coverY - 2}" width="${coverWidth + 4}" height="${coverHeight + 4}" rx="10" fill="${theme.border}" opacity="0.8" />`,
-        `<clipPath id="${clipId}"><rect x="${x}" y="${coverY}" width="${coverWidth}" height="${coverHeight}" rx="8" /></clipPath>`,
-        `<image href="${coverDataUri}" x="${x}" y="${coverY}" width="${coverWidth}" height="${coverHeight}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})" />`,
-      );
-    } else {
-      coverMarkups.push(
-        placeholderCoverMarkup(book.title, x, coverY, coverWidth, coverHeight),
-      );
-    }
-  }
+  const coverMarkups = await buildCoverMarkupsAsync(favoriteBooks, theme);
 
   return {
     displayName: user.name ?? user.username,
@@ -241,9 +243,9 @@ export async function loadProfileShareCardData(
 }
 
 export function renderProfileShareSvg(data: ProfileShareCardData): string {
-  const displayName = escapeXml(truncate(data.displayName, 48));
+  const displayName = escapeXml(truncate(data.displayName, 36));
   const username = escapeXml(data.username);
-  const bio = data.bio ? escapeXml(truncate(data.bio, 140)) : "";
+  const bio = data.bio ? escapeXml(truncate(data.bio, 90)) : "";
   const profileLink = escapeXml(data.profileUrl);
   const stats = escapeXml(
     [
@@ -253,10 +255,11 @@ export function renderProfileShareSvg(data: ProfileShareCardData): string {
       `${data.likeCount} ${data.likeCount === 1 ? "like" : "likes"}`,
     ]
       .filter(Boolean)
-      .join("  ·  "),
+      .join(" · "),
   );
 
   const { theme } = data;
+  const statsY = bio ? 132 : 112;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${CARD_WIDTH}" height="${CARD_HEIGHT}" viewBox="0 0 ${CARD_WIDTH} ${CARD_HEIGHT}" role="img" aria-label="${displayName} on BookShelf">
@@ -270,31 +273,30 @@ export function renderProfileShareSvg(data: ProfileShareCardData): string {
       <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
     </linearGradient>
     <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.18" />
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.14" />
     </filter>
   </defs>
 
   <rect width="${CARD_WIDTH}" height="${CARD_HEIGHT}" fill="url(#card-bg)" />
-  <rect x="48" y="48" width="${CARD_WIDTH - 96}" height="${CARD_HEIGHT - 96}" rx="28" fill="${theme.surface}" stroke="${theme.border}" stroke-width="2" filter="url(#soft-shadow)" />
+  <rect x="24" y="24" width="${CARD_WIDTH - 48}" height="${CARD_HEIGHT - 48}" rx="18" fill="${theme.surface}" stroke="${theme.border}" stroke-width="1.5" filter="url(#soft-shadow)" />
 
-  <g transform="translate(96, 96)">
+  <g transform="translate(40, 48)">
     ${data.avatarMarkup}
   </g>
 
-  <text x="220" y="132" font-family="Georgia, 'Times New Roman', serif" font-size="44" font-weight="700" fill="${theme.text}">${displayName}</text>
-  <text x="220" y="172" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" fill="${theme.muted}">@${username}</text>
+  <text x="112" y="72" font-family="Georgia, 'Times New Roman', serif" font-size="30" font-weight="700" fill="${theme.text}">${displayName}</text>
+  <text x="112" y="96" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" fill="${theme.muted}">@${username}</text>
   ${
     bio
-      ? `<text x="220" y="220" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22" fill="${theme.text}" opacity="0.88">${bio}</text>`
+      ? `<text x="112" y="118" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" fill="${theme.text}" opacity="0.88">${bio}</text>`
       : ""
   }
+  <text x="112" y="${statsY}" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="600" fill="${theme.accent}">${stats}</text>
 
-  <text x="220" y="${bio ? 268 : 220}" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="600" fill="${theme.accent}">${stats}</text>
+  <text x="112" y="356" font-family="Georgia, 'Times New Roman', serif" font-size="18" font-weight="700" fill="${theme.accent}">BookShelf</text>
+  <text x="112" y="376" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" fill="${theme.muted}">${profileLink}</text>
 
-  <text x="96" y="560" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="700" fill="${theme.accent}">BookShelf</text>
-  <text x="96" y="592" font-family="ui-sans-serif, system-ui, sans-serif" font-size="20" fill="${theme.muted}">${profileLink}</text>
-
-  <text x="${CARD_WIDTH - 96}" y="560" text-anchor="end" font-family="ui-sans-serif, system-ui, sans-serif" font-size="18" letter-spacing="0.08em" fill="${theme.muted}">COLLECTION PREVIEW</text>
+  <text x="${CARD_WIDTH - 40}" y="356" text-anchor="end" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" letter-spacing="0.1em" fill="${theme.muted}">FAVORITES</text>
 
   ${data.coverMarkups.join("\n  ")}
 </svg>`;

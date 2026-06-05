@@ -76,7 +76,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             <LibraryFilters tags={tags} />
           </Suspense>
           <div className="shelf-grid">
-            <BookGrid books={books} isOwner />
+            <BookGrid
+              books={books}
+              isOwner
+              favoriteBookIds={profile.favoriteBookIds}
+              canManageFavorites
+            />
           </div>
         </>
       )}

@@ -15,6 +15,7 @@ import {
   getAllTags,
 } from "@/lib/books/queries";
 import { requireUserWithUsername } from "@/lib/auth/require-user";
+import { removeFavoriteBookId } from "@/lib/books/favorites";
 import type { BookDocument, BookInput, LibraryFilters } from "@/types/book";
 import type { ReadingStatus } from "@/lib/constants";
 
@@ -388,6 +389,7 @@ export async function deleteBookAction(id: string): Promise<ActionResult<null>> 
     if (result.deletedCount === 0) {
       return { success: false, error: "Book not found." };
     }
+    await removeFavoriteBookId(auth.user.id, id);
     revalidateBookPaths(auth.user.username!);
     return { success: true, data: null };
   } catch {

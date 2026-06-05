@@ -1,5 +1,5 @@
 import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
-import { AVATAR_TYPES } from "@/lib/constants";
+import { AVATAR_TYPES, MAX_FAVORITE_BOOKS } from "@/lib/constants";
 import { SHELF_PRESETS } from "@/types/shelf";
 
 const userSchema = new Schema(
@@ -36,6 +36,14 @@ const userSchema = new Schema(
     shelfBackground: { type: String, trim: true, maxlength: 7 },
     shelfCustomCss: { type: String, maxlength: 12000 },
     wishlistPublic: { type: Boolean, default: false },
+    favoriteBookIds: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: (ids: string[]) => ids.length <= MAX_FAVORITE_BOOKS,
+        message: `Maximum ${MAX_FAVORITE_BOOKS} favorite books allowed.`,
+      },
+    },
     isAdmin: { type: Boolean, default: false, index: true },
     passwordHash: { type: String, select: false },
   },
