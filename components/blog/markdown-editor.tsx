@@ -10,15 +10,25 @@ interface MarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  label?: string;
+  inputId?: string;
+  placeholder?: string;
 }
 
-export function MarkdownEditor({ value, onChange, disabled }: MarkdownEditorProps) {
+export function MarkdownEditor({
+  value,
+  onChange,
+  disabled,
+  label = "Body (Markdown)",
+  inputId = "post-body",
+  placeholder = "Write in Markdown…\n\n## Section heading\n\n- Bullet point\n\n**Bold** and _italic_ text.",
+}: MarkdownEditorProps) {
   const [tab, setTab] = useState<"write" | "preview">("write");
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <Label htmlFor="post-body">Body (Markdown)</Label>
+        <Label htmlFor={inputId}>{label}</Label>
         <div className="inline-flex rounded-md border border-stone-200 p-0.5 dark:border-stone-700">
           <button
             type="button"
@@ -51,12 +61,12 @@ export function MarkdownEditor({ value, onChange, disabled }: MarkdownEditorProp
 
       {tab === "write" ? (
         <Textarea
-          id="post-body"
+          id={inputId}
           rows={18}
           value={value}
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
-          placeholder={"Write your post in Markdown…\n\n## Section heading\n\n- Bullet point\n- Another point\n\n**Bold** and _italic_ text."}
+          placeholder={placeholder}
           className="min-h-[360px] font-mono text-sm"
         />
       ) : (
