@@ -343,6 +343,7 @@ export async function updateProfileAction(
     },
   });
   revalidatePath(`/u/${auth.user.username}`);
+  revalidatePath("/settings");
 
   return { success: true };
 }

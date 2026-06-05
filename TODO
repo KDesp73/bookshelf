@@ -1,12 +1,13 @@
 TODO: recommendations
 TODO: favicon
-TODO: email verification
 TODO: better discover page
 TODO: reports (inappropriate custom covers or bios)
 TODO: social media panel shares
 TODO: achievements
 TODO: preview user collections on discover page
 TODO: bookshop non-intrusive ads
+TODO: live feed
+TODO: batch email sending to users
 DONE: about page
 DONE: landing page
 DONE: wishlist
@@ -18,3 +19,4 @@ DONE: themes
 DONE: customize bookshelf appearence (custom css)
 DONE: genre information
 DONE: restricting/deleting users
+DONE: email verification

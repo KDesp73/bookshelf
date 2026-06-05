@@ -24,6 +24,7 @@ export async function updateWishlistVisibilityAction(
   }
 
   revalidatePath("/wishlist");
+  revalidatePath("/settings");
   revalidatePath(`/u/${auth.user.username}`);
   revalidatePath(`/u/${auth.user.username}/wishlist`);
 

@@ -9,10 +9,12 @@ import { cn } from "@/lib/utils";
 
 interface WishlistVisibilityToggleProps {
   wishlistPublic: boolean;
+  compact?: boolean;
 }
 
 export function WishlistVisibilityToggle({
   wishlistPublic: initialPublic,
+  compact = false,
 }: WishlistVisibilityToggleProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -32,8 +34,12 @@ export function WishlistVisibilityToggle({
     });
   }
 
+  const wrapperClass = compact
+    ? "space-y-3"
+    : "rounded-lg border border-stone-200 bg-stone-50/80 p-4 dark:border-stone-700 dark:bg-stone-900/40";
+
   return (
-    <div className="rounded-lg border border-stone-200 bg-stone-50/80 p-4 dark:border-stone-700 dark:bg-stone-900/40">
+    <div className={wrapperClass}>
       <p className="text-sm font-medium text-stone-800 dark:text-stone-200">
         Wishlist visibility
       </p>

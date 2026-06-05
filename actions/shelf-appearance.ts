@@ -82,6 +82,7 @@ export async function updateShelfAppearanceAction(
 
   revalidatePath("/");
   revalidatePath("/wishlist");
+  revalidatePath("/settings");
   revalidatePath(`/u/${auth.user.username}`);
 
   return { success: true };

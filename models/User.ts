@@ -36,6 +36,7 @@ const userSchema = new Schema(
     shelfBackground: { type: String, trim: true, maxlength: 7 },
     shelfCustomCss: { type: String, maxlength: 12000 },
     wishlistPublic: { type: Boolean, default: false },
+    promotionalEmailsOptIn: { type: Boolean, default: false },
     favoriteBookIds: {
       type: [String],
       default: [],

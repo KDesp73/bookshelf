@@ -16,6 +16,12 @@ export interface UserProfile {
   createdAt: string;
 }
 
+/** Owner-only account settings (not exposed on public profiles). */
+export interface UserSettings extends UserProfile {
+  promotionalEmailsOptIn: boolean;
+  hasPassword: boolean;
+}
+
 export interface AdminUserRow {
   _id: string;
   email: string;
