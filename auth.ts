@@ -9,6 +9,7 @@ import { compactAuthToken } from "@/lib/auth/jwt-token";
 import {
   verifyCredentials,
 } from "@/lib/auth/verify-credentials";
+import { consumeLoginToken } from "@/lib/auth/login-challenge";
 import { User } from "@/models/User";
 import type { NextAuthConfig } from "next-auth";
 
@@ -18,8 +19,21 @@ const providers: NextAuthConfig["providers"] = [
     credentials: {
       email: { label: "Email", type: "email" },
       password: { label: "Password", type: "password" },
+      loginToken: { label: "Login token", type: "text" },
     },
     async authorize(credentials) {
+      const loginToken = String(credentials?.loginToken ?? "").trim();
+      if (loginToken) {
+        try {
+          const user = await consumeLoginToken(loginToken);
+          if (!user) return null;
+          return user;
+        } catch (error) {
+          console.error("[auth] login token authorize failed:", error);
+          return null;
+        }
+      }
+
       const email = String(credentials?.email ?? "")
         .trim()
         .toLowerCase();
@@ -36,8 +50,11 @@ const providers: NextAuthConfig["providers"] = [
           return null;
         }
 
-        // Never attach image — large data-URI avatars exceed the session cookie limit.
-        return result.user;
+        // Email/password sign-in completes only after OTP via loginToken.
+        console.error(
+          `[auth] credentials rejected for ${email}: otp_required`,
+        );
+        return null;
       } catch (error) {
         console.error("[auth] credentials authorize failed:", error);
         return null;

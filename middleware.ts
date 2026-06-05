@@ -29,7 +29,10 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
-  const isAuthPage = pathname === "/login" || pathname === "/register";
+  const isAuthPage =
+    pathname === "/login" ||
+    pathname === "/login/verify" ||
+    pathname === "/register";
   const isPublicProfile = pathname.startsWith("/u/");
   const isDiscover = pathname.startsWith("/discover");
   const isNews = pathname.startsWith("/news");

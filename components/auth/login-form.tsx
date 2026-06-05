@@ -41,6 +41,11 @@ export function LoginForm({
         return;
       }
 
+      if (result.needsTwoFactor) {
+        window.location.assign(result.redirectTo ?? "/login/verify");
+        return;
+      }
+
       window.location.assign(result.redirectTo ?? "/");
     } catch {
       setError("Sign-in failed. Please try again.");
