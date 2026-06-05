@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { BookOpen, Compass, LogIn, Shield } from "lucide-react";
+import { BookOpen, Compass, LogIn, Newspaper, Shield } from "lucide-react";
 import { AddBookMenu } from "@/components/layout/add-book-menu";
 import { HeaderProfileAvatar } from "@/components/layout/header-profile-avatar";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -30,6 +30,12 @@ export function AppHeader() {
             <Link href="/discover">
               <Compass className="h-4 w-4" />
               <span className="hidden sm:inline">Discover</span>
+            </Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/news">
+              <Newspaper className="h-4 w-4" />
+              <span className="hidden sm:inline">News</span>
             </Link>
           </Button>
 

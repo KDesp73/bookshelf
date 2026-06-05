@@ -4,7 +4,6 @@ TODO: favicon
 TODO: email verification
 TODO: better discover page
 TODO: reports (inappropriate custom covers or bios)
-TODO: restricting/deleting users
 TODO: social media panel shares
 TODO: achievements
 TODO: preview user collections on discover page
@@ -19,3 +18,4 @@ DONE: mobile ui
 DONE: themes
 DONE: customize bookshelf appearence (custom css)
 DONE: genre information
+DONE: restricting/deleting users

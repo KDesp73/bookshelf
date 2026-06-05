@@ -1,15 +1,16 @@
 import Link from "next/link";
-import { LayoutDashboard, Users } from "lucide-react";
+import { LayoutDashboard, Newspaper, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AdminNavProps {
-  current: "dashboard" | "users";
+  current: "dashboard" | "users" | "news";
 }
 
 export function AdminNav({ current }: AdminNavProps) {
   const links = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard, key: "dashboard" as const },
     { href: "/admin/users", label: "Users", icon: Users, key: "users" as const },
+    { href: "/admin/news", label: "News", icon: Newspaper, key: "news" as const },
   ];
 
   return (

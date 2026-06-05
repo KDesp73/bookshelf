@@ -32,6 +32,7 @@ export default auth((req) => {
   const isAuthPage = pathname === "/login" || pathname === "/register";
   const isPublicProfile = pathname.startsWith("/u/");
   const isDiscover = pathname.startsWith("/discover");
+  const isNews = pathname.startsWith("/news");
   const isOnboarding = pathname.startsWith("/onboarding");
 
   const protectedPaths = ["/add", "/scan"];
@@ -60,6 +61,7 @@ export default auth((req) => {
     !isAuthPage &&
     !isPublicProfile &&
     !isDiscover &&
+    !isNews &&
     needsAuth
   ) {
     const loginUrl = new URL("/login", req.url);
