@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/auth/get-session-user";
 import { getUserSettings } from "@/lib/users/settings";
 import { logoutAction } from "@/actions/auth";
 import { ChangePasswordForm } from "@/components/settings/change-password-form";
+import { DeleteAccountForm } from "@/components/settings/delete-account-form";
 import { ProfileSettingsForm } from "@/components/settings/profile-settings-form";
 import { PromotionalEmailsToggle } from "@/components/settings/promotional-emails-toggle";
 import { SettingsSection } from "@/components/settings/settings-section";
@@ -101,6 +102,16 @@ export default async function SettingsPage() {
             </Button>
           </form>
         </div>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Delete account"
+        description="Permanently remove your account and all associated data."
+      >
+        <DeleteAccountForm
+          email={settings.email}
+          hasPassword={settings.hasPassword}
+        />
       </SettingsSection>
     </div>
   );

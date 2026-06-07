@@ -1,6 +1,10 @@
 import { connectDB } from "@/lib/db";
 import { Book } from "@/models/Book";
+import { BlogPost } from "@/models/BlogPost";
+import { BlogReaction } from "@/models/BlogReaction";
 import { CollectionLike } from "@/models/CollectionLike";
+import { LoginChallenge } from "@/models/LoginChallenge";
+import { PasswordResetToken } from "@/models/PasswordResetToken";
 import { User, type IUser } from "@/models/User";
 import type { AdminStats, AdminUserRow } from "@/types/user";
 
@@ -67,9 +71,13 @@ export async function deleteUserAndData(userId: string): Promise<boolean> {
 
   await Promise.all([
     Book.deleteMany({ userId }),
+    BlogPost.deleteMany({ authorId: userId }),
+    BlogReaction.deleteMany({ userId }),
     CollectionLike.deleteMany({
       $or: [{ likerId: userId }, { targetUserId: userId }],
     }),
+    LoginChallenge.deleteMany({ userId }),
+    PasswordResetToken.deleteMany({ userId }),
   ]);
 
   return true;
