@@ -1,5 +1,3 @@
-TODO: forgot password?
-TODO: allow users to delete their account
 TODO: search for a book to add it
 TODO: better discover page
 TODO: preview user collections on discover page
@@ -12,6 +10,7 @@ TODO: live feed
 TODO: achievements
 TODO: bookshop non-intrusive ads
 TODO: favicon
+TODO: collection groups
 DONE: about page
 DONE: landing page
 DONE: wishlist
@@ -25,3 +24,5 @@ DONE: genre information
 DONE: restricting/deleting users
 DONE: email verification
 DONE: batch email sending to users
+DONE: forgot password?
+DONE: allow users to delete their account

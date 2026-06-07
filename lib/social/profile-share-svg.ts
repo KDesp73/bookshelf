@@ -10,6 +10,7 @@ import { generateIdenticonSvg } from "@/lib/users/identicon";
 import {
   SHELF_PRESET_VARS,
   buildShelfStyleVars,
+  type ShelfThemeVars,
 } from "@/lib/shelf/presets";
 import { MAX_FAVORITE_BOOKS } from "@/lib/constants";
 import { profileUrl } from "@/lib/site-url";
@@ -19,14 +20,15 @@ const MAX_COVERS = MAX_FAVORITE_BOOKS;
 const MAX_COVER_BYTES = 180_000;
 const COVER_FETCH_TIMEOUT_MS = 4_000;
 
-const AVATAR_SIZE = 36;
-const COVER_WIDTH = 34;
-const COVER_HEIGHT = 52;
-const COVER_GAP = 4;
-const TEXT_X = 44;
-const PADDING_X = 0;
-const PADDING_Y = 0;
-const ROW_HEIGHT = 68;
+const PADDING = 28;
+const AVATAR_SIZE = 52;
+const COVER_WIDTH = 44;
+const COVER_HEIGHT = 66;
+const COVER_GAP = 6;
+const CARD_WIDTH = 480;
+
+const HEADER_HEIGHT = 44;
+const FOOTER_HEIGHT = 32;
 
 export interface ProfileShareCardData {
   displayName: string;
@@ -41,6 +43,7 @@ export interface ProfileShareCardData {
   avatarMarkup: string;
   coverMarkups: string[];
   coverCount: number;
+  theme: ShelfThemeVars;
 }
 
 function escapeXml(value: string): string {
@@ -67,18 +70,58 @@ function hashHue(input: string): number {
   return Math.abs(hash) % 360;
 }
 
-function computeCardWidth(coverCount: number): number {
-  const coversWidth =
-    coverCount > 0
-      ? coverCount * COVER_WIDTH + (coverCount - 1) * COVER_GAP
-      : 0;
-  const textWidth = 230;
-  const gap = coverCount > 0 ? 12 : 0;
-  return PADDING_X * 2 + TEXT_X + textWidth + gap + coversWidth;
+function solidRgb(color: string): string {
+  const match = color.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  if (match) {
+    return `rgb(${match[1]}, ${match[2]}, ${match[3]})`;
+  }
+  return color;
 }
 
-function computeCardHeight(): number {
-  return PADDING_Y * 2 + ROW_HEIGHT;
+function computeLayout(
+  hasBio: boolean,
+  hasCovers: boolean,
+  coverCount: number,
+): {
+  cardHeight: number;
+  avatarY: number;
+  nameY: number;
+  handleY: number;
+  bioY: number;
+  statsSepY: number;
+  coversSepY: number;
+  coversY: number;
+  coverStartX: number;
+} {
+  const avatarY = HEADER_HEIGHT + 16;
+  const nameY = avatarY + 18;
+  const handleY = avatarY + 38;
+  const bioY = handleY + 14;
+  const statsSepY = bioY + (hasBio ? 16 : 0);
+
+  let cursor = statsSepY + 40;
+
+  const coversSepY = cursor - 4;
+  const coversY = cursor + 8;
+  const coverStartX = PADDING;
+
+  if (hasCovers) {
+    cursor = coversY + COVER_HEIGHT + 16;
+  }
+
+  const cardHeight = cursor + FOOTER_HEIGHT;
+
+  return {
+    cardHeight,
+    avatarY,
+    nameY,
+    handleY,
+    bioY,
+    statsSepY,
+    coversSepY,
+    coversY,
+    coverStartX,
+  };
 }
 
 async function fetchImageDataUri(url: string): Promise<string | null> {
@@ -115,8 +158,8 @@ function placeholderCoverMarkup(
   const hue = hashHue(title);
   const initial = escapeXml(title.trim()[0]?.toUpperCase() ?? "?");
   return [
-    `<rect x="${x}" y="${y}" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" rx="4" fill="hsl(${hue}, 30%, 42%)" />`,
-    `<text x="${x + COVER_WIDTH / 2}" y="${y + COVER_HEIGHT / 2 + 5}" text-anchor="middle" font-family="Georgia, serif" font-size="14" font-weight="600" fill="hsl(${hue}, 45%, 90%)">${initial}</text>`,
+    `<rect x="${x}" y="${y}" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" rx="4" fill="hsl(${hue}, 25%, 50%)" />`,
+    `<text x="${x + COVER_WIDTH / 2}" y="${y + COVER_HEIGHT / 2 + 5}" text-anchor="middle" font-family="Georgia, serif" font-size="16" font-weight="600" fill="hsl(${hue}, 40%, 92%)">${initial}</text>`,
   ].join("");
 }
 
@@ -137,7 +180,7 @@ function buildAvatarMarkup(
     const initial = escapeXml(getInitial(user));
     return [
       `<circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}" fill="${accentSoft}" />`,
-      `<text x="${size / 2}" y="${size / 2 + 6}" text-anchor="middle" font-family="Georgia, serif" font-size="15" font-weight="600" fill="${accent}">${initial}</text>`,
+      `<text x="${size / 2}" y="${size / 2 + 6}" text-anchor="middle" font-family="Georgia, serif" font-size="20" font-weight="600" fill="${accent}">${initial}</text>`,
     ].join("");
   }
 
@@ -147,20 +190,15 @@ function buildAvatarMarkup(
 
 async function buildCoverMarkupsAsync(
   favoriteBooks: Array<{ title: string; coverUrl?: string }>,
-  cardWidth: number,
+  startX: number,
+  startY: number,
 ): Promise<string[]> {
   if (favoriteBooks.length === 0) return [];
 
-  const coverStartX =
-    cardWidth -
-    PADDING_X -
-    favoriteBooks.length * COVER_WIDTH -
-    (favoriteBooks.length - 1) * COVER_GAP;
-  const coverY = PADDING_Y + (ROW_HEIGHT - COVER_HEIGHT) / 2;
   const coverMarkups: string[] = [];
 
   for (let index = 0; index < favoriteBooks.length; index++) {
-    const x = coverStartX + index * (COVER_WIDTH + COVER_GAP);
+    const x = startX + index * (COVER_WIDTH + COVER_GAP);
     const book = favoriteBooks[index]!;
 
     let coverDataUri: string | null = null;
@@ -171,11 +209,11 @@ async function buildCoverMarkupsAsync(
     if (coverDataUri) {
       const clipId = `cover-clip-${index}`;
       coverMarkups.push(
-        `<clipPath id="${clipId}"><rect x="${x}" y="${coverY}" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" rx="4" /></clipPath>`,
-        `<image href="${coverDataUri}" x="${x}" y="${coverY}" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})" />`,
+        `<clipPath id="${clipId}"><rect x="${x}" y="${startY}" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" rx="4" /></clipPath>`,
+        `<image href="${coverDataUri}" x="${x}" y="${startY}" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})" />`,
       );
     } else {
-      coverMarkups.push(placeholderCoverMarkup(book.title, x, coverY));
+      coverMarkups.push(placeholderCoverMarkup(book.title, x, startY));
     }
   }
 
@@ -210,7 +248,13 @@ export async function loadProfileShareCardData(
   const presetVars = SHELF_PRESET_VARS[user.shelfAppearance.preset];
   const overrides = buildShelfStyleVars(user.shelfAppearance);
   const accent = overrides["--shelf-accent"] ?? presetVars.accent;
-  const accentSoft = presetVars.accentSoft;
+  const background = overrides["--shelf-bg"] ?? presetVars.background;
+
+  const theme: ShelfThemeVars = {
+    ...presetVars,
+    accent,
+    background,
+  };
 
   let avatarDataUri: string | null = null;
   if (resolveAvatarType(user) === "image" && user.image) {
@@ -221,9 +265,15 @@ export async function loadProfileShareCardData(
     }
   }
 
-  const coverCount = favoriteBooks.length;
-  const cardWidth = computeCardWidth(coverCount);
-  const coverMarkups = await buildCoverMarkupsAsync(favoriteBooks, cardWidth);
+  const hasBio = Boolean(user.bio);
+  const hasCovers = favoriteBooks.length > 0;
+  const layout = computeLayout(hasBio, hasCovers, favoriteBooks.length);
+
+  const coverMarkups = await buildCoverMarkupsAsync(
+    favoriteBooks,
+    layout.coverStartX,
+    layout.coversY,
+  );
 
   return {
     displayName: user.name ?? user.username,
@@ -235,55 +285,79 @@ export async function loadProfileShareCardData(
     likeCount,
     profileUrl: profileUrl(user.username),
     accent,
-    avatarMarkup: buildAvatarMarkup(user, avatarDataUri, accent, accentSoft),
+    avatarMarkup: buildAvatarMarkup(
+      user,
+      avatarDataUri,
+      accent,
+      presetVars.accentSoft,
+    ),
     coverMarkups,
-    coverCount,
+    coverCount: favoriteBooks.length,
+    theme,
   };
 }
 
 export function renderProfileShareSvg(data: ProfileShareCardData): string {
-  const cardWidth = computeCardWidth(data.coverCount);
-  const cardHeight = computeCardHeight();
-  const displayName = escapeXml(truncate(data.displayName, 28));
-  const username = escapeXml(data.username);
-  const profileLink = escapeXml(data.profileUrl.replace(/^https?:\/\//, ""));
-  const stats = escapeXml(
-    [
-      `${data.bookCount} ${data.bookCount === 1 ? "book" : "books"}`,
-      `${data.readCount} read`,
-      data.readingCount > 0 ? `${data.readingCount} reading` : null,
-      `${data.likeCount} ${data.likeCount === 1 ? "like" : "likes"}`,
-    ]
-      .filter(Boolean)
-      .join(" · "),
-  );
+  const { theme } = data;
+  const hasBio = Boolean(data.bio);
+  const hasCovers = data.coverCount > 0;
+  const layout = computeLayout(hasBio, hasCovers, data.coverCount);
 
-  const avatarY = PADDING_Y + (ROW_HEIGHT - AVATAR_SIZE) / 2;
-  const nameY = PADDING_Y + 24;
-  const handleY = PADDING_Y + 40;
-  const statsY = PADDING_Y + 56;
+  const displayName = escapeXml(truncate(data.displayName, 26));
+  const username = escapeXml(data.username);
+  const bio = data.bio ? escapeXml(truncate(data.bio, 80)) : null;
+  const profileLink = escapeXml(data.profileUrl.replace(/^https?:\/\//, ""));
+
+  const avatarX = PADDING;
+  const nameX = PADDING + AVATAR_SIZE + 14;
+
+  const statsColumns = [
+    { label: "Books", value: data.bookCount },
+    { label: "Read", value: data.readCount },
+    { label: "Reading", value: data.readingCount },
+    { label: "Likes", value: data.likeCount },
+  ].filter((s) => s.value > 0);
+
+  const statsWidth = CARD_WIDTH - PADDING * 2;
+  const statColWidth = statsWidth / statsColumns.length;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${cardWidth}" height="${cardHeight}" viewBox="0 0 ${cardWidth} ${cardHeight}" role="img" aria-label="${displayName} on BookShelf">
-  <style>
-    .title { fill: #1f2328; font-family: Georgia, 'Times New Roman', serif; font-size: 15px; font-weight: 700; }
-    .meta { fill: #656d76; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; }
-    .stats { fill: ${data.accent}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; }
-    @media (prefers-color-scheme: dark) {
-      .title { fill: #f0f6fc; }
-      .meta { fill: #8b949e; }
-    }
-  </style>
+<svg xmlns="http://www.w3.org/2000/svg" width="${CARD_WIDTH}" height="${layout.cardHeight}" viewBox="0 0 ${CARD_WIDTH} ${layout.cardHeight}" role="img" aria-label="${displayName} on BookShelf">
+  <rect x="0" y="0" width="${CARD_WIDTH}" height="${layout.cardHeight}" rx="16" fill="${theme.background}" />
 
-  <g transform="translate(${PADDING_X}, ${avatarY})">
+  <rect x="0" y="0" width="${CARD_WIDTH}" height="${HEADER_HEIGHT}" rx="16" fill="${theme.accent}" opacity="0.08" />
+
+  <text x="${PADDING}" y="28" font-family="Georgia, 'Times New Roman', serif" font-size="13" font-weight="700" fill="${theme.accent}" letter-spacing="0.5">BookShelf</text>
+
+  <g transform="translate(${avatarX}, ${layout.avatarY})">
     ${data.avatarMarkup}
   </g>
 
-  <text x="${TEXT_X}" y="${nameY}" class="title">${displayName}</text>
-  <text x="${TEXT_X}" y="${handleY}" class="meta">@${username} · BookShelf</text>
-  <text x="${TEXT_X}" y="${statsY}" class="stats">${stats} · ${profileLink}</text>
+  <text x="${nameX}" y="${layout.nameY}" font-family="Georgia, 'Times New Roman', serif" font-size="17" font-weight="700" fill="${theme.text}">${displayName}</text>
+
+  <text x="${nameX}" y="${layout.handleY}" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="${theme.muted}">@${username}</text>
+
+  ${bio ? `<text x="${PADDING}" y="${layout.bioY}" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="${theme.muted}">${bio}</text>` : ""}
+
+  <rect x="${PADDING}" y="${layout.statsSepY}" width="${statsWidth}" height="1" fill="${solidRgb(theme.border)}" opacity="0.5" />
+
+  ${statsColumns
+    .map((stat, i) => {
+      const x = PADDING + i * statColWidth;
+      return [
+        `<text x="${x}" y="${layout.statsSepY + 16}" font-family="Georgia, 'Times New Roman', serif" font-size="16" font-weight="700" fill="${theme.accent}">${stat.value}</text>`,
+        `<text x="${x}" y="${layout.statsSepY + 30}" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="10" fill="${theme.muted}">${stat.label}</text>`,
+      ].join("");
+    })
+    .join("")}
+
+  ${hasCovers ? `<rect x="${PADDING}" y="${layout.coversSepY}" width="${statsWidth}" height="1" fill="${solidRgb(theme.border)}" opacity="0.5" />` : ""}
 
   ${data.coverMarkups.join("\n  ")}
+
+  <rect x="0" y="${layout.cardHeight - FOOTER_HEIGHT}" width="${CARD_WIDTH}" height="${FOOTER_HEIGHT}" fill="${theme.accent}" opacity="0.06" />
+
+  <text x="${CARD_WIDTH / 2}" y="${layout.cardHeight - 12}" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="10" fill="${theme.muted}">${profileLink}</text>
 </svg>`;
 }
 
