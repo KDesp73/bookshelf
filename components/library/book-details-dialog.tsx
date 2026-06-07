@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { FavoriteToggleButton } from "@/components/social/profile-favorites";
+import { ShareBookButton } from "@/components/social/share-book-button";
 import { cn } from "@/lib/utils";
 
 interface BookDetailsDialogProps {
@@ -447,6 +448,11 @@ function BookDetailsContent({
                 {pending ? "Moving…" : "Move to wishlist"}
               </Button>
             ) : null}
+            <ShareBookButton
+              bookId={book._id}
+              title={book.title}
+              authors={book.authors}
+            />
           </div>
         </div>
       )}
