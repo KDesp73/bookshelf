@@ -2,12 +2,15 @@ import Link from "next/link";
 import {
   BookOpen,
   Compass,
+  ExternalLink,
   Heart,
+  Mail,
   ScanLine,
   Star,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ContactForm } from "@/components/landing/contact-form";
 
 const features = [
   {
@@ -180,6 +183,87 @@ export function LandingPage() {
             <Button asChild>
               <Link href="/register">Get started — it&apos;s free</Link>
             </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* CONTACT SECTION */}
+      <section
+        id="contact"
+        className="scroll-mt-20 border-t border-stone-200/80 bg-white/40 px-4 py-16 dark:border-stone-800 dark:bg-stone-900/20 sm:py-20"
+      >
+        <div className="mx-auto max-w-6xl">
+          <h2 className="font-serif text-2xl font-semibold text-amber-950 dark:text-amber-100 sm:text-3xl">
+            Get in touch
+          </h2>
+          <p className="mt-2 max-w-2xl text-stone-600 dark:text-stone-400">
+            Have a question, suggestion, or just want to say hi? We&apos;d love
+            to hear from you.
+          </p>
+
+          <div className="mt-10 grid gap-10 lg:grid-cols-2 lg:gap-16">
+            <div className="space-y-6">
+              <div className="rounded-xl border border-stone-200/80 bg-background/80 p-6 dark:border-stone-700">
+                <h3 className="flex items-center gap-2 font-serif text-lg font-semibold text-stone-900 dark:text-stone-100">
+                  <Mail className="h-5 w-5 text-amber-800" />
+                  Contact info
+                </h3>
+                <dl className="mt-4 space-y-4 text-sm text-stone-600 dark:text-stone-400">
+                  <div>
+                    <dt className="font-medium text-stone-800 dark:text-stone-200">
+                      Name
+                    </dt>
+                    <a
+                      href="/u/kdesp73"
+                      className="inline-flex items-center gap-1.5 text-amber-800 underline-offset-2 hover:underline dark:text-amber-300"
+                    >
+                      <dd className="mt-0.5">Konstantinos Despoinidis</dd>
+                    </a>
+                  </div>
+                  <div>
+                    <dt className="font-medium text-stone-800 dark:text-stone-200">
+                      Email
+                    </dt>
+                    <dd className="mt-0.5">
+                      <a
+                        href="mailto:despoinidisk@gmail.com"
+                        className="text-amber-800 underline-offset-2 hover:underline dark:text-amber-300"
+                      >
+                        despoinidisk@gmail.com
+                      </a>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-medium text-stone-800 dark:text-stone-200">
+                      GitHub
+                    </dt>
+                    <dd className="mt-0.5">
+                      <a
+                        href="https://github.com/KDesp73/bookshelf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-amber-800 underline-offset-2 hover:underline dark:text-amber-300"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        KDesp73/bookshelf
+                      </a>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-stone-200/80 bg-background/80 p-6 dark:border-stone-700">
+              <h3 className="font-serif text-lg font-semibold text-stone-900 dark:text-stone-100">
+                Send us a message
+              </h3>
+              <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
+                Fill out the form below and we&apos;ll get back to you.
+              </p>
+              <div className="mt-4">
+                <ContactForm />
+              </div>
+            </div>
           </div>
         </div>
       </section>
