@@ -13,13 +13,8 @@ import {
   backfillBookMetadata,
   countBooksNeedingMetadataEnrichment,
 } from "@/lib/books/backfill-metadata";
-import {
-  claimLegacyBooksForAdmin,
-  getLegacyBookCount,
-} from "@/lib/books/legacy";
 import type { BackfillMetadataResult } from "@/lib/books/backfill-metadata";
 import type { ActionResult } from "@/actions/books";
-import type { LegacyClaimResult } from "@/lib/books/legacy";
 import type { AdminUserRow, UserProfile } from "@/types/user";
 import type { BookDocument } from "@/types/book";
 
@@ -205,22 +200,6 @@ export async function updateUserAsAdminAction(
   }
 }
 
-export async function claimLegacyCollectionAction(): Promise<
-  ActionResult<LegacyClaimResult>
-> {
-  const auth = await requireAdmin();
-  if (auth.error || !auth.user) {
-    return { success: false, error: auth.error ?? "Admin access required." };
-  }
-
-  try {
-    const result = await claimLegacyBooksForAdmin(auth.user.id);
-    return { success: true, data: result };
-  } catch {
-    return { success: false, error: "Failed to import legacy collection." };
-  }
-}
-
 export async function backfillBookMetadataAction(): Promise<
   ActionResult<BackfillMetadataResult>
 > {
@@ -256,18 +235,4 @@ export async function getBooksNeedingMetadataCountAction(): Promise<
   }
 }
 
-export async function getLegacyBookCountAction(): Promise<
-  ActionResult<{ count: number }>
-> {
-  const auth = await requireAdmin();
-  if (auth.error || !auth.user) {
-    return { success: false, error: auth.error ?? "Admin access required." };
-  }
 
-  try {
-    const count = await getLegacyBookCount();
-    return { success: true, data: { count } };
-  } catch {
-    return { success: false, error: "Failed to count legacy books." };
-  }
-}

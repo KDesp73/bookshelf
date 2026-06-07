@@ -1,20 +1,16 @@
 import { AdminNav } from "@/components/admin/admin-nav";
-import { LegacyImportPanel } from "@/components/admin/legacy-import-panel";
 import { MetadataEnrichmentPanel } from "@/components/admin/metadata-enrichment-panel";
 import { getAdminStats } from "@/lib/admin/queries";
 import { countBooksNeedingMetadataEnrichment } from "@/lib/books/backfill-metadata";
-import { getLegacyBookCount, LEGACY_USER_IDS } from "@/lib/books/legacy";
 
 export default async function AdminDashboardPage() {
   let stats = { userCount: 0, bookCount: 0, likeCount: 0 };
-  let legacyBookCount = 0;
   let booksNeedingMetadata = 0;
   let dbError: string | null = null;
 
   try {
-    [stats, legacyBookCount, booksNeedingMetadata] = await Promise.all([
+    [stats, booksNeedingMetadata] = await Promise.all([
       getAdminStats(),
-      getLegacyBookCount(),
       countBooksNeedingMetadataEnrichment(),
     ]);
   } catch {
@@ -37,11 +33,6 @@ export default async function AdminDashboardPage() {
             <StatCard label="Books" value={stats.bookCount} />
             <StatCard label="Collection likes" value={stats.likeCount} />
           </div>
-
-          <LegacyImportPanel
-            pendingCount={legacyBookCount}
-            legacyUserIds={LEGACY_USER_IDS}
-          />
 
           <MetadataEnrichmentPanel pendingCount={booksNeedingMetadata} />
         </>
