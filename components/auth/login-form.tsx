@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { loginWithCredentialsAction } from "@/actions/auth";
 import type { OAuthProviderId } from "@/lib/auth/oauth-providers";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
@@ -86,7 +87,15 @@ export function LoginForm({
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="password">Password</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link
+              href="/forgot-password"
+              className="text-xs font-medium text-amber-800 underline-offset-2 hover:underline dark:text-amber-300"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <Input
             id="password"
             name="password"

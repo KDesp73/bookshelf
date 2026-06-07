@@ -43,6 +43,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </Link>
         {" · "}
         <Link
+          href="/forgot-password"
+          className="font-medium text-amber-800 underline-offset-2 hover:underline dark:text-amber-300"
+        >
+          Forgot password?
+        </Link>
+        {" · "}
+        <Link
           href="/"
           className="font-medium text-amber-800 underline-offset-2 hover:underline dark:text-amber-300"
         >
