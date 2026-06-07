@@ -1,4 +1,4 @@
-import { buildBookShareSvg } from "@/lib/social/book-share-svg";
+import { buildBookSharePng } from "@/lib/social/book-share-svg";
 
 interface RouteContext {
   params: Promise<{ bookId: string }>;
@@ -9,15 +9,15 @@ export async function GET(
   context: RouteContext,
 ): Promise<Response> {
   const { bookId } = await context.params;
-  const svg = await buildBookShareSvg(bookId);
+  const png = await buildBookSharePng(bookId);
 
-  if (!svg) {
+  if (!png) {
     return new Response("Book not found", { status: 404 });
   }
 
-  return new Response(svg, {
+  return new Response(new Uint8Array(png), {
     headers: {
-      "Content-Type": "image/svg+xml; charset=utf-8",
+      "Content-Type": "image/png",
       "Cache-Control": "public, max-age=300, stale-while-revalidate=3600",
     },
   });

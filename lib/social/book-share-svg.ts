@@ -1,3 +1,4 @@
+import sharp from "sharp";
 import { connectDB } from "@/lib/db";
 import { Book } from "@/models/Book";
 import { User } from "@/models/User";
@@ -164,4 +165,15 @@ export async function buildBookShareSvg(bookId: string): Promise<string | null> 
   const data = await loadBookShareCardData(bookId);
   if (!data) return null;
   return renderBookShareSvg(data);
+}
+
+export async function buildBookSharePng(bookId: string): Promise<Uint8Array | null> {
+  const svg = await buildBookShareSvg(bookId);
+  if (!svg) return null;
+
+  try {
+    return await sharp(Buffer.from(svg)).png().toBuffer();
+  } catch {
+    return null;
+  }
 }

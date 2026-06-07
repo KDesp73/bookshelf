@@ -21,9 +21,9 @@ interface ShareBookButtonProps {
 
 function cardUrl(bookId: string): string {
   if (typeof window !== "undefined") {
-    return `${window.location.origin}/api/books/${bookId}/share.svg`;
+    return `${window.location.origin}/api/books/${bookId}/share.png`;
   }
-  return `/api/books/${bookId}/share.svg`;
+  return `/api/books/${bookId}/share.png`;
 }
 
 export function ShareBookButton({
@@ -94,13 +94,13 @@ export function ShareBookButton({
       const objectUrl = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = objectUrl;
-      anchor.download = `${title.toLowerCase().replace(/\s+/g, "-")}-bookshelf.svg`;
+      anchor.download = `${title.toLowerCase().replace(/\s+/g, "-")}-bookshelf.png`;
       anchor.click();
       URL.revokeObjectURL(objectUrl);
-      setStatusMessage("SVG downloaded");
+      setStatusMessage("Image downloaded");
       window.setTimeout(() => setStatusMessage(null), 2000);
     } catch {
-      setStatusMessage("Could not download SVG");
+      setStatusMessage("Could not download image");
       window.setTimeout(() => setStatusMessage(null), 2500);
     } finally {
       setPending(false);
@@ -154,11 +154,11 @@ export function ShareBookButton({
           disabled={pending}
         >
           <Download className="h-4 w-4" />
-          Download SVG card
+          Download PNG card
         </DropdownMenuItem>
         <DropdownMenuItem onClick={openShareCardPreview} disabled={pending}>
           <Share2 className="h-4 w-4" />
-          Preview SVG card
+          Preview card
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
