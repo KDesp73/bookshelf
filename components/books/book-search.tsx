@@ -53,35 +53,52 @@ export function BookSearch() {
   }
 
   function handleSelect(result: SearchResult) {
-    if (!result.isbn13) {
-      setError("This book has no ISBN and cannot be added directly. Try adding it manually.");
-      return;
-    }
-
     setError(null);
     setPreview(null);
     setView("search");
 
     startTransition(async () => {
-      const res = await lookupIsbnAction(result.isbn13!);
-      if (!res.success) {
-        setError(res.error);
+      if (result.isbn13) {
+        const res = await lookupIsbnAction(result.isbn13);
+        if (!res.success) {
+          setError(res.error);
+          return;
+        }
+
+        if (res.data.type === "existing") {
+          setExistingTitle(res.data.book.title);
+          setExistingIsWishlist(res.data.book.isWishlist);
+          setView("existing");
+          return;
+        }
+
+        const previewData = res.data.preview;
+        if (!previewData.coverUrl && result.coverUrl) {
+          previewData.coverUrl = result.coverUrl;
+        }
+
+        setPreview(previewData);
+        setView("preview");
         return;
       }
 
-      if (res.data.type === "existing") {
-        setExistingTitle(res.data.book.title);
-        setExistingIsWishlist(res.data.book.isWishlist);
-        setView("existing");
-        return;
-      }
+      const identifier = result.openLibraryWorkKey ?? result.googleVolumeId ?? `${result.title}-${result.authors.join(",")}`;
 
-      const previewData = res.data.preview;
-      if (!previewData.coverUrl && result.coverUrl) {
-        previewData.coverUrl = result.coverUrl;
-      }
-
-      setPreview(previewData);
+      setPreview({
+        isbn13: identifier,
+        title: result.title,
+        subtitle: result.subtitle ?? undefined,
+        authors: result.authors,
+        coverUrl: result.coverUrl ?? undefined,
+        publisher: result.publisher ?? undefined,
+        publishedDate: result.publishYear?.toString(),
+        description: result.description ?? undefined,
+        pageCount: result.pageCount ?? undefined,
+        openLibraryWorkKey: result.openLibraryWorkKey ?? undefined,
+        googleVolumeId: result.googleVolumeId ?? undefined,
+        status: "Unread",
+        tags: [],
+      });
       setView("preview");
     });
   }
