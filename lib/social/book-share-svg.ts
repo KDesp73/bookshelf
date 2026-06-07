@@ -111,53 +111,59 @@ export function renderBookShareSvg(data: BookShareCardData): string {
   const coverY = 80;
 
   const starsY = coverY + coverSize + 36;
-  const titleY = starsY + 20;
-  const authorY = titleY + 26;
-  const readerY = authorY + 36;
+  const titleY = starsY + 28;
+  const authorY = titleY + 30;
+  const dividerY = authorY + 20;
+  const readerY = dividerY + 18;
+
+  const coverMarkup = data.hasCover
+    ? `<image href="${data.coverDataUri}" x="${coverX}" y="${coverY}" width="${coverSize}" height="${coverSize}" preserveAspectRatio="xMidYMid slice" clip-path="url(#cc)" />`
+    : `<text x="${CARD_WIDTH / 2}" y="${coverY + coverSize / 2 + 4}" text-anchor="middle" font-family="sans-serif" font-size="52" font-weight="bold" fill="#a8a29e">${escapeXml(data.title[0]?.toUpperCase() ?? "?")}</text>`;
+
+  const ratingMarkup = data.rating != null
+    ? `<text x="${CARD_WIDTH / 2}" y="${starsY}" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#fbbf24">${renderStars(data.rating)}</text>`
+    : "";
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${CARD_WIDTH}" height="${CARD_HEIGHT}" viewBox="0 0 ${CARD_WIDTH} ${CARD_HEIGHT}" role="img" aria-label="${title} on BookShelf">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${CARD_WIDTH}" height="${CARD_HEIGHT}" viewBox="0 0 ${CARD_WIDTH} ${CARD_HEIGHT}" role="img" aria-label="${title} on BookShelf">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1c1917" />
-      <stop offset="100%" stop-color="#292524" />
+      <stop offset="0%" stop-color="#292524" stop-opacity="1" />
+      <stop offset="60%" stop-color="#1c1917" stop-opacity="1" />
+      <stop offset="100%" stop-color="#0c0a09" stop-opacity="1" />
     </linearGradient>
     <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="rgba(251, 191, 36, 0.08)" />
-      <stop offset="100%" stop-color="rgba(251, 191, 36, 0)" />
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#fbbf24" stop-opacity="0" />
     </linearGradient>
+    <clipPath id="cc">
+      <rect x="${coverX}" y="${coverY}" width="${coverSize}" height="${coverSize}" rx="10" />
+    </clipPath>
   </defs>
 
   <rect x="0" y="0" width="${CARD_WIDTH}" height="${CARD_HEIGHT}" fill="url(#bg)" />
 
-  <rect x="0" y="0" width="${CARD_WIDTH}" height="320" fill="url(#glow)" />
+  <rect x="0" y="0" width="${CARD_WIDTH}" height="340" fill="url(#glow)" />
 
-  ${data.hasCover
-    ? [
-        `<clipPath id="cover-clip"><rect x="${coverX}" y="${coverY}" width="${coverSize}" height="${coverSize}" rx="8" /></clipPath>`,
-        `<image href="${data.coverDataUri}" x="${coverX}" y="${coverY}" width="${coverSize}" height="${coverSize}" preserveAspectRatio="xMidYMid slice" clip-path="url(#cover-clip)" />`,
-        `<rect x="${coverX}" y="${coverY}" width="${coverSize}" height="${coverSize}" rx="8" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />`,
-      ].join("")
-    : [
-        `<rect x="${coverX}" y="${coverY}" width="${coverSize}" height="${coverSize}" rx="8" fill="#44403c" />`,
-        `<text x="${CARD_WIDTH / 2}" y="${coverY + coverSize / 2 + 4}" text-anchor="middle" font-family="Georgia, serif" font-size="48" font-weight="700" fill="#a8a29e">${escapeXml(title[0]?.toUpperCase() ?? "?")}</text>`,
-      ].join("")}
+  <rect x="${coverX}" y="${coverY}" width="${coverSize}" height="${coverSize}" rx="10" fill="#44403c" />
 
-  ${data.rating != null
-    ? `<text x="${CARD_WIDTH / 2}" y="${starsY}" text-anchor="middle" font-family="Georgia, serif" font-size="18" fill="#fbbf24">${escapeXml(renderStars(data.rating))}</text>`
-    : ""}
+  ${coverMarkup}
 
-  <text x="${CARD_WIDTH / 2}" y="${titleY}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="22" font-weight="700" fill="#f5f5f4">${title}</text>
+  <rect x="${coverX}" y="${coverY}" width="${coverSize}" height="${coverSize}" rx="10" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
 
-  <text x="${CARD_WIDTH / 2}" y="${authorY}" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#a8a29e">${authors}</text>
+  ${ratingMarkup}
 
-  <rect x="180" y="${readerY - 2}" width="120" height="1" fill="rgba(255,255,255,0.06)" />
+  <text x="${CARD_WIDTH / 2}" y="${titleY}" text-anchor="middle" font-family="sans-serif" font-size="24" font-weight="bold" fill="#fafaf9">${title}</text>
 
-  <text x="${CARD_WIDTH / 2}" y="${readerY + 16}" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" fill="#78716c">Read by ${reader} · @${username}</text>
+  <text x="${CARD_WIDTH / 2}" y="${authorY}" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#d6d3d1">${authors}</text>
 
-  <text x="${CARD_WIDTH / 2}" y="${CARD_HEIGHT - 24}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#57534e" letter-spacing="1">BookShelf</text>
+  <rect x="180" y="${dividerY}" width="120" height="1" fill="rgba(255,255,255,0.06)" />
 
-  <text x="${CARD_WIDTH / 2}" y="${CARD_HEIGHT - 10}" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="9" fill="#57534e">${siteUrl}</text>
+  <text x="${CARD_WIDTH / 2}" y="${readerY}" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#a8a29e">Read by ${reader} · @${username}</text>
+
+  <text x="${CARD_WIDTH / 2}" y="${CARD_HEIGHT - 24}" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#78716c">BookShelf</text>
+
+  <text x="${CARD_WIDTH / 2}" y="${CARD_HEIGHT - 10}" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#57534e">${siteUrl}</text>
 </svg>`;
 }
 
