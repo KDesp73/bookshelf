@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, Plus, ScanLine } from "lucide-react";
+import { ChevronDown, Plus, ScanLine, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,6 +21,12 @@ export function AddBookMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem asChild>
+          <Link href="/search">
+            <Search className="h-4 w-4" />
+            Search online
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/scan">
             <ScanLine className="h-4 w-4" />

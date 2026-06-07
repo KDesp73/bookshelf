@@ -7,6 +7,7 @@ import { Book } from "@/models/Book";
 import { normalizeIsbn } from "@/lib/books/isbn";
 import { fetchCoverOptions } from "@/lib/books/covers";
 import { fetchBookByIsbn } from "@/lib/books/lookup";
+import { searchBooks as searchBooksLib } from "@/lib/books/search";
 import { metadataFieldsFromInput } from "@/lib/books/persist-metadata";
 import {
   findBookByIsbn,
@@ -17,6 +18,7 @@ import {
 import { requireUserWithUsername } from "@/lib/auth/require-user";
 import { removeFavoriteBookId } from "@/lib/books/favorites";
 import type { BookDocument, BookInput, LibraryFilters } from "@/types/book";
+import type { SearchResult } from "@/lib/books/search";
 import type { ReadingStatus } from "@/lib/constants";
 
 export type ActionResult<T> =
@@ -426,5 +428,21 @@ export async function getFilterOptionsAction(): Promise<
     return { success: true, data: { tags } };
   } catch {
     return { success: false, error: "Failed to load filter options." };
+  }
+}
+
+export async function searchBooksAction(
+  query: string,
+): Promise<ActionResult<SearchResult[]>> {
+  const auth = await requireUserWithUsername();
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Sign in required." };
+  }
+
+  try {
+    const results = await searchBooksLib(query);
+    return { success: true, data: results };
+  } catch {
+    return { success: false, error: "Search failed." };
   }
 }
