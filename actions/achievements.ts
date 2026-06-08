@@ -11,7 +11,7 @@ import {
   updateAchievement,
   deleteAchievement,
   awardAllAchievements,
-  revokeAllAchievements,
+  syncAllAchievements,
 } from "@/lib/achievements";
 import { ACHIEVEMENT_CONDITION_TYPES, type AchievementConditionType } from "@/lib/constants";
 import type { ActionResult } from "@/actions/books";
@@ -217,8 +217,8 @@ export async function awardAllAchievementsAction(): Promise<
   }
 }
 
-export async function revokeAllAchievementsAction(): Promise<
-  ActionResult<{ revoked: number }>
+export async function syncAllAchievementsAction(): Promise<
+  ActionResult<{ awarded: number; revoked: number }>
 > {
   const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_ACHIEVEMENTS);
   if (auth.error || !auth.user) {
@@ -226,10 +226,10 @@ export async function revokeAllAchievementsAction(): Promise<
   }
 
   try {
-    const result = await revokeAllAchievements();
+    const result = await syncAllAchievements();
     revalidatePath("/admin/achievements");
     return { success: true, data: result };
   } catch {
-    return { success: false, error: "Failed to revoke achievements." };
+    return { success: false, error: "Failed to sync achievements." };
   }
 }

@@ -161,10 +161,55 @@ export async function awardAllAchievements() {
   return { awarded: totalAwarded, total: allUsers.length };
 }
 
-export async function revokeAllAchievements() {
+export async function syncAllAchievements() {
   await connectDB();
-  const result = await UserAchievement.deleteMany({});
-  return { revoked: result.deletedCount };
+
+  const allAchievements = await Achievement.find({}).lean();
+  if (allAchievements.length === 0) return { awarded: 0, revoked: 0 };
+
+  const allUsers = await User.find({}).select("_id createdAt").lean();
+  let totalAwarded = 0;
+  let totalRevoked = 0;
+
+  for (const user of allUsers) {
+    const userId = user._id.toString();
+
+    const earnedRecords = await UserAchievement.find({ userId }).select("achievementId").lean();
+    const earnedIds = new Set(earnedRecords.map((ua) => ua.achievementId));
+
+    const stats = await getUserStats(userId);
+
+    const toAward: { userId: string; achievementId: string }[] = [];
+    const toRevoke: string[] = [];
+
+    for (const achievement of allAchievements) {
+      const qualifies =
+        stats[achievement.conditionType as AchievementConditionType] >=
+        achievement.conditionValue;
+      const hasIt = earnedIds.has(achievement._id.toString());
+
+      if (qualifies && !hasIt) {
+        toAward.push({ userId, achievementId: achievement._id.toString() });
+      } else if (!qualifies && hasIt) {
+        toRevoke.push(achievement._id.toString());
+      }
+    }
+
+    if (toAward.length > 0) {
+      await UserAchievement.insertMany(toAward, { ordered: false });
+      totalAwarded += toAward.length;
+    }
+
+    if (toRevoke.length > 0) {
+      await UserAchievement.deleteMany({
+        userId,
+        achievementId: { $in: toRevoke },
+      });
+      totalRevoked += toRevoke.length;
+    }
+  }
+
+  return { awarded: totalAwarded, revoked: totalRevoked };
 }
 
 export async function createAchievement(data: {

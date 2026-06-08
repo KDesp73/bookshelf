@@ -7,7 +7,7 @@ import {
   createAchievementAction,
   updateAchievementAction,
   deleteAchievementAction,
-  revokeAllAchievementsAction,
+  syncAllAchievementsAction,
 } from "@/actions/achievements";
 import { ACHIEVEMENT_CONDITION_TYPES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -62,18 +62,27 @@ export function AdminAchievementsList({
     });
   }
 
-  function handleRevokeAll() {
-    if (!confirm("Revoke all achievements from every user? This cannot be undone.")) return;
+  function handleSyncAll() {
+    if (!confirm("Sync all achievements? Eligible achievements will be awarded, ineligible ones revoked.")) return;
     startAwardTransition(async () => {
       setAwardMessage(null);
-      const result = await revokeAllAchievementsAction();
+      const result = await syncAllAchievementsAction();
       if (result.success) {
+        const parts: string[] = [];
+        if (result.data.awarded > 0) {
+          parts.push(`Awarded ${result.data.awarded}`);
+        }
+        if (result.data.revoked > 0) {
+          parts.push(`Revoked ${result.data.revoked}`);
+        }
         setAwardMessage(
-          `Revoked ${result.data.revoked} achievement${result.data.revoked === 1 ? "" : "s"}.`,
+          parts.length > 0
+            ? `${parts.join(", ")} achievement${parts.length > 1 ? "s" : ""}.`
+            : "All achievements already in sync.",
         );
         router.refresh();
       } else {
-        setAwardMessage("Failed to revoke achievements.");
+        setAwardMessage("Failed to sync achievements.");
       }
     });
   }
@@ -102,10 +111,10 @@ export function AdminAchievementsList({
             <Button
               variant="secondary"
               size="sm"
-              onClick={handleRevokeAll}
+              onClick={handleSyncAll}
               disabled={awarding}
             >
-              {awarding ? "Revoking..." : "Revoke all achievements"}
+              {awarding ? "Syncing..." : "Sync achievements"}
             </Button>
           )}
           <Button size="sm" onClick={handleCreate}>
