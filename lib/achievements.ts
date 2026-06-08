@@ -15,7 +15,7 @@ export interface AchievementWithProgress extends IAchievement {
 async function getUserStats(userId: string) {
   const [bookCount, readCount, unreadCount, readingCount, ratedCount, likeCountResult, user] =
     await Promise.all([
-      Book.countDocuments({ userId }),
+      Book.countDocuments({ userId, isWishlist: { $ne: true } }),
       Book.countDocuments({ userId, status: "Read" }),
       Book.countDocuments({ userId, status: "Unread" }),
       Book.countDocuments({ userId, status: "Reading" }),
@@ -159,6 +159,12 @@ export async function awardAllAchievements() {
   }
 
   return { awarded: totalAwarded, total: allUsers.length };
+}
+
+export async function revokeAllAchievements() {
+  await connectDB();
+  const result = await UserAchievement.deleteMany({});
+  return { revoked: result.deletedCount };
 }
 
 export async function createAchievement(data: {

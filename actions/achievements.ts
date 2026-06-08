@@ -11,6 +11,7 @@ import {
   updateAchievement,
   deleteAchievement,
   awardAllAchievements,
+  revokeAllAchievements,
 } from "@/lib/achievements";
 import { ACHIEVEMENT_CONDITION_TYPES, type AchievementConditionType } from "@/lib/constants";
 import type { ActionResult } from "@/actions/books";
@@ -213,5 +214,22 @@ export async function awardAllAchievementsAction(): Promise<
     return { success: true, data: result };
   } catch {
     return { success: false, error: "Failed to award achievements." };
+  }
+}
+
+export async function revokeAllAchievementsAction(): Promise<
+  ActionResult<{ revoked: number }>
+> {
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_ACHIEVEMENTS);
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Admin access required." };
+  }
+
+  try {
+    const result = await revokeAllAchievements();
+    revalidatePath("/admin/achievements");
+    return { success: true, data: result };
+  } catch {
+    return { success: false, error: "Failed to revoke achievements." };
   }
 }

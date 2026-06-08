@@ -7,7 +7,7 @@ import {
   createAchievementAction,
   updateAchievementAction,
   deleteAchievementAction,
-  awardAllAchievementsAction,
+  revokeAllAchievementsAction,
 } from "@/actions/achievements";
 import { ACHIEVEMENT_CONDITION_TYPES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -62,18 +62,18 @@ export function AdminAchievementsList({
     });
   }
 
-  function handleAwardAll() {
-    if (!confirm("Award all achievements to every user who qualifies? This may take a moment.")) return;
+  function handleRevokeAll() {
+    if (!confirm("Revoke all achievements from every user? This cannot be undone.")) return;
     startAwardTransition(async () => {
       setAwardMessage(null);
-      const result = await awardAllAchievementsAction();
+      const result = await revokeAllAchievementsAction();
       if (result.success) {
         setAwardMessage(
-          `Awarded ${result.data.awarded} achievement${result.data.awarded === 1 ? "" : "s"} across ${result.data.total} user${result.data.total === 1 ? "" : "s"}.`,
+          `Revoked ${result.data.revoked} achievement${result.data.revoked === 1 ? "" : "s"}.`,
         );
         router.refresh();
       } else {
-        setAwardMessage("Failed to award achievements.");
+        setAwardMessage("Failed to revoke achievements.");
       }
     });
   }
@@ -98,14 +98,14 @@ export function AdminAchievementsList({
           {awardMessage && (
             <p className="text-sm text-emerald-600 dark:text-emerald-400">{awardMessage}</p>
           )}
-          {achievements.length > 0 && (
+            {achievements.length > 0 && (
             <Button
               variant="secondary"
               size="sm"
-              onClick={handleAwardAll}
+              onClick={handleRevokeAll}
               disabled={awarding}
             >
-              {awarding ? "Awarding..." : "Award to all users"}
+              {awarding ? "Revoking..." : "Revoke all achievements"}
             </Button>
           )}
           <Button size="sm" onClick={handleCreate}>
