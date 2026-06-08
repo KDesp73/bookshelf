@@ -31,6 +31,7 @@ export interface BookInput extends BookMetadata {
   status?: ReadingStatus;
   tags?: string[];
   notes?: string;
+  isPublicNote?: boolean;
   rating?: number | null;
   isWishlist?: boolean;
 }
@@ -43,9 +44,10 @@ export interface BookDocument extends BookInput {
   dateAdded: string;
   rating?: number;
   isWishlist: boolean;
+  isPublicNote: boolean;
 }
 
-export type PublicBookDocument = Omit<BookDocument, "notes">;
+export type PublicBookDocument = BookDocument;
 
 export interface DiscoverBook {
   _id: string;

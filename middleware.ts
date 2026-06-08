@@ -38,7 +38,7 @@ export default auth((req) => {
   const isNews = pathname.startsWith("/news");
   const isOnboarding = pathname.startsWith("/onboarding");
 
-  const protectedPaths = ["/add", "/scan", "/settings", "/wishlist"];
+  const protectedPaths = ["/add", "/scan", "/settings", "/wishlist", "/books"];
   const needsAuth = protectedPaths.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
   );

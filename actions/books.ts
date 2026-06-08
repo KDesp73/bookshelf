@@ -48,6 +48,7 @@ function serializeBook(book: {
   status: string;
   tags?: string[] | null;
   notes?: string | null;
+  isPublicNote?: boolean | null;
   rating?: number | null;
   dateAdded: Date;
   isWishlist?: boolean | null;
@@ -74,6 +75,7 @@ function serializeBook(book: {
     status: book.status as ReadingStatus,
     tags: book.tags ?? [],
     notes: book.notes ?? undefined,
+    isPublicNote: book.isPublicNote === true,
     rating: book.rating ?? undefined,
     isWishlist: book.isWishlist === true,
     dateAdded: book.dateAdded.toISOString(),
@@ -222,6 +224,7 @@ export async function saveBookAction(
       status: input.isWishlist ? "Unread" : (input.status ?? "Unread"),
       tags: input.tags?.map((t) => t.trim()).filter(Boolean) ?? [],
       notes: input.notes?.trim(),
+      isPublicNote: input.isPublicNote === true,
       rating: input.isWishlist ? undefined : (input.rating ?? undefined),
       isWishlist: input.isWishlist === true,
     });
@@ -355,6 +358,27 @@ export async function updateBookAction(
           tags: updates.tags.map((t) => t.trim()).filter(Boolean),
         }),
         ...(updates.notes !== undefined && { notes: updates.notes?.trim() }),
+        ...(updates.isPublicNote !== undefined && {
+          isPublicNote: updates.isPublicNote,
+        }),
+        ...(updates.genres !== undefined && {
+          genres: updates.genres.map((g) => g.trim()).filter(Boolean),
+        }),
+        ...(updates.subjects !== undefined && {
+          subjects: updates.subjects.map((s) => s.trim()).filter(Boolean),
+        }),
+        ...(updates.categories !== undefined && {
+          categories: updates.categories.map((c) => c.trim()).filter(Boolean),
+        }),
+        ...(updates.language !== undefined && {
+          langCode: updates.language.trim().toLowerCase() || undefined,
+        }),
+        ...(updates.genres !== undefined ||
+        updates.subjects !== undefined ||
+        updates.categories !== undefined ||
+        updates.language !== undefined
+          ? { metadataEnrichedAt: new Date() }
+          : {}),
         ...(updates.rating !== undefined && {
           rating: updates.rating === null ? undefined : updates.rating,
         }),

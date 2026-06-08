@@ -35,6 +35,7 @@ function toBookDocument(
     status: book.status as ReadingStatus,
     tags: book.tags ?? [],
     notes: book.notes ?? undefined,
+    isPublicNote: book.isPublicNote === true,
     rating: book.rating ?? undefined,
     isWishlist: book.isWishlist === true,
     dateAdded: book.dateAdded.toISOString(),
@@ -44,10 +45,7 @@ function toBookDocument(
 function toPublicBookDocument(
   book: IBook & { _id: { toString(): string } },
 ): PublicBookDocument {
-  const doc = toBookDocument(book);
-  const { notes: _unusedNotes, ...publicDoc } = doc;
-  void _unusedNotes;
-  return publicDoc;
+  return toBookDocument(book);
 }
 
 function applyListFilter(
@@ -143,7 +141,6 @@ export async function listPublicBooks(
   const sortOrder = filters.order === "asc" ? 1 : -1;
 
   const books = await Book.find(query)
-    .select("-notes")
     .sort({ [sortField]: sortOrder })
     .lean();
 
@@ -163,7 +160,6 @@ export async function listPublicWishlistBooks(
   const sortOrder = filters.order === "asc" ? 1 : -1;
 
   const books = await Book.find(query)
-    .select("-notes")
     .sort({ [sortField]: sortOrder })
     .lean();
 

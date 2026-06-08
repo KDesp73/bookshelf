@@ -38,6 +38,7 @@ const bookSchema = new Schema(
     },
     tags: { type: [String], default: [] },
     notes: { type: String },
+    isPublicNote: { type: Boolean, default: false },
     rating: {
       type: Number,
       enum: RATING_VALUES,

@@ -30,6 +30,8 @@ function toPublicBook(
     googleVolumeId: book.googleVolumeId ?? undefined,
     status: book.status as PublicBookDocument["status"],
     tags: book.tags ?? [],
+    notes: book.notes ?? undefined,
+    isPublicNote: book.isPublicNote === true,
     rating: book.rating ?? undefined,
     isWishlist: book.isWishlist === true,
     dateAdded: book.dateAdded.toISOString(),
