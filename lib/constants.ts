@@ -22,3 +22,11 @@ export function isValidRating(value: unknown): value is BookRating {
     RATING_VALUES.includes(value as BookRating)
   );
 }
+
+export const ACHIEVEMENT_CONDITION_TYPES = [
+  "books_added",
+  "books_read",
+  "books_rated",
+  "collection_likes",
+] as const;
+export type AchievementConditionType = (typeof ACHIEVEMENT_CONDITION_TYPES)[number];

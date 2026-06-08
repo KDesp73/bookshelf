@@ -6,6 +6,7 @@ import { CollectionLike } from "@/models/CollectionLike";
 import { LoginChallenge } from "@/models/LoginChallenge";
 import { PasswordResetToken } from "@/models/PasswordResetToken";
 import { User, type IUser } from "@/models/User";
+import { UserAchievement } from "@/models/UserAchievement";
 import type { AdminStats, AdminUserRow } from "@/types/user";
 
 export async function getAdminStats(): Promise<AdminStats> {
@@ -78,6 +79,7 @@ export async function deleteUserAndData(userId: string): Promise<boolean> {
     }),
     LoginChallenge.deleteMany({ userId }),
     PasswordResetToken.deleteMany({ userId }),
+    UserAchievement.deleteMany({ userId }),
   ]);
 
   return true;

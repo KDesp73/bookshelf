@@ -6,6 +6,7 @@ import { CollectionLike } from "@/models/CollectionLike";
 import { getUserById } from "@/lib/users/queries";
 import { requireUser } from "@/lib/auth/require-user";
 import { listRecentBooks, listUsers } from "@/lib/social/queries";
+import { checkAndAwardAchievements } from "@/lib/achievements";
 import type { DiscoverBook } from "@/types/book";
 import type { DiscoverFilters, PaginatedResult, UserListItem } from "@/types/user";
 import type { ActionResult } from "@/actions/books";
@@ -49,6 +50,10 @@ export async function toggleCollectionLikeAction(
     }
 
     const likeCount = await CollectionLike.countDocuments({ targetUserId });
+
+    if (liked) {
+      checkAndAwardAchievements(targetUserId).catch(console.error);
+    }
 
     revalidatePath(`/u/${targetUser.username}`);
     revalidatePath("/discover");

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { LayoutDashboard, Mail, Newspaper, Users } from "lucide-react";
+import { LayoutDashboard, Mail, Newspaper, Users, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AdminNavProps {
-  current: "dashboard" | "users" | "news" | "emails";
+  current: "dashboard" | "users" | "news" | "emails" | "achievements";
 }
 
 export function AdminNav({ current }: AdminNavProps) {
@@ -11,6 +11,7 @@ export function AdminNav({ current }: AdminNavProps) {
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard, key: "dashboard" as const },
     { href: "/admin/users", label: "Users", icon: Users, key: "users" as const },
     { href: "/admin/news", label: "News", icon: Newspaper, key: "news" as const },
+    { href: "/admin/achievements", label: "Achievements", icon: Trophy, key: "achievements" as const },
     { href: "/admin/emails", label: "Emails", icon: Mail, key: "emails" as const },
   ];
 

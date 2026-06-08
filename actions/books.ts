@@ -17,6 +17,7 @@ import {
 } from "@/lib/books/queries";
 import { requireUserWithUsername } from "@/lib/auth/require-user";
 import { removeFavoriteBookId } from "@/lib/books/favorites";
+import { checkAndAwardAchievements } from "@/lib/achievements";
 import type { BookDocument, BookInput, LibraryFilters } from "@/types/book";
 import type { SearchResult } from "@/lib/books/search";
 import type { ReadingStatus } from "@/lib/constants";
@@ -231,6 +232,8 @@ export async function saveBookAction(
 
     revalidateBookPaths(auth.user.username!);
 
+    checkAndAwardAchievements(auth.user.id).catch(console.error);
+
     return { success: true, data: serializeBook(book) };
   } catch (error) {
     console.error("[saveBookAction]", error);
@@ -391,6 +394,8 @@ export async function updateBookAction(
     }
 
     revalidateBookPaths(auth.user.username!);
+
+    checkAndAwardAchievements(auth.user.id).catch(console.error);
 
     const doc = await findBookById(id, auth.user.id);
     if (!doc) {

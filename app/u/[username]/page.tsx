@@ -15,10 +15,12 @@ import { profileUrl } from "@/lib/site-url";
 import { ProfileHeader } from "@/components/social/profile-header";
 import { ProfileFavorites } from "@/components/social/profile-favorites";
 import { ProfileListNav } from "@/components/social/profile-list-nav";
+import { ProfileAchievements } from "@/components/social/profile-achievements";
 import { ShelfThemeWrapper } from "@/components/shelf/shelf-theme-wrapper";
 import { CollectionIOMenu } from "@/components/library/collection-io-menu";
 import { LibraryFilters } from "@/components/library/library-filters";
 import { BookGrid } from "@/components/library/book-grid";
+import { getUserAchievements } from "@/lib/achievements";
 
 interface ProfilePageProps {
   params: Promise<{ username: string }>;
@@ -83,10 +85,11 @@ export default async function ProfilePage({
   let liked = false;
   let wishlistCount = 0;
   let favoriteBooks: Awaited<ReturnType<typeof getFavoriteBooks>> = [];
+  let achievements: Awaited<ReturnType<typeof getUserAchievements>> = [];
   let dbError: string | null = null;
 
   try {
-    [books, tags, bookCount, likeCount, wishlistCount, favoriteBooks] =
+    [books, tags, bookCount, likeCount, wishlistCount, favoriteBooks, achievements] =
       await Promise.all([
       listPublicBooks(user._id, filters),
       getAllTags(user._id),
@@ -94,6 +97,7 @@ export default async function ProfilePage({
       getLikeCount(user._id),
       getWishlistCount(user._id),
       getFavoriteBooks(user._id, user.favoriteBookIds),
+      getUserAchievements(user._id),
     ]);
 
     if (likeCount > 0) {
@@ -126,6 +130,8 @@ export default async function ProfilePage({
         viewerLoggedIn={!!viewer?.id}
         wishlistPublic={user.wishlistPublic}
       />
+
+      <ProfileAchievements achievements={achievements} />
 
       <ProfileFavorites
         books={favoriteBooks}
