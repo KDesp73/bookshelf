@@ -5,6 +5,7 @@ import { UserAchievement } from "@/models/UserAchievement";
 import { User, type IUser } from "@/models/User";
 import type { AvatarType } from "@/lib/constants";
 import { getShelfAppearance } from "@/lib/shelf/appearance";
+import { comicReadWeight } from "@/lib/books/comic-weight";
 import type {
   CollectionLiker,
   DiscoverFilters,
@@ -161,7 +162,7 @@ export async function listUsers(
     ]),
     Book.aggregate<{ _id: string; count: number }>([
       { $match: { userId: { $in: paginatedIds }, status: "Read" } },
-      { $group: { _id: "$userId", count: { $sum: 1 } } },
+      { $group: { _id: "$userId", count: comicReadWeight() } },
     ]),
     CollectionLike.aggregate<{ _id: string; count: number }>([
       { $match: { targetUserId: { $in: paginatedIds } } },
@@ -261,7 +262,7 @@ export async function listRankedUsers(
     ]),
     Book.aggregate<{ _id: string; count: number }>([
       { $match: { userId: { $in: allIds }, status: "Read" } },
-      { $group: { _id: "$userId", count: { $sum: 1 } } },
+      { $group: { _id: "$userId", count: comicReadWeight() } },
     ]),
     CollectionLike.aggregate<{ _id: string; count: number }>([
       { $match: { targetUserId: { $in: allIds } } },
@@ -320,7 +321,7 @@ export async function listRankedUsers(
     ]),
     Book.aggregate<{ _id: string; count: number }>([
       { $match: { userId: { $in: paginatedIds }, status: "Read" } },
-      { $group: { _id: "$userId", count: { $sum: 1 } } },
+      { $group: { _id: "$userId", count: comicReadWeight() } },
     ]),
     CollectionLike.aggregate<{ _id: string; count: number }>([
       { $match: { targetUserId: { $in: paginatedIds } } },

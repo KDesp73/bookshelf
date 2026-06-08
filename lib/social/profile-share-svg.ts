@@ -15,6 +15,7 @@ import {
 import { MAX_FAVORITE_BOOKS } from "@/lib/constants";
 import { profileUrl } from "@/lib/site-url";
 import { Book } from "@/models/Book";
+import { comicReadWeight } from "@/lib/books/comic-weight";
 
 const MAX_COVERS = MAX_FAVORITE_BOOKS;
 const MAX_COVER_BYTES = 180_000;
@@ -231,11 +232,10 @@ export async function loadProfileShareCardData(
   const [bookCount, readCount, readingCount, likeCount, favoriteBooks] =
     await Promise.all([
       Book.countDocuments({ userId: user._id, isWishlist: { $ne: true } }),
-      Book.countDocuments({
-        userId: user._id,
-        isWishlist: { $ne: true },
-        status: "Read",
-      }),
+      Book.aggregate<{ count: number }>([
+        { $match: { userId: user._id, isWishlist: { $ne: true }, status: "Read" } },
+        { $group: { _id: null, count: comicReadWeight() } },
+      ]).then((r) => r[0]?.count ?? 0),
       Book.countDocuments({
         userId: user._id,
         isWishlist: { $ne: true },

@@ -5,6 +5,7 @@ import { User } from "@/models/User";
 import { Book } from "@/models/Book";
 import { CollectionLike } from "@/models/CollectionLike";
 import type { AchievementConditionType } from "@/lib/constants";
+import { comicReadWeight } from "@/lib/books/comic-weight";
 
 export interface AchievementWithProgress extends IAchievement {
   _id: { toString(): string };
@@ -16,7 +17,10 @@ async function getUserStats(userId: string) {
   const [bookCount, readCount, unreadCount, readingCount, ratedCount, wishlistCount, likeCountResult, user] =
     await Promise.all([
       Book.countDocuments({ userId, isWishlist: { $ne: true } }),
-      Book.countDocuments({ userId, status: "Read" }),
+      Book.aggregate<{ count: number }>([
+        { $match: { userId, status: "Read" } },
+        { $group: { _id: null, count: comicReadWeight() } },
+      ]).then((r) => r[0]?.count ?? 0),
       Book.countDocuments({ userId, status: "Unread" }),
       Book.countDocuments({ userId, status: "Reading" }),
       Book.countDocuments({ userId, rating: { $exists: true, $ne: null } }),
