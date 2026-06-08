@@ -45,7 +45,7 @@ export function AdminNav({ current }: AdminNavProps) {
   );
 
   return (
-    <nav className="flex gap-2 border-b border-stone-200/80 pb-4 dark:border-stone-700">
+    <nav className="flex flex-wrap gap-2 border-b border-stone-200/80 pb-4 dark:border-stone-700">
       {visibleLinks.map(({ href, label, icon: Icon, key }) => (
         <Link
           key={href}
