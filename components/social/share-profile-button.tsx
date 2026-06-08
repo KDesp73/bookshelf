@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronDown, Download, Link2, Share2 } from "lucide-react";
+import { Check, ChevronDown, Download, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -41,7 +41,6 @@ export function ShareProfileButton({
   className,
   variant = "outline",
 }: ShareProfileButtonProps) {
-  const [copied, setCopied] = useState(false);
   const [pending, setPending] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -50,16 +49,6 @@ export function ShareProfileButton({
   const shareTitle = `${displayName} on BookShelf`;
   const shareText =
     bio?.trim() || `Browse ${displayName}'s book collection on BookShelf.`;
-
-  async function copyLink() {
-    await navigator.clipboard.writeText(pageUrl);
-    setCopied(true);
-    setStatusMessage("Link copied");
-    window.setTimeout(() => {
-      setCopied(false);
-      setStatusMessage(null);
-    }, 2000);
-  }
 
   async function handleNativeShare() {
     setPending(true);
@@ -75,14 +64,18 @@ export function ShareProfileButton({
         return;
       }
 
-      await copyLink();
+      await navigator.clipboard.writeText(pageUrl);
+      setStatusMessage("Link copied");
+      window.setTimeout(() => setStatusMessage(null), 2000);
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
         return;
       }
 
       try {
-        await copyLink();
+        await navigator.clipboard.writeText(pageUrl);
+        setStatusMessage("Link copied");
+        window.setTimeout(() => setStatusMessage(null), 2000);
       } catch {
         window.prompt("Copy this profile link:", pageUrl);
       }
@@ -122,7 +115,7 @@ export function ShareProfileButton({
     window.open(cardUrl, "_blank", "noopener,noreferrer");
   }
 
-  const label = statusMessage ?? (copied ? "Link copied" : "Share profile");
+  const label = statusMessage ?? "Share profile";
 
   return (
     <DropdownMenu>
@@ -134,7 +127,7 @@ export function ShareProfileButton({
           className={cn("gap-2", className)}
           disabled={pending}
         >
-          {copied || statusMessage ? (
+          {statusMessage ? (
             <Check className="h-4 w-4" />
           ) : (
             <Share2 className="h-4 w-4" />
@@ -147,15 +140,6 @@ export function ShareProfileButton({
         <DropdownMenuItem onClick={handleNativeShare} disabled={pending}>
           <Share2 className="h-4 w-4" />
           Share link
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => {
-            void copyLink();
-          }}
-          disabled={pending}
-        >
-          <Link2 className="h-4 w-4" />
-          Copy link
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

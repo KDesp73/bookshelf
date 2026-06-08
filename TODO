@@ -1,10 +1,7 @@
-TODO: better discover page
-TODO: preview user collections on discover page
 TODO: import from goodreads
 TODO: recommendations
 TODO: reports (inappropriate custom covers or bios)
 TODO: quotes
-TODO: live feed
 TODO: achievements
 TODO: bookshop non-intrusive ads
 TODO: favicon
@@ -27,3 +24,5 @@ DONE: forgot password?
 DONE: allow users to delete their account
 DONE: search for a book to add it
 DONE: social media panel shares
+DONE: better discover page
+DONE: preview user collections on discover page

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronDown, Download, Link2, Share2 } from "lucide-react";
+import { Check, ChevronDown, Download, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -32,7 +32,6 @@ export function ShareBookButton({
   authors,
   className,
 }: ShareBookButtonProps) {
-  const [copied, setCopied] = useState(false);
   const [pending, setPending] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -40,16 +39,6 @@ export function ShareBookButton({
   const shareText = authors?.length
     ? `${title} by ${authors.join(", ")} — on BookShelf`
     : `${title} — on BookShelf`;
-
-  async function copyLink() {
-    await navigator.clipboard.writeText(shareTitle);
-    setCopied(true);
-    setStatusMessage("Copied");
-    window.setTimeout(() => {
-      setCopied(false);
-      setStatusMessage(null);
-    }, 2000);
-  }
 
   async function handleNativeShare() {
     setPending(true);
@@ -64,14 +53,18 @@ export function ShareBookButton({
         return;
       }
 
-      await copyLink();
+      await navigator.clipboard.writeText(shareTitle);
+      setStatusMessage("Copied");
+      window.setTimeout(() => setStatusMessage(null), 2000);
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
         return;
       }
 
       try {
-        await copyLink();
+        await navigator.clipboard.writeText(shareTitle);
+        setStatusMessage("Copied");
+        window.setTimeout(() => setStatusMessage(null), 2000);
       } catch {
         window.prompt("Copy this book info:", shareText);
       }
@@ -111,7 +104,7 @@ export function ShareBookButton({
     window.open(cardUrl(bookId), "_blank", "noopener,noreferrer");
   }
 
-  const label = statusMessage ?? (copied ? "Copied" : "Share");
+  const label = statusMessage ?? "Share";
 
   return (
     <DropdownMenu>
@@ -123,7 +116,7 @@ export function ShareBookButton({
           className={cn("gap-2", className)}
           disabled={pending}
         >
-          {copied || statusMessage ? (
+          {statusMessage ? (
             <Check className="h-4 w-4" />
           ) : (
             <Share2 className="h-4 w-4" />
@@ -136,15 +129,6 @@ export function ShareBookButton({
         <DropdownMenuItem onClick={handleNativeShare} disabled={pending}>
           <Share2 className="h-4 w-4" />
           Share
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => {
-            void copyLink();
-          }}
-          disabled={pending}
-        >
-          <Link2 className="h-4 w-4" />
-          Copy info
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
