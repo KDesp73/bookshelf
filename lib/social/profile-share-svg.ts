@@ -27,7 +27,6 @@ const COVER_HEIGHT = 66;
 const COVER_GAP = 6;
 const CARD_WIDTH = 480;
 
-const HEADER_HEIGHT = 44;
 const FOOTER_HEIGHT = 32;
 
 export interface ProfileShareCardData {
@@ -93,11 +92,11 @@ function computeLayout(
   coversY: number;
   coverStartX: number;
 } {
-  const avatarY = HEADER_HEIGHT + 16;
+  const avatarY = 16;
   const nameY = avatarY + 18;
   const handleY = avatarY + 38;
   const avatarBottom = avatarY + AVATAR_SIZE;
-  const bioY = avatarBottom + (hasBio ? 8 : 0);
+  const bioY = avatarBottom + (hasBio ? 14 : 0);
   const statsSepY = avatarBottom + (hasBio ? 32 : 16);
 
   let cursor = statsSepY + 40;
@@ -325,10 +324,6 @@ export function renderProfileShareSvg(data: ProfileShareCardData): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${CARD_WIDTH}" height="${layout.cardHeight}" viewBox="0 0 ${CARD_WIDTH} ${layout.cardHeight}" role="img" aria-label="${displayName} on BookShelf">
   <rect x="0" y="0" width="${CARD_WIDTH}" height="${layout.cardHeight}" rx="16" fill="${theme.background}" />
-
-  <rect x="0" y="0" width="${CARD_WIDTH}" height="${HEADER_HEIGHT}" rx="16" fill="${theme.accent}" opacity="0.08" />
-
-  <text x="${PADDING}" y="28" font-family="Georgia, 'Times New Roman', serif" font-size="13" font-weight="700" fill="${theme.accent}" letter-spacing="0.5">BookShelf</text>
 
   <g transform="translate(${avatarX}, ${layout.avatarY})">
     ${data.avatarMarkup}
