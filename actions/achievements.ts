@@ -9,6 +9,7 @@ import {
   createAchievement,
   updateAchievement,
   deleteAchievement,
+  awardAllAchievements,
 } from "@/lib/achievements";
 import { ACHIEVEMENT_CONDITION_TYPES, type AchievementConditionType } from "@/lib/constants";
 import type { ActionResult } from "@/actions/books";
@@ -194,5 +195,22 @@ export async function deleteAchievementAction(
     return { success: true, data: null };
   } catch {
     return { success: false, error: "Failed to delete achievement." };
+  }
+}
+
+export async function awardAllAchievementsAction(): Promise<
+  ActionResult<{ awarded: number; total: number }>
+> {
+  const auth = await requireAdmin();
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Admin access required." };
+  }
+
+  try {
+    const result = await awardAllAchievements();
+    revalidatePath("/admin/achievements");
+    return { success: true, data: result };
+  } catch {
+    return { success: false, error: "Failed to award achievements." };
   }
 }

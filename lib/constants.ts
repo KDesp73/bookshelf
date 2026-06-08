@@ -26,7 +26,10 @@ export function isValidRating(value: unknown): value is BookRating {
 export const ACHIEVEMENT_CONDITION_TYPES = [
   "books_added",
   "books_read",
+  "books_unread",
+  "books_reading",
   "books_rated",
   "collection_likes",
+  "account_age_days",
 ] as const;
 export type AchievementConditionType = (typeof ACHIEVEMENT_CONDITION_TYPES)[number];

@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db";
 import { Achievement, type IAchievement } from "@/models/Achievement";
 import { UserAchievement } from "@/models/UserAchievement";
+import { User } from "@/models/User";
 import { Book } from "@/models/Book";
 import { CollectionLike } from "@/models/CollectionLike";
 import type { AchievementConditionType } from "@/lib/constants";
@@ -12,18 +13,31 @@ export interface AchievementWithProgress extends IAchievement {
 }
 
 async function getUserStats(userId: string) {
-  const [bookCount, readCount, ratedCount, likeCountResult] = await Promise.all([
-    Book.countDocuments({ userId }),
-    Book.countDocuments({ userId, status: "Read" }),
-    Book.countDocuments({ userId, rating: { $exists: true, $ne: null } }),
-    CollectionLike.countDocuments({ targetUserId: userId }),
-  ]);
+  const [bookCount, readCount, unreadCount, readingCount, ratedCount, likeCountResult, user] =
+    await Promise.all([
+      Book.countDocuments({ userId }),
+      Book.countDocuments({ userId, status: "Read" }),
+      Book.countDocuments({ userId, status: "Unread" }),
+      Book.countDocuments({ userId, status: "Reading" }),
+      Book.countDocuments({ userId, rating: { $exists: true, $ne: null } }),
+      CollectionLike.countDocuments({ targetUserId: userId }),
+      User.findById(userId).select("createdAt").lean(),
+    ]);
+
+  const accountAgeDays = user?.createdAt
+    ? Math.floor(
+        (Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24),
+      )
+    : 0;
 
   return {
     books_added: bookCount,
     books_read: readCount,
+    books_unread: unreadCount,
+    books_reading: readingCount,
     books_rated: ratedCount,
     collection_likes: likeCountResult,
+    account_age_days: accountAgeDays,
   } satisfies Record<AchievementConditionType, number>;
 }
 
@@ -100,6 +114,51 @@ export async function deleteAchievement(id: string) {
   await connectDB();
   await UserAchievement.deleteMany({ achievementId: id });
   return Achievement.deleteOne({ _id: id });
+}
+
+export async function awardAllAchievements() {
+  await connectDB();
+
+  const allAchievements = await Achievement.find({}).lean();
+  if (allAchievements.length === 0) return { awarded: 0, total: 0 };
+
+  const allUsers = await User.find({}).select("_id createdAt").lean();
+  let totalAwarded = 0;
+
+  for (const user of allUsers) {
+    const userId = user._id.toString();
+
+    const earnedIds = (
+      await UserAchievement.find({ userId }).select("achievementId").lean()
+    ).map((ua) => ua.achievementId);
+
+    const pending = allAchievements.filter(
+      (a) => !earnedIds.includes(a._id.toString()),
+    );
+    if (pending.length === 0) continue;
+
+    const stats = await getUserStats(userId);
+
+    const newlyEarned: { userId: string; achievementId: string }[] = [];
+    for (const achievement of pending) {
+      const achieved =
+        stats[achievement.conditionType as AchievementConditionType] >=
+        achievement.conditionValue;
+      if (achieved) {
+        newlyEarned.push({
+          userId,
+          achievementId: achievement._id.toString(),
+        });
+      }
+    }
+
+    if (newlyEarned.length > 0) {
+      await UserAchievement.insertMany(newlyEarned, { ordered: false });
+      totalAwarded += newlyEarned.length;
+    }
+  }
+
+  return { awarded: totalAwarded, total: allUsers.length };
 }
 
 export async function createAchievement(data: {

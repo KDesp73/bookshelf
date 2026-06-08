@@ -7,6 +7,7 @@ import {
   createAchievementAction,
   updateAchievementAction,
   deleteAchievementAction,
+  awardAllAchievementsAction,
 } from "@/actions/achievements";
 import { ACHIEVEMENT_CONDITION_TYPES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -36,8 +37,11 @@ interface AdminAchievementsListProps {
 const CONDITION_LABELS: Record<string, string> = {
   books_added: "Books added",
   books_read: "Books read",
+  books_unread: "Books unread",
+  books_reading: "Books reading",
   books_rated: "Books rated",
   collection_likes: "Collection likes",
+  account_age_days: "Account age (days)",
 };
 
 export function AdminAchievementsList({
@@ -45,6 +49,8 @@ export function AdminAchievementsList({
 }: AdminAchievementsListProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [awarding, startAwardTransition] = useTransition();
+  const [awardMessage, setAwardMessage] = useState<string | null>(null);
   const [editingAchievement, setEditingAchievement] = useState<Achievement | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -53,6 +59,22 @@ export function AdminAchievementsList({
     startTransition(async () => {
       await deleteAchievementAction(id);
       router.refresh();
+    });
+  }
+
+  function handleAwardAll() {
+    if (!confirm("Award all achievements to every user who qualifies? This may take a moment.")) return;
+    startAwardTransition(async () => {
+      setAwardMessage(null);
+      const result = await awardAllAchievementsAction();
+      if (result.success) {
+        setAwardMessage(
+          `Awarded ${result.data.awarded} achievement${result.data.awarded === 1 ? "" : "s"} across ${result.data.total} user${result.data.total === 1 ? "" : "s"}.`,
+        );
+        router.refresh();
+      } else {
+        setAwardMessage("Failed to award achievements.");
+      }
     });
   }
 
@@ -68,14 +90,29 @@ export function AdminAchievementsList({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-stone-600 dark:text-stone-400">
           {achievements.length} {achievements.length === 1 ? "achievement" : "achievements"}
         </p>
-        <Button size="sm" onClick={handleCreate}>
-          <Plus className="h-4 w-4" />
-          Add achievement
-        </Button>
+        <div className="flex items-center gap-2">
+          {awardMessage && (
+            <p className="text-sm text-emerald-600 dark:text-emerald-400">{awardMessage}</p>
+          )}
+          {achievements.length > 0 && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleAwardAll}
+              disabled={awarding}
+            >
+              {awarding ? "Awarding..." : "Award to all users"}
+            </Button>
+          )}
+          <Button size="sm" onClick={handleCreate}>
+            <Plus className="h-4 w-4" />
+            Add achievement
+          </Button>
+        </div>
       </div>
 
       {achievements.length === 0 ? (
