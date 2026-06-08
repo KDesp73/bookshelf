@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   createBlogPostAction,
   deleteBlogPostAction,
+  sendPostPromotionalEmailAction,
   updateBlogPostAction,
 } from "@/actions/blog";
 import { MarkdownEditor } from "@/components/blog/markdown-editor";
@@ -17,20 +18,24 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface AdminPostFormProps {
   post?: BlogPostDocument;
+  canSendPromotional?: boolean;
 }
 
-export function AdminPostForm({ post }: AdminPostFormProps) {
+export function AdminPostForm({ post, canSendPromotional }: AdminPostFormProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [title, setTitle] = useState(post?.title ?? "");
   const [slug, setSlug] = useState(post?.slug ?? "");
   const [excerpt, setExcerpt] = useState(post?.excerpt ?? "");
   const [body, setBody] = useState(post?.body ?? "");
   const [published, setPublished] = useState(post?.published ?? false);
+  const [sendPromotional, setSendPromotional] = useState(false);
 
   function handleSave() {
     setError(null);
+    setSuccess(null);
     startTransition(async () => {
       const input = {
         title,
@@ -46,6 +51,21 @@ export function AdminPostForm({ post }: AdminPostFormProps) {
 
       if (!result.success) {
         setError(result.error);
+        return;
+      }
+
+      if (sendPromotional && result.data) {
+        const promoResult = await sendPostPromotionalEmailAction(result.data._id);
+        if (!promoResult.success) {
+          setError(promoResult.error);
+          setSuccess("Post saved, but promotional email could not be sent.");
+          return;
+        }
+        const { sent, failed } = promoResult.data;
+        setSuccess(
+          `Post published & promotional email sent to ${sent} ${sent === 1 ? "recipient" : "recipients"}.` +
+            (failed > 0 ? ` ${failed} failed.` : ""),
+        );
         return;
       }
 
@@ -118,15 +138,34 @@ export function AdminPostForm({ post }: AdminPostFormProps) {
             type="checkbox"
             checked={published}
             disabled={pending}
-            onChange={(event) => setPublished(event.target.checked)}
+            onChange={(event) => {
+              setPublished(event.target.checked);
+              if (!event.target.checked) setSendPromotional(false);
+            }}
             className="h-4 w-4 rounded border-stone-300"
           />
           Publish immediately
         </label>
+
+        {published && canSendPromotional ? (
+          <label className="flex items-center gap-2 text-sm text-stone-700 dark:text-stone-300">
+            <input
+              type="checkbox"
+              checked={sendPromotional}
+              disabled={pending}
+              onChange={(event) => setSendPromotional(event.target.checked)}
+              className="h-4 w-4 rounded border-stone-300"
+            />
+            Send promotional email to subscribers
+          </label>
+        ) : null}
       </div>
 
       {error ? (
         <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>
+      ) : null}
+      {success ? (
+        <p className="mt-3 text-sm text-emerald-700 dark:text-emerald-400">{success}</p>
       ) : null}
 
       <div className="mt-6 flex flex-wrap gap-2">

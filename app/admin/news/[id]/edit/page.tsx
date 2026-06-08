@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminPostForm } from "@/components/admin/admin-post-form";
 import { getPostById } from "@/lib/blog/queries";
+import { getSessionUser } from "@/lib/auth/get-session-user";
+import { isAdminEmail } from "@/lib/auth/admin";
+import { ADMIN_PERMISSIONS } from "@/lib/constants";
 
 interface AdminEditPostPageProps {
   params: Promise<{ id: string }>;
@@ -15,10 +18,14 @@ export default async function AdminEditPostPage({ params }: AdminEditPostPagePro
     notFound();
   }
 
+  const user = await getSessionUser();
+  const canSendPromotional =
+    !!user && (isAdminEmail(user.email) || user.adminPermissions.includes(ADMIN_PERMISSIONS.MANAGE_EMAILS));
+
   return (
     <>
       <AdminNav current="news" />
-      <AdminPostForm post={post} />
+      <AdminPostForm post={post} canSendPromotional={canSendPromotional} />
     </>
   );
 }

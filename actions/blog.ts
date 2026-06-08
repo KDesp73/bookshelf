@@ -14,12 +14,14 @@ import { ADMIN_PERMISSIONS } from "@/lib/constants";
 import { requireUser } from "@/lib/auth/require-user";
 import { BlogPost } from "@/models/BlogPost";
 import { BlogReaction } from "@/models/BlogReaction";
+import { sendPostPromotional } from "@/lib/email/send-post-promotional";
 import type { ActionResult } from "@/actions/books";
 import type {
   BlogPostDocument,
   BlogPostInput,
   BlogReactionSummary,
 } from "@/types/blog";
+import type { SendPostPromotionalResult } from "@/lib/email/send-post-promotional";
 
 function revalidateNewsPaths(slug?: string) {
   revalidatePath("/news");
@@ -181,6 +183,32 @@ export async function deleteBlogPostAction(
     return { success: true, data: null };
   } catch {
     return { success: false, error: "Failed to delete post." };
+  }
+}
+
+export async function sendPostPromotionalEmailAction(
+  postId: string,
+): Promise<ActionResult<SendPostPromotionalResult>> {
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_EMAILS);
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Admin access required." };
+  }
+
+  try {
+    await connectDB();
+    const post = await getPostById(postId);
+    if (!post) {
+      return { success: false, error: "Post not found." };
+    }
+
+    const result = await sendPostPromotional(post);
+    if (!result.ok) {
+      return { success: false, error: result.error };
+    }
+
+    return { success: true, data: result.result };
+  } catch {
+    return { success: false, error: "Failed to send promotional email." };
   }
 }
 
