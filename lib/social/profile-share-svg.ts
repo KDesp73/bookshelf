@@ -96,8 +96,9 @@ function computeLayout(
   const avatarY = HEADER_HEIGHT + 16;
   const nameY = avatarY + 18;
   const handleY = avatarY + 38;
-  const bioY = handleY + 14;
-  const statsSepY = bioY + (hasBio ? 16 : 0);
+  const avatarBottom = avatarY + AVATAR_SIZE;
+  const bioY = avatarBottom + (hasBio ? 8 : 0);
+  const statsSepY = avatarBottom + (hasBio ? 32 : 16);
 
   let cursor = statsSepY + 40;
 

@@ -117,7 +117,7 @@ export function renderBookShareSvg(data: BookShareCardData): string {
   const readerY = dividerY + 18;
 
   const coverMarkup = data.hasCover
-    ? `<image href="${data.coverDataUri}" x="${coverX}" y="${coverY}" width="${coverSize}" height="${coverSize}" preserveAspectRatio="xMidYMid slice" clip-path="url(#cc)" />`
+    ? `<g mask="url(#cm)"><image href="${data.coverDataUri}" x="${coverX}" y="${coverY}" width="${coverSize}" height="${coverSize}" preserveAspectRatio="xMidYMid slice" /></g>`
     : `<text x="${CARD_WIDTH / 2}" y="${coverY + coverSize / 2 + 4}" text-anchor="middle" font-family="sans-serif" font-size="52" font-weight="bold" fill="#a8a29e">${escapeXml(data.title[0]?.toUpperCase() ?? "?")}</text>`;
 
   const ratingMarkup = data.rating != null
@@ -136,9 +136,10 @@ export function renderBookShareSvg(data: BookShareCardData): string {
       <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.08" />
       <stop offset="100%" stop-color="#fbbf24" stop-opacity="0" />
     </linearGradient>
-    <clipPath id="cc">
-      <rect x="${coverX}" y="${coverY}" width="${coverSize}" height="${coverSize}" rx="10" />
-    </clipPath>
+    <mask id="cm">
+      <rect x="0" y="0" width="${CARD_WIDTH}" height="${CARD_HEIGHT}" fill="black" />
+      <rect x="${coverX}" y="${coverY}" width="${coverSize}" height="${coverSize}" rx="10" fill="white" />
+    </mask>
   </defs>
 
   <rect x="0" y="0" width="${CARD_WIDTH}" height="${CARD_HEIGHT}" fill="url(#bg)" />
