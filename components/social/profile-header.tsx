@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Heart, Settings } from "lucide-react";
+import { BookOpen, Heart, Settings, ShieldCheck } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { toggleCollectionLikeAction } from "@/actions/social";
 import type { CollectionLiker, UserProfile } from "@/types/user";
 import { CollectionLikers } from "@/components/social/collection-likers";
@@ -63,6 +64,12 @@ export function ProfileHeader({
           <div className="mt-4 min-w-0 flex-1 sm:ml-4 sm:mt-0">
             <h1 className="shelf-title font-serif text-2xl font-semibold text-amber-950 dark:text-amber-100">
               {displayName}
+              {user.isAdmin && (
+                <Badge variant="default" className="ml-2 align-middle">
+                  <ShieldCheck className="mr-1 h-3 w-3" />
+                  Admin
+                </Badge>
+              )}
             </h1>
             {user.username ? (
               <p className="shelf-muted text-sm text-stone-500">@{user.username}</p>
