@@ -48,6 +48,7 @@ export const ACHIEVEMENT_CONDITION_TYPES = [
   "books_unread",
   "books_reading",
   "books_rated",
+  "books_wishlist",
   "collection_likes",
   "account_age_days",
 ] as const;

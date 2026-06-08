@@ -13,13 +13,14 @@ export interface AchievementWithProgress extends IAchievement {
 }
 
 async function getUserStats(userId: string) {
-  const [bookCount, readCount, unreadCount, readingCount, ratedCount, likeCountResult, user] =
+  const [bookCount, readCount, unreadCount, readingCount, ratedCount, wishlistCount, likeCountResult, user] =
     await Promise.all([
       Book.countDocuments({ userId, isWishlist: { $ne: true } }),
       Book.countDocuments({ userId, status: "Read" }),
       Book.countDocuments({ userId, status: "Unread" }),
       Book.countDocuments({ userId, status: "Reading" }),
       Book.countDocuments({ userId, rating: { $exists: true, $ne: null } }),
+      Book.countDocuments({ userId, isWishlist: true }),
       CollectionLike.countDocuments({ targetUserId: userId }),
       User.findById(userId).select("createdAt").lean(),
     ]);
@@ -36,6 +37,7 @@ async function getUserStats(userId: string) {
     books_unread: unreadCount,
     books_reading: readingCount,
     books_rated: ratedCount,
+    books_wishlist: wishlistCount,
     collection_likes: likeCountResult,
     account_age_days: accountAgeDays,
   } satisfies Record<AchievementConditionType, number>;

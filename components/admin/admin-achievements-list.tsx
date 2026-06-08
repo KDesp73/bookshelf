@@ -40,6 +40,7 @@ const CONDITION_LABELS: Record<string, string> = {
   books_unread: "Books unread",
   books_reading: "Books reading",
   books_rated: "Books rated",
+  books_wishlist: "Books in wishlist",
   collection_likes: "Collection likes",
   account_age_days: "Account age (days)",
 };
