@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db";
 import { Book, type IBook } from "@/models/Book";
 import { CollectionLike } from "@/models/CollectionLike";
+import { UserAchievement } from "@/models/UserAchievement";
 import { User, type IUser } from "@/models/User";
 import type { AvatarType } from "@/lib/constants";
 import { getShelfAppearance } from "@/lib/shelf/appearance";
@@ -8,6 +9,7 @@ import type {
   CollectionLiker,
   DiscoverFilters,
   PaginatedResult,
+  RankingSort,
   UserListItem,
 } from "@/types/user";
 import type { DiscoverBook } from "@/types/book";
@@ -152,14 +154,22 @@ export async function listUsers(
     .map((id) => userMap.get(id))
     .filter(Boolean) as (IUser & { _id: { toString(): string } })[];
 
-  const [bookCounts, likeCounts, coverAgg] = await Promise.all([
+  const [bookCounts, readCounts, likeCounts, achievementCounts, coverAgg] = await Promise.all([
     Book.aggregate<{ _id: string; count: number }>([
       { $match: { userId: { $in: paginatedIds }, isWishlist: { $ne: true } } },
+      { $group: { _id: "$userId", count: { $sum: 1 } } },
+    ]),
+    Book.aggregate<{ _id: string; count: number }>([
+      { $match: { userId: { $in: paginatedIds }, status: "Read" } },
       { $group: { _id: "$userId", count: { $sum: 1 } } },
     ]),
     CollectionLike.aggregate<{ _id: string; count: number }>([
       { $match: { targetUserId: { $in: paginatedIds } } },
       { $group: { _id: "$targetUserId", count: { $sum: 1 } } },
+    ]),
+    UserAchievement.aggregate<{ _id: string; count: number }>([
+      { $match: { userId: { $in: paginatedIds } } },
+      { $group: { _id: "$userId", count: { $sum: 1 } } },
     ]),
     Book.aggregate<{ _id: string; covers: string[] }>([
       {
@@ -176,7 +186,9 @@ export async function listUsers(
   ]);
 
   const bookCountMap = new Map(bookCounts.map((item) => [item._id, item.count]));
+  const readCountMap = new Map(readCounts.map((item) => [item._id, item.count]));
   const likeCountMap = new Map(likeCounts.map((item) => [item._id, item.count]));
+  const achievementCountMap = new Map(achievementCounts.map((item) => [item._id, item.count]));
   const coverMap = new Map(coverAgg.map((item) => [item._id, item.covers]));
 
   const items: UserListItem[] = orderedUsers
@@ -192,9 +204,156 @@ export async function listUsers(
         bio: user.bio ?? undefined,
         shelfAppearance: getShelfAppearance(user),
         bookCount: bookCountMap.get(id) ?? 0,
+        readCount: readCountMap.get(id) ?? 0,
         likeCount: likeCountMap.get(id) ?? 0,
+        achievementCount: achievementCountMap.get(id) ?? 0,
         createdAt: user.createdAt.toISOString(),
         coverUrls: coverMap.get(id) ?? undefined,
+      };
+    });
+
+  return { items, hasMore };
+}
+
+function computeSortValue(
+  sort: RankingSort,
+  stats: { bookCount: number; readCount: number; likeCount: number; achievementCount: number },
+): number {
+  switch (sort) {
+    case "books_added":
+      return stats.bookCount;
+    case "books_read":
+      return stats.readCount;
+    case "likes":
+      return stats.likeCount;
+    case "achievements":
+      return stats.achievementCount;
+    case "overall":
+      return stats.readCount * 4 + stats.achievementCount * 3 + stats.likeCount * 2 + stats.bookCount;
+  }
+}
+
+export async function listRankedUsers(
+  sort: RankingSort,
+  page = 1,
+  limit = 20,
+): Promise<PaginatedResult<UserListItem>> {
+  await connectDB();
+
+  const skip = (page - 1) * limit;
+
+  const allUsers = await User.find({ username: { $exists: true, $ne: null } })
+    .select("_id")
+    .lean();
+
+  if (allUsers.length === 0) {
+    return { items: [], hasMore: false };
+  }
+
+  const allIds = allUsers.map((u) =>
+    (u as IUser & { _id: { toString(): string } })._id.toString(),
+  );
+
+  const [allBookCounts, allReadCounts, allLikeCounts, allAchievementCounts] = await Promise.all([
+    Book.aggregate<{ _id: string; count: number }>([
+      { $match: { userId: { $in: allIds }, isWishlist: { $ne: true } } },
+      { $group: { _id: "$userId", count: { $sum: 1 } } },
+    ]),
+    Book.aggregate<{ _id: string; count: number }>([
+      { $match: { userId: { $in: allIds }, status: "Read" } },
+      { $group: { _id: "$userId", count: { $sum: 1 } } },
+    ]),
+    CollectionLike.aggregate<{ _id: string; count: number }>([
+      { $match: { targetUserId: { $in: allIds } } },
+      { $group: { _id: "$targetUserId", count: { $sum: 1 } } },
+    ]),
+    UserAchievement.aggregate<{ _id: string; count: number }>([
+      { $match: { userId: { $in: allIds } } },
+      { $group: { _id: "$userId", count: { $sum: 1 } } },
+    ]),
+  ]);
+
+  const bookMap = new Map(allBookCounts.map((c) => [c._id, c.count]));
+  const readMap = new Map(allReadCounts.map((c) => [c._id, c.count]));
+  const likeMap = new Map(allLikeCounts.map((c) => [c._id, c.count]));
+  const achievementMap = new Map(allAchievementCounts.map((c) => [c._id, c.count]));
+
+  const allStats = new Map<string, { bookCount: number; readCount: number; likeCount: number; achievementCount: number }>();
+  for (const id of allIds) {
+    allStats.set(id, {
+      bookCount: bookMap.get(id) ?? 0,
+      readCount: readMap.get(id) ?? 0,
+      likeCount: likeMap.get(id) ?? 0,
+      achievementCount: achievementMap.get(id) ?? 0,
+    });
+  }
+
+  allIds.sort((a, b) => {
+    const valA = computeSortValue(sort, allStats.get(a)!);
+    const valB = computeSortValue(sort, allStats.get(b)!);
+    return valB - valA;
+  });
+
+  const paginatedIds = allIds.slice(skip, skip + limit);
+  const hasMore = skip + limit < allIds.length;
+
+  if (paginatedIds.length === 0) {
+    return { items: [], hasMore: false };
+  }
+
+  const users = await User.find({ _id: { $in: paginatedIds } }).lean();
+  const userMap = new Map(
+    users.map((u) => [
+      (u as IUser & { _id: { toString(): string } })._id.toString(),
+      u as IUser & { _id: { toString(): string } },
+    ]),
+  );
+
+  const orderedUsers = paginatedIds
+    .map((id) => userMap.get(id))
+    .filter(Boolean) as (IUser & { _id: { toString(): string } })[];
+
+  const [bookCounts, readCounts, likeCounts, achievementCounts] = await Promise.all([
+    Book.aggregate<{ _id: string; count: number }>([
+      { $match: { userId: { $in: paginatedIds }, isWishlist: { $ne: true } } },
+      { $group: { _id: "$userId", count: { $sum: 1 } } },
+    ]),
+    Book.aggregate<{ _id: string; count: number }>([
+      { $match: { userId: { $in: paginatedIds }, status: "Read" } },
+      { $group: { _id: "$userId", count: { $sum: 1 } } },
+    ]),
+    CollectionLike.aggregate<{ _id: string; count: number }>([
+      { $match: { targetUserId: { $in: paginatedIds } } },
+      { $group: { _id: "$targetUserId", count: { $sum: 1 } } },
+    ]),
+    UserAchievement.aggregate<{ _id: string; count: number }>([
+      { $match: { userId: { $in: paginatedIds } } },
+      { $group: { _id: "$userId", count: { $sum: 1 } } },
+    ]),
+  ]);
+
+  const bookCountMap = new Map(bookCounts.map((item) => [item._id, item.count]));
+  const readCountMap = new Map(readCounts.map((item) => [item._id, item.count]));
+  const likeCountMap = new Map(likeCounts.map((item) => [item._id, item.count]));
+  const achievementCountMap = new Map(achievementCounts.map((item) => [item._id, item.count]));
+
+  const items: UserListItem[] = orderedUsers
+    .filter((user) => user.username)
+    .map((user) => {
+      const id = user._id.toString();
+      return {
+        _id: id,
+        username: user.username!,
+        name: user.name ?? undefined,
+        image: user.image ?? undefined,
+        avatarType: (user.avatarType as AvatarType | undefined) ?? undefined,
+        bio: user.bio ?? undefined,
+        shelfAppearance: getShelfAppearance(user),
+        bookCount: bookCountMap.get(id) ?? 0,
+        readCount: readCountMap.get(id) ?? 0,
+        likeCount: likeCountMap.get(id) ?? 0,
+        achievementCount: achievementCountMap.get(id) ?? 0,
+        createdAt: user.createdAt.toISOString(),
       };
     });
 

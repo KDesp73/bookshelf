@@ -49,7 +49,9 @@ export interface UserListItem {
   bio?: string;
   shelfAppearance: ShelfAppearance;
   bookCount: number;
+  readCount?: number;
   likeCount: number;
+  achievementCount?: number;
   createdAt: string;
   coverUrls?: string[];
 }
@@ -63,6 +65,8 @@ export interface DiscoverFilters {
   search?: string;
   sort?: "likes" | "books" | "recent";
 }
+
+export type RankingSort = "overall" | "books_added" | "books_read" | "likes" | "achievements";
 
 /** Public profile snippet for someone who liked a collection. */
 export interface CollectionLiker {

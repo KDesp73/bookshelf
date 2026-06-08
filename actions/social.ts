@@ -5,10 +5,10 @@ import { connectDB } from "@/lib/db";
 import { CollectionLike } from "@/models/CollectionLike";
 import { getUserById } from "@/lib/users/queries";
 import { requireUser } from "@/lib/auth/require-user";
-import { listRecentBooks, listUsers } from "@/lib/social/queries";
+import { listRankedUsers, listRecentBooks, listUsers } from "@/lib/social/queries";
 import { checkAndAwardAchievements } from "@/lib/achievements";
 import type { DiscoverBook } from "@/types/book";
-import type { DiscoverFilters, PaginatedResult, UserListItem } from "@/types/user";
+import type { DiscoverFilters, PaginatedResult, RankingSort, UserListItem } from "@/types/user";
 import type { ActionResult } from "@/actions/books";
 
 export async function toggleCollectionLikeAction(
@@ -73,6 +73,18 @@ export async function listUsersAction(
     return { success: true, data: result };
   } catch {
     return { success: false, error: "Failed to load users." };
+  }
+}
+
+export async function listRankedUsersAction(
+  sort: RankingSort,
+  page = 1,
+): Promise<ActionResult<PaginatedResult<UserListItem>>> {
+  try {
+    const result = await listRankedUsers(sort, page);
+    return { success: true, data: result };
+  } catch {
+    return { success: false, error: "Failed to load rankings." };
   }
 }
 
