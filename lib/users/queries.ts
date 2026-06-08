@@ -17,6 +17,7 @@ function toUserProfile(user: IUser & { _id: { toString(): string } }): UserProfi
     wishlistPublic: user.wishlistPublic === true,
     favoriteBookIds: user.favoriteBookIds ?? [],
     isAdmin: user.isAdmin ?? false,
+    adminPermissions: user.adminPermissions as string[] | undefined,
     createdAt: user.createdAt.toISOString(),
   };
 }

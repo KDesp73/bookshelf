@@ -13,6 +13,7 @@ export interface UserProfile {
   wishlistPublic: boolean;
   favoriteBookIds: string[];
   isAdmin?: boolean;
+  adminPermissions?: string[];
   createdAt: string;
 }
 

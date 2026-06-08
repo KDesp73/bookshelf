@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { connectDB } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth/require-admin";
+import { requirePermission } from "@/lib/auth/require-admin";
+import { ADMIN_PERMISSIONS } from "@/lib/constants";
 import {
   getAllAchievements,
   getAchievementById,
@@ -18,7 +19,7 @@ import type { AchievementWithProgress } from "@/lib/achievements";
 export async function listAchievementsAction(): Promise<
   ActionResult<AchievementWithProgress[]>
 > {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_ACHIEVEMENTS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -39,7 +40,7 @@ export async function listAchievementsAction(): Promise<
 export async function getAchievementAction(
   id: string,
 ): Promise<ActionResult<AchievementWithProgress | null>> {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_ACHIEVEMENTS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -65,7 +66,7 @@ export async function getAchievementAction(
 export async function createAchievementAction(
   formData: FormData,
 ): Promise<ActionResult<null>> {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_ACHIEVEMENTS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -117,7 +118,7 @@ export async function updateAchievementAction(
   id: string,
   formData: FormData,
 ): Promise<ActionResult<null>> {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_ACHIEVEMENTS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -184,7 +185,7 @@ export async function updateAchievementAction(
 export async function deleteAchievementAction(
   id: string,
 ): Promise<ActionResult<null>> {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_ACHIEVEMENTS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -201,7 +202,7 @@ export async function deleteAchievementAction(
 export async function awardAllAchievementsAction(): Promise<
   ActionResult<{ awarded: number; total: number }>
 > {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_ACHIEVEMENTS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }

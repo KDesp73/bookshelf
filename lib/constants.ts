@@ -23,6 +23,25 @@ export function isValidRating(value: unknown): value is BookRating {
   );
 }
 
+export const ADMIN_PERMISSIONS = {
+  MANAGE_USERS: "manage_users",
+  MANAGE_NEWS: "manage_news",
+  MANAGE_ACHIEVEMENTS: "manage_achievements",
+  MANAGE_EMAILS: "manage_emails",
+  MANAGE_BOOKS: "manage_books",
+  MANAGE_METADATA: "manage_metadata",
+} as const;
+export type AdminPermission = (typeof ADMIN_PERMISSIONS)[keyof typeof ADMIN_PERMISSIONS];
+export const ALL_ADMIN_PERMISSIONS: AdminPermission[] = Object.values(ADMIN_PERMISSIONS);
+export const ADMIN_PERMISSION_LABELS: Record<AdminPermission, string> = {
+  manage_users: "Manage users",
+  manage_news: "Manage news & blog",
+  manage_achievements: "Manage achievements",
+  manage_emails: "Send promotional emails",
+  manage_books: "Manage all books",
+  manage_metadata: "Metadata enrichment",
+};
+
 export const ACHIEVEMENT_CONDITION_TYPES = [
   "books_added",
   "books_read",

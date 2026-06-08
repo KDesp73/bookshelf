@@ -5,6 +5,7 @@ import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminBookList } from "@/components/admin/admin-book-list";
 import { AdminUserForm } from "@/components/admin/admin-user-form";
 import { AdminUserActions } from "@/components/admin/admin-user-actions";
+import { AdminUserPermissions } from "@/components/admin/admin-user-permissions";
 import { getUserById } from "@/lib/users/queries";
 import { listBooks } from "@/lib/books/queries";
 import { getSessionUser } from "@/lib/auth/get-session-user";
@@ -70,7 +71,18 @@ export default async function AdminUserDetailPage({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,360px)_1fr]">
-        <AdminUserForm user={user} />
+        <div className="space-y-4">
+          <AdminUserForm user={user} />
+          {currentAdmin ? (
+            <AdminUserPermissions
+              userId={user._id}
+              userEmail={user.email}
+              isAdmin={user.isAdmin ?? false}
+              currentPermissions={user.adminPermissions}
+              currentAdminId={currentAdmin.id}
+            />
+          ) : null}
+        </div>
 
         <div className="space-y-4">
           <div>

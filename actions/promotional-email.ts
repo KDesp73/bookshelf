@@ -1,6 +1,7 @@
 "use server";
 
-import { requireAdmin } from "@/lib/auth/require-admin";
+import { requirePermission } from "@/lib/auth/require-admin";
+import { ADMIN_PERMISSIONS } from "@/lib/constants";
 import {
   countPromotionalRecipients,
   listPromotionalRecipients,
@@ -23,7 +24,7 @@ export interface PromotionalBroadcastSummary {
 export async function sendPromotionalBroadcastAction(
   input: PromotionalBroadcastInput,
 ): Promise<ActionResult<PromotionalBroadcastSummary>> {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_EMAILS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -80,7 +81,7 @@ export async function sendPromotionalBroadcastAction(
 }
 
 export async function getPromotionalRecipientCountAction(): Promise<number> {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_EMAILS);
   if (auth.error || !auth.user) {
     return 0;
   }

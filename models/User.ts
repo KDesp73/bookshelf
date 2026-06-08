@@ -1,5 +1,5 @@
 import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
-import { AVATAR_TYPES, MAX_FAVORITE_BOOKS } from "@/lib/constants";
+import { AVATAR_TYPES, MAX_FAVORITE_BOOKS, ALL_ADMIN_PERMISSIONS } from "@/lib/constants";
 import { SHELF_PRESETS } from "@/types/shelf";
 
 const userSchema = new Schema(
@@ -46,6 +46,11 @@ const userSchema = new Schema(
       },
     },
     isAdmin: { type: Boolean, default: false, index: true },
+    adminPermissions: {
+      type: [String],
+      default: ALL_ADMIN_PERMISSIONS,
+      enum: ALL_ADMIN_PERMISSIONS,
+    },
     passwordHash: { type: String, select: false },
   },
   {

@@ -5,6 +5,7 @@ import Google from "next-auth/providers/google";
 import { authConfig } from "@/auth.config";
 import { connectDB } from "@/lib/db";
 import { isAdminEmail } from "@/lib/auth/admin";
+import { ALL_ADMIN_PERMISSIONS } from "@/lib/constants";
 import { compactAuthToken } from "@/lib/auth/jwt-token";
 import {
   verifyCredentials,
@@ -121,6 +122,9 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       user.id = dbUser._id.toString();
       user.username = dbUser.username ?? null;
       user.isAdmin = dbUser.isAdmin ?? false;
+      user.adminPermissions =
+        (dbUser.adminPermissions as typeof ALL_ADMIN_PERMISSIONS) ??
+        (shouldBeAdmin ? ALL_ADMIN_PERMISSIONS : []);
       return true;
     },
     async jwt({ token, user, trigger, session }) {
@@ -128,6 +132,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         token.id = user.id;
         token.username = user.username ?? null;
         token.isAdmin = user.isAdmin === true;
+        token.adminPermissions = user.adminPermissions;
         return compactAuthToken(token);
       }
 
@@ -152,15 +157,17 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         try {
           await connectDB();
           const dbUser = await User.findById(token.id)
-            .select("username isAdmin email")
+            .select("username isAdmin email adminPermissions")
             .lean();
 
           if (dbUser) {
             if (isAdminEmail(dbUser.email) && !dbUser.isAdmin) {
-              await User.findByIdAndUpdate(token.id, { isAdmin: true });
+              await User.findByIdAndUpdate(token.id, { isAdmin: true, adminPermissions: ALL_ADMIN_PERMISSIONS });
               token.isAdmin = true;
+              token.adminPermissions = ALL_ADMIN_PERMISSIONS;
             } else {
               token.isAdmin = dbUser.isAdmin ?? false;
+              token.adminPermissions = dbUser.adminPermissions as typeof ALL_ADMIN_PERMISSIONS ?? [];
             }
             token.username = dbUser.username ?? null;
           }

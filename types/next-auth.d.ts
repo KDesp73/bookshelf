@@ -1,4 +1,5 @@
 import type { DefaultSession } from "next-auth";
+import type { AdminPermission } from "@/lib/constants";
 
 declare module "next-auth" {
   interface Session {
@@ -6,6 +7,7 @@ declare module "next-auth" {
       id: string;
       username?: string | null;
       isAdmin?: boolean;
+      adminPermissions?: AdminPermission[];
     } & DefaultSession["user"];
   }
 
@@ -13,6 +15,7 @@ declare module "next-auth" {
     id: string;
     username?: string | null;
     isAdmin?: boolean;
+    adminPermissions?: AdminPermission[];
   }
 }
 
@@ -21,5 +24,6 @@ declare module "next-auth/jwt" {
     id: string;
     username?: string | null;
     isAdmin?: boolean;
+    adminPermissions?: AdminPermission[];
   }
 }

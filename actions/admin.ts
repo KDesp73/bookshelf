@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { connectDB } from "@/lib/db";
 import { Book } from "@/models/Book";
 import { User } from "@/models/User";
-import { requireAdmin } from "@/lib/auth/require-admin";
+import { requireAdmin, requirePermission } from "@/lib/auth/require-admin";
+import { isAdminEmail } from "@/lib/auth/admin";
 import { deleteUserAndData, listAllUsers } from "@/lib/admin/queries";
 import { getUserById } from "@/lib/users/queries";
 import { listBooks } from "@/lib/books/queries";
@@ -13,15 +14,19 @@ import {
   backfillBookMetadata,
   countBooksNeedingMetadataEnrichment,
 } from "@/lib/books/backfill-metadata";
+import { ADMIN_PERMISSIONS, ALL_ADMIN_PERMISSIONS } from "@/lib/constants";
+import type { AdminPermission } from "@/lib/constants";
 import type { BackfillMetadataResult } from "@/lib/books/backfill-metadata";
 import type { ActionResult } from "@/actions/books";
 import type { AdminUserRow, UserProfile } from "@/types/user";
 import type { BookDocument } from "@/types/book";
 
-export async function toggleUserAdminAction(
+export async function updateUserAdminPermissionsAction(
   userId: string,
+  isAdmin: boolean,
+  permissions?: AdminPermission[],
 ): Promise<ActionResult<{ isAdmin: boolean }>> {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_USERS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -32,25 +37,30 @@ export async function toggleUserAdminAction(
 
   try {
     await connectDB();
-    const user = await User.findById(userId);
-    if (!user) {
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
       return { success: false, error: "User not found." };
     }
 
-    user.isAdmin = !user.isAdmin;
-    await user.save();
+    if (isAdminEmail(targetUser.email)) {
+      return { success: false, error: "Cannot modify the super admin's permissions." };
+    }
+
+    targetUser.isAdmin = isAdmin;
+    targetUser.adminPermissions = isAdmin ? (permissions ?? []) : [];
+    await targetUser.save();
 
     revalidatePath("/admin/users");
     revalidatePath(`/admin/users/${userId}`);
 
-    return { success: true, data: { isAdmin: user.isAdmin } };
+    return { success: true, data: { isAdmin: targetUser.isAdmin } };
   } catch {
     return { success: false, error: "Failed to update admin status." };
   }
 }
 
 export async function deleteUserAction(userId: string): Promise<ActionResult<null>> {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_USERS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -60,6 +70,15 @@ export async function deleteUserAction(userId: string): Promise<ActionResult<nul
   }
 
   try {
+    await connectDB();
+    const targetUser = await User.findById(userId).select("email").lean();
+    if (!targetUser) {
+      return { success: false, error: "User not found." };
+    }
+    if (isAdminEmail(targetUser.email)) {
+      return { success: false, error: "Cannot delete the super admin." };
+    }
+
     const deleted = await deleteUserAndData(userId);
     if (!deleted) {
       return { success: false, error: "User not found." };
@@ -79,7 +98,7 @@ export async function deleteBookAsAdminAction(
   bookId: string,
   userId: string,
 ): Promise<ActionResult<null>> {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_BOOKS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -114,7 +133,7 @@ export async function getAdminUserDetailAction(
     books: BookDocument[];
   }>
 > {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_USERS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -135,7 +154,7 @@ export async function getAdminUserDetailAction(
 export async function listAllUsersAction(
   search?: string,
 ): Promise<ActionResult<AdminUserRow[]>> {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_USERS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -152,7 +171,7 @@ export async function updateUserAsAdminAction(
   userId: string,
   updates: { name?: string; bio?: string; username?: string },
 ): Promise<ActionResult<UserProfile>> {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_USERS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -203,7 +222,7 @@ export async function updateUserAsAdminAction(
 export async function backfillBookMetadataAction(): Promise<
   ActionResult<BackfillMetadataResult>
 > {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_METADATA);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -222,7 +241,7 @@ export async function backfillBookMetadataAction(): Promise<
 export async function getBooksNeedingMetadataCountAction(): Promise<
   ActionResult<{ count: number }>
 > {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_METADATA);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -234,5 +253,3 @@ export async function getBooksNeedingMetadataCountAction(): Promise<
     return { success: false, error: "Failed to count books." };
   }
 }
-
-

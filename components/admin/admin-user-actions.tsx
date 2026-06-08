@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import {
   deleteUserAction,
-  toggleUserAdminAction,
+  updateUserAdminPermissionsAction,
 } from "@/actions/admin";
+import { ADMIN_PERMISSIONS } from "@/lib/constants";
+import type { AdminPermission } from "@/lib/constants";
 import type { UserProfile } from "@/types/user";
 import { Button } from "@/components/ui/button";
 
@@ -27,7 +29,12 @@ export function AdminUserActions({
   function handleToggleAdmin() {
     setError(null);
     startTransition(async () => {
-      const result = await toggleUserAdminAction(user._id);
+      const newIsAdmin = !user.isAdmin;
+      const result = await updateUserAdminPermissionsAction(
+        user._id,
+        newIsAdmin,
+        newIsAdmin ? Object.values(ADMIN_PERMISSIONS) as AdminPermission[] : [],
+      );
       if (!result.success) {
         setError(result.error);
         return;

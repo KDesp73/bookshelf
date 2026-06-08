@@ -1,23 +1,52 @@
+"use client";
+
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { LayoutDashboard, Mail, Newspaper, Users, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ADMIN_PERMISSIONS, ALL_ADMIN_PERMISSIONS } from "@/lib/constants";
+import type { AdminPermission } from "@/lib/constants";
 
 interface AdminNavProps {
   current: "dashboard" | "users" | "news" | "emails" | "achievements";
 }
 
+interface NavLink {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  key: AdminNavProps["current"];
+  permission?: AdminPermission;
+}
+
+const ALL_LINKS: NavLink[] = [
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, key: "dashboard" },
+  { href: "/admin/users", label: "Users", icon: Users, key: "users", permission: ADMIN_PERMISSIONS.MANAGE_USERS },
+  { href: "/admin/news", label: "News", icon: Newspaper, key: "news", permission: ADMIN_PERMISSIONS.MANAGE_NEWS },
+  { href: "/admin/achievements", label: "Achievements", icon: Trophy, key: "achievements", permission: ADMIN_PERMISSIONS.MANAGE_ACHIEVEMENTS },
+  { href: "/admin/emails", label: "Emails", icon: Mail, key: "emails", permission: ADMIN_PERMISSIONS.MANAGE_EMAILS },
+];
+
+function userHasPermission(
+  permissions: AdminPermission[] | undefined,
+  permission?: AdminPermission,
+): boolean {
+  if (!permission) return true;
+  if (!permissions) return true;
+  return permissions.includes(permission);
+}
+
 export function AdminNav({ current }: AdminNavProps) {
-  const links = [
-    { href: "/admin", label: "Dashboard", icon: LayoutDashboard, key: "dashboard" as const },
-    { href: "/admin/users", label: "Users", icon: Users, key: "users" as const },
-    { href: "/admin/news", label: "News", icon: Newspaper, key: "news" as const },
-    { href: "/admin/achievements", label: "Achievements", icon: Trophy, key: "achievements" as const },
-    { href: "/admin/emails", label: "Emails", icon: Mail, key: "emails" as const },
-  ];
+  const { data: session } = useSession();
+  const userPermissions = session?.user?.adminPermissions;
+
+  const visibleLinks = ALL_LINKS.filter((link) =>
+    userHasPermission(userPermissions, link.permission),
+  );
 
   return (
     <nav className="flex gap-2 border-b border-stone-200/80 pb-4 dark:border-stone-700">
-      {links.map(({ href, label, icon: Icon, key }) => (
+      {visibleLinks.map(({ href, label, icon: Icon, key }) => (
         <Link
           key={href}
           href={href}

@@ -3,7 +3,8 @@ import "server-only";
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
-import type { AvatarType } from "@/lib/constants";
+import { ALL_ADMIN_PERMISSIONS } from "@/lib/constants";
+import type { AvatarType, AdminPermission } from "@/lib/constants";
 
 export interface SessionUser {
   id: string;
@@ -13,6 +14,7 @@ export interface SessionUser {
   avatarType?: AvatarType | null;
   username?: string | null;
   isAdmin: boolean;
+  adminPermissions: AdminPermission[];
 }
 
 export async function getSessionUser(): Promise<SessionUser | null> {
@@ -22,7 +24,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   try {
     await connectDB();
     const dbUser = await User.findById(session.user.id)
-      .select("avatarType image name username email isAdmin")
+      .select("avatarType image name username email isAdmin adminPermissions")
       .lean();
 
     return {
@@ -33,6 +35,10 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       avatarType: (dbUser?.avatarType as AvatarType | undefined) ?? undefined,
       username: dbUser?.username ?? session.user.username,
       isAdmin: dbUser?.isAdmin === true || session.user.isAdmin === true,
+      adminPermissions:
+        (dbUser?.adminPermissions as AdminPermission[] | undefined) ??
+        session.user.adminPermissions ??
+        ALL_ADMIN_PERMISSIONS,
     };
   } catch {
     return {
@@ -42,6 +48,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       image: session.user.image ?? undefined,
       username: session.user.username,
       isAdmin: session.user.isAdmin === true,
+      adminPermissions: session.user.adminPermissions ?? ALL_ADMIN_PERMISSIONS,
     };
   }
 }

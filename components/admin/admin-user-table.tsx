@@ -6,9 +6,11 @@ import Link from "next/link";
 import { Shield, Trash2 } from "lucide-react";
 import {
   deleteUserAction,
-  toggleUserAdminAction,
+  updateUserAdminPermissionsAction,
 } from "@/actions/admin";
+import { ADMIN_PERMISSIONS } from "@/lib/constants";
 import type { AdminUserRow } from "@/types/user";
+import type { AdminPermission } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -60,7 +62,12 @@ function AdminUserRowActions({
   function handleToggleAdmin() {
     setError(null);
     startTransition(async () => {
-      const result = await toggleUserAdminAction(user._id);
+      const newIsAdmin = !user.isAdmin;
+      const result = await updateUserAdminPermissionsAction(
+        user._id,
+        newIsAdmin,
+        newIsAdmin ? Object.values(ADMIN_PERMISSIONS) as AdminPermission[] : [],
+      );
       if (!result.success) {
         setError(result.error);
         return;

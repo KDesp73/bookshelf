@@ -9,7 +9,8 @@ import {
   getPostReactionSummaries,
   slugExists,
 } from "@/lib/blog/queries";
-import { requireAdmin } from "@/lib/auth/require-admin";
+import { requirePermission } from "@/lib/auth/require-admin";
+import { ADMIN_PERMISSIONS } from "@/lib/constants";
 import { requireUser } from "@/lib/auth/require-user";
 import { BlogPost } from "@/models/BlogPost";
 import { BlogReaction } from "@/models/BlogReaction";
@@ -46,7 +47,7 @@ function normalizeInput(input: BlogPostInput) {
 export async function createBlogPostAction(
   input: BlogPostInput,
 ): Promise<ActionResult<BlogPostDocument>> {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_NEWS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -92,7 +93,7 @@ export async function updateBlogPostAction(
   id: string,
   input: BlogPostInput,
 ): Promise<ActionResult<BlogPostDocument>> {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_NEWS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
@@ -159,7 +160,7 @@ export async function updateBlogPostAction(
 export async function deleteBlogPostAction(
   id: string,
 ): Promise<ActionResult<null>> {
-  const auth = await requireAdmin();
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_NEWS);
   if (auth.error || !auth.user) {
     return { success: false, error: auth.error ?? "Admin access required." };
   }
