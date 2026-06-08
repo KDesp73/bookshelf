@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContactForm } from "@/components/landing/contact-form";
+import { Suspense } from "react";
+import { DailyQuote } from "@/components/daily-quote";
 
 const features = [
   {
@@ -69,6 +71,15 @@ export function LandingPage() {
               <Button size="lg" variant="ghost" asChild>
                 <Link href="/login">Sign in</Link>
               </Button>
+            </div>
+            <div className="mt-8 max-w-md">
+              <Suspense
+                fallback={
+                  <div className="h-[72px] animate-pulse rounded-xl bg-stone-200 dark:bg-stone-800" />
+                }
+              >
+                <DailyQuote />
+              </Suspense>
             </div>
           </div>
         </div>

@@ -9,6 +9,7 @@ import { LibraryFilters } from "@/components/library/library-filters";
 import { BookGrid } from "@/components/library/book-grid";
 import { CollectionIOMenu } from "@/components/library/collection-io-menu";
 import { ShelfThemeWrapper } from "@/components/shelf/shelf-theme-wrapper";
+import { DailyQuote } from "@/components/daily-quote";
 
 interface HomePageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -72,6 +73,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
       ) : (
         <>
+          <Suspense
+            fallback={
+              <div className="h-[72px] animate-pulse rounded-xl bg-stone-200 dark:bg-stone-800" />
+            }
+          >
+            <DailyQuote />
+          </Suspense>
           <Suspense fallback={<div className="h-10 animate-pulse rounded-md bg-stone-200 dark:bg-stone-800" />}>
             <LibraryFilters tags={tags} />
           </Suspense>
