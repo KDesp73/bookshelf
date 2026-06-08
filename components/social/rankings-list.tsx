@@ -1,10 +1,9 @@
 "use client";
 
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { BookOpen, BookMarked, Heart, Award, Trophy } from "lucide-react";
 import { listRankedUsersAction } from "@/actions/social";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -127,6 +126,10 @@ export function RankingsList() {
     loadRankings(sort, page + 1);
   }, [loadRankings, sort, page]);
 
+  useEffect(() => {
+    loadRankings("overall", 1);
+  }, [loadRankings]);
+
   const ActiveIcon = SORT_OPTIONS.find((o) => o.value === sort)?.icon;
 
   return (
@@ -151,6 +154,15 @@ export function RankingsList() {
           </Select>
         </div>
       </div>
+
+      {sort === "overall" && loaded && (
+        <div className="rounded-lg border border-stone-200 bg-stone-50/80 px-4 py-3 text-sm text-stone-600 dark:border-stone-700 dark:bg-stone-800/40 dark:text-stone-400">
+          <p className="font-medium text-stone-700 dark:text-stone-300">How the overall score is calculated</p>
+          <p className="mt-1">
+            Score = (books read &times; 4) + (achievements &times; 3) + (likes &times; 2) + (books added &times; 1)
+          </p>
+        </div>
+      )}
 
       {!loaded ? (
         <div className="rounded-xl border border-dashed border-stone-300 bg-white/50 px-6 py-16 text-center dark:border-stone-600 dark:bg-stone-900/30">
