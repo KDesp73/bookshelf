@@ -5,8 +5,9 @@ import { connectDB } from "@/lib/db";
 import { CollectionLike } from "@/models/CollectionLike";
 import { getUserById } from "@/lib/users/queries";
 import { requireUser } from "@/lib/auth/require-user";
-import { listUsers } from "@/lib/social/queries";
-import type { DiscoverFilters, UserListItem } from "@/types/user";
+import { listRecentBooks, listUsers } from "@/lib/social/queries";
+import type { DiscoverBook } from "@/types/book";
+import type { DiscoverFilters, PaginatedResult, UserListItem } from "@/types/user";
 import type { ActionResult } from "@/actions/books";
 
 export async function toggleCollectionLikeAction(
@@ -60,11 +61,23 @@ export async function toggleCollectionLikeAction(
 
 export async function listUsersAction(
   filters: DiscoverFilters,
-): Promise<ActionResult<UserListItem[]>> {
+  page = 1,
+): Promise<ActionResult<PaginatedResult<UserListItem>>> {
   try {
-    const users = await listUsers(filters);
-    return { success: true, data: users };
+    const result = await listUsers(filters, page);
+    return { success: true, data: result };
   } catch {
     return { success: false, error: "Failed to load users." };
+  }
+}
+
+export async function listRecentBooksAction(): Promise<
+  ActionResult<DiscoverBook[]>
+> {
+  try {
+    const books = await listRecentBooks();
+    return { success: true, data: books };
+  } catch {
+    return { success: false, error: "Failed to load books." };
   }
 }

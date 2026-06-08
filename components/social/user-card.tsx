@@ -39,6 +39,24 @@ export function UserCard({ user }: UserCardProps) {
             </div>
           </div>
         </div>
+        {user.coverUrls && user.coverUrls.length > 0 ? (
+          <div className="-mx-5 mt-4 flex gap-1 overflow-x-auto border-t border-stone-200/60 px-5 pt-3 dark:border-stone-700/60">
+            {user.coverUrls.slice(0, 4).map((url, i) => (
+              <div
+                key={i}
+                className="h-16 w-11 flex-shrink-0 overflow-hidden rounded shadow-sm ring-1 ring-stone-900/10"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={url}
+                  alt=""
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+            ))}
+          </div>
+        ) : null}
       </Link>
     </ShelfThemeWrapper>
   );

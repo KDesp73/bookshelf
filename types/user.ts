@@ -50,6 +50,12 @@ export interface UserListItem {
   bookCount: number;
   likeCount: number;
   createdAt: string;
+  coverUrls?: string[];
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  hasMore: boolean;
 }
 
 export interface DiscoverFilters {

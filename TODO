@@ -1,16 +1,15 @@
-TODO: search for a book to add it
 TODO: better discover page
 TODO: preview user collections on discover page
 TODO: import from goodreads
 TODO: recommendations
 TODO: reports (inappropriate custom covers or bios)
 TODO: quotes
-TODO: social media panel shares
 TODO: live feed
 TODO: achievements
 TODO: bookshop non-intrusive ads
 TODO: favicon
 TODO: collection groups
+TODO: performance
 DONE: about page
 DONE: landing page
 DONE: wishlist
@@ -26,3 +25,5 @@ DONE: email verification
 DONE: batch email sending to users
 DONE: forgot password?
 DONE: allow users to delete their account
+DONE: search for a book to add it
+DONE: social media panel shares

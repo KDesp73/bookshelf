@@ -12,13 +12,13 @@ export function DiscoverPageSkeleton() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Skeleton className="h-10 w-full max-w-md" />
+        <Skeleton className="h-10 w-32" />
         <Skeleton className="h-10 w-32" />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }, (_, index) => (
-          <Skeleton key={index} className="h-36 rounded-xl" />
+          <Skeleton key={index} className="h-48 rounded-xl" />
         ))}
       </div>
     </div>

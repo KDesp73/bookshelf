@@ -47,6 +47,18 @@ export interface BookDocument extends BookInput {
 
 export type PublicBookDocument = Omit<BookDocument, "notes">;
 
+export interface DiscoverBook {
+  _id: string;
+  isbn13: string;
+  title: string;
+  authors: string[];
+  coverUrl?: string;
+  userId: string;
+  username: string;
+  userDisplayName?: string;
+  dateAdded: string;
+}
+
 export type BookListKind = "library" | "wishlist" | "all";
 
 export interface LibraryFilters {
