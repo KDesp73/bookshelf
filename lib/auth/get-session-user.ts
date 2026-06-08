@@ -27,6 +27,11 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       .select("avatarType image name username email isAdmin adminPermissions")
       .lean();
 
+    const isAdmin = dbUser?.isAdmin === true || session.user.isAdmin === true;
+    const permissions =
+      (dbUser?.adminPermissions as AdminPermission[] | undefined) ??
+      session.user.adminPermissions;
+
     return {
       id: session.user.id,
       email: dbUser?.email ?? session.user.email ?? "",
@@ -34,21 +39,25 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       image: dbUser?.image ?? undefined,
       avatarType: (dbUser?.avatarType as AvatarType | undefined) ?? undefined,
       username: dbUser?.username ?? session.user.username,
-      isAdmin: dbUser?.isAdmin === true || session.user.isAdmin === true,
-      adminPermissions:
-        (dbUser?.adminPermissions as AdminPermission[] | undefined) ??
-        session.user.adminPermissions ??
-        ALL_ADMIN_PERMISSIONS,
+      isAdmin,
+      adminPermissions: isAdmin && (!permissions || permissions.length === 0)
+        ? ALL_ADMIN_PERMISSIONS
+        : (permissions ?? ALL_ADMIN_PERMISSIONS),
     };
   } catch {
+    const isAdmin = session.user.isAdmin === true;
+    const permissions = session.user.adminPermissions;
+
     return {
       id: session.user.id,
       email: session.user.email ?? "",
       name: session.user.name,
       image: session.user.image ?? undefined,
       username: session.user.username,
-      isAdmin: session.user.isAdmin === true,
-      adminPermissions: session.user.adminPermissions ?? ALL_ADMIN_PERMISSIONS,
+      isAdmin,
+      adminPermissions: isAdmin && (!permissions || permissions.length === 0)
+        ? ALL_ADMIN_PERMISSIONS
+        : (permissions ?? ALL_ADMIN_PERMISSIONS),
     };
   }
 }

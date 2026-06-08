@@ -20,6 +20,7 @@ import type { BackfillMetadataResult } from "@/lib/books/backfill-metadata";
 import type { ActionResult } from "@/actions/books";
 import type { AdminUserRow, UserProfile } from "@/types/user";
 import type { BookDocument } from "@/types/book";
+import { sendAdminPromotedEmail } from "@/lib/email/send-admin-notification";
 
 export async function updateUserAdminPermissionsAction(
   userId: string,
@@ -46,9 +47,19 @@ export async function updateUserAdminPermissionsAction(
       return { success: false, error: "Cannot modify the super admin's permissions." };
     }
 
+    const wasAdmin = targetUser.isAdmin;
     targetUser.isAdmin = isAdmin;
     targetUser.adminPermissions = isAdmin ? (permissions ?? []) : [];
     await targetUser.save();
+
+    if (isAdmin && !wasAdmin && targetUser.email) {
+      sendAdminPromotedEmail(
+        targetUser.email,
+        auth.user.name ?? auth.user.email ?? "an admin",
+      ).catch((err) =>
+        console.error("[admin] failed to send promotion email:", err),
+      );
+    }
 
     revalidatePath("/admin/users");
     revalidatePath(`/admin/users/${userId}`);

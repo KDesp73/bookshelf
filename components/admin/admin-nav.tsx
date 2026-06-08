@@ -32,7 +32,7 @@ function userHasPermission(
   permission?: AdminPermission,
 ): boolean {
   if (!permission) return true;
-  if (!permissions) return true;
+  if (!permissions || permissions.length === 0) return true;
   return permissions.includes(permission);
 }
 

@@ -101,6 +101,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
           name: user.name ?? undefined,
           image: user.image ?? undefined,
           isAdmin: shouldBeAdmin,
+          adminPermissions: shouldBeAdmin ? ALL_ADMIN_PERMISSIONS : [],
         });
       } else {
         let changed = false;
@@ -114,6 +115,10 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         }
         if (shouldBeAdmin && !dbUser.isAdmin) {
           dbUser.isAdmin = true;
+          changed = true;
+        }
+        if (dbUser.isAdmin && !shouldBeAdmin && !dbUser.adminPermissions?.length) {
+          dbUser.adminPermissions = ALL_ADMIN_PERMISSIONS;
           changed = true;
         }
         if (changed) await dbUser.save();
@@ -161,13 +166,13 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
             .lean();
 
           if (dbUser) {
-            if (isAdminEmail(dbUser.email) && !dbUser.isAdmin) {
+            const isSuper = isAdminEmail(dbUser.email);
+            token.isAdmin = isSuper ? true : (dbUser.isAdmin ?? false);
+            token.adminPermissions = isSuper
+              ? ALL_ADMIN_PERMISSIONS
+              : ((dbUser.adminPermissions as typeof ALL_ADMIN_PERMISSIONS) ?? []);
+            if (isSuper && !dbUser.isAdmin) {
               await User.findByIdAndUpdate(token.id, { isAdmin: true, adminPermissions: ALL_ADMIN_PERMISSIONS });
-              token.isAdmin = true;
-              token.adminPermissions = ALL_ADMIN_PERMISSIONS;
-            } else {
-              token.isAdmin = dbUser.isAdmin ?? false;
-              token.adminPermissions = dbUser.adminPermissions as typeof ALL_ADMIN_PERMISSIONS ?? [];
             }
             token.username = dbUser.username ?? null;
           }
