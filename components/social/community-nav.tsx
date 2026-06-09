@@ -15,7 +15,7 @@ interface CommunityNavProps {
 
 export function CommunityNav({ activeTab }: CommunityNavProps) {
   return (
-    <div className="flex items-center gap-1 rounded-lg bg-stone-100 p-1 dark:bg-stone-800">
+    <div className="flex items-center gap-1 overflow-x-auto rounded-lg bg-stone-100 p-1 dark:bg-stone-800">
       {TABS.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
