@@ -3,9 +3,9 @@
 import { useCallback, useState } from "react";
 import { Trash2, Clock } from "lucide-react";
 import { deleteSuggestionAction, updateSuggestionStatusAction } from "@/actions/suggestions";
-import { SUGGESTION_STATUSES } from "@/models/Suggestion";
+import { SUGGESTION_STATUSES } from "@/types/suggestion";
 import { SUGGESTION_STATUS_LABELS } from "@/lib/constants";
-import type { SuggestionStatus } from "@/models/Suggestion";
+import type { SuggestionStatus } from "@/types/suggestion";
 import type { SuggestionItem } from "@/types/suggestion";
 
 interface AdminSuggestionsListProps {
