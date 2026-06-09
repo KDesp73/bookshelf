@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   getInitial,
@@ -17,18 +20,20 @@ export function UserAvatar({
   className,
   identiconSize = 64,
 }: UserAvatarProps) {
-  const avatarType = resolveAvatarType(user);
+  const [imgError, setImgError] = useState(false);
+  const avatarType = resolveAvatarType(user, imgError);
   const baseClass = cn(
     "flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-amber-100 font-semibold text-amber-900 dark:bg-amber-950 dark:text-amber-100",
     className,
   );
 
-  if (avatarType === "image" && user.image) {
+  if (avatarType === "image" && user.image && !imgError) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={user.image}
         alt=""
+        onError={() => setImgError(true)}
         className={cn(baseClass, "object-cover")}
       />
     );
@@ -47,6 +52,7 @@ export function UserAvatar({
     <img
       src={identiconDataUrl(user._id, identiconSize)}
       alt=""
+      onError={() => setImgError(true)}
       className={cn(baseClass, "object-cover")}
     />
   );

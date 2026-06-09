@@ -5,7 +5,7 @@ import Google from "next-auth/providers/google";
 import { authConfig } from "@/auth.config";
 import { connectDB } from "@/lib/db";
 import { isAdminEmail } from "@/lib/auth/admin";
-import { ALL_ADMIN_PERMISSIONS, type AvatarType } from "@/lib/constants";
+import { ALL_ADMIN_PERMISSIONS } from "@/lib/constants";
 import { compactAuthToken } from "@/lib/auth/jwt-token";
 import {
   verifyCredentials,
@@ -100,7 +100,6 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
           email: user.email.toLowerCase(),
           name: user.name ?? undefined,
           image: user.image ?? undefined,
-          avatarType: user.image ? "image" : undefined,
           isAdmin: shouldBeAdmin,
           adminPermissions: shouldBeAdmin ? ALL_ADMIN_PERMISSIONS : [],
         });
@@ -135,7 +134,6 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
             ? ALL_ADMIN_PERMISSIONS
             : []
       ) as typeof ALL_ADMIN_PERMISSIONS;
-      user.avatarType = (dbUser.avatarType ?? null) as AvatarType | null;
       return true;
     },
     async jwt({ token, user, trigger, session }) {
@@ -144,8 +142,6 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         token.username = user.username ?? null;
         token.isAdmin = user.isAdmin === true;
         token.adminPermissions = user.adminPermissions;
-        token.image = user.image ?? null;
-        token.avatarType = (user.avatarType as AvatarType | null | undefined) ?? null;
         return compactAuthToken(token);
       }
 
@@ -174,7 +170,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
           try {
             await connectDB();
             const dbUser = await User.findById(token.id)
-              .select("username isAdmin email adminPermissions image avatarType")
+              .select("username isAdmin email adminPermissions")
               .lean();
 
             if (dbUser) {
@@ -187,8 +183,6 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
                 await User.findByIdAndUpdate(token.id, { isAdmin: true, adminPermissions: ALL_ADMIN_PERMISSIONS });
               }
               token.username = dbUser.username ?? null;
-              token.image = dbUser.image ?? null;
-              token.avatarType = (dbUser.avatarType as AvatarType | null | undefined) ?? null;
             }
             (token as Record<string, unknown>).lastDbRefresh = now;
           } catch {

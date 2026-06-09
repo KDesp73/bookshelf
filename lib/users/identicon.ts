@@ -49,5 +49,6 @@ export function generateIdenticonSvg(userId: string, size = 64): string {
 
 export function identiconDataUrl(userId: string, size = 64): string {
   const svg = generateIdenticonSvg(userId, size);
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  const base64 = Buffer.from(svg, "utf-8").toString("base64");
+  return `data:image/svg+xml;base64,${base64}`;
 }

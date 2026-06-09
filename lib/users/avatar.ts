@@ -8,7 +8,8 @@ export interface AvatarUser {
   avatarType?: AvatarType | null;
 }
 
-export function resolveAvatarType(user: AvatarUser): AvatarType {
+export function resolveAvatarType(user: AvatarUser, forceInitial?: boolean): AvatarType {
+  if (forceInitial) return "initial";
   if (user.avatarType && AVATAR_TYPES.includes(user.avatarType)) {
     return user.avatarType;
   }

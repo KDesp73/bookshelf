@@ -62,26 +62,23 @@ export function AppHeader() {
                   </Link>
                 </Button>
               ) : null}
-              {user.username ? (
-                <>
-                  <AddBookMenu />
-                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" asChild>
-                    <Link
-                      href={`/u/${user.username}`}
-                      aria-label="Your profile"
-                      title="Your profile"
-                    >
-                      <HeaderProfileAvatar
-                        userId={user.id}
-                        name={user.name}
-                        username={user.username}
-                        image={user.image}
-                        className="h-7 w-7 text-xs"
-                      />
-                    </Link>
-                  </Button>
-                </>
-              ) : null}
+              <>
+                <AddBookMenu />
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" asChild>
+                  <Link
+                    href={user.username ? `/u/${user.username}` : "/settings"}
+                    aria-label="Your profile"
+                    title="Your profile"
+                  >
+                    <HeaderProfileAvatar
+                      userId={user.id}
+                      name={user.name}
+                      username={user.username}
+                      className="h-7 w-7 text-xs"
+                    />
+                  </Link>
+                </Button>
+              </>
             </>
           ) : (
             <Button variant="ghost" size="sm" asChild>
