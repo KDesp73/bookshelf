@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { LayoutDashboard, Mail, Newspaper, Users, Trophy } from "lucide-react";
+import { LayoutDashboard, Mail, Newspaper, Users, Trophy, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ADMIN_PERMISSIONS, ALL_ADMIN_PERMISSIONS } from "@/lib/constants";
 import type { AdminPermission } from "@/lib/constants";
 
 interface AdminNavProps {
-  current: "dashboard" | "users" | "news" | "emails" | "achievements";
+  current: "dashboard" | "users" | "news" | "emails" | "achievements" | "suggestions";
 }
 
 interface NavLink {
@@ -25,6 +25,7 @@ const ALL_LINKS: NavLink[] = [
   { href: "/admin/news", label: "News", icon: Newspaper, key: "news", permission: ADMIN_PERMISSIONS.MANAGE_NEWS },
   { href: "/admin/achievements", label: "Achievements", icon: Trophy, key: "achievements", permission: ADMIN_PERMISSIONS.MANAGE_ACHIEVEMENTS },
   { href: "/admin/emails", label: "Emails", icon: Mail, key: "emails", permission: ADMIN_PERMISSIONS.MANAGE_EMAILS },
+  { href: "/admin/suggestions", label: "Suggestions", icon: Lightbulb, key: "suggestions", permission: ADMIN_PERMISSIONS.MANAGE_SUGGESTIONS },
 ];
 
 function userHasPermission(

@@ -13,13 +13,9 @@ import {
   getBulkPostReactionSummaries,
   listPublishedPosts,
 } from "@/lib/blog/queries";
-import { listSuggestionsAction } from "@/actions/suggestions";
-import { isAdminEmail } from "@/lib/auth/admin";
-import { ADMIN_PERMISSIONS } from "@/lib/constants";
 import type { DiscoverFilters as DiscoverFiltersType } from "@/types/user";
 import type { DiscoverBook } from "@/types/book";
 import type { BlogReactionSummary } from "@/types/blog";
-import type { SuggestionItem } from "@/types/suggestion";
 
 interface CommunityPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -204,29 +200,7 @@ function formatDate(value?: string) {
 }
 
 async function SuggestionsSectionWrapper() {
-  const user = await getSessionUser();
-  const canView =
-    user !== null &&
-    user.isAdmin &&
-    (isAdminEmail(user.email) || user.adminPermissions.includes(ADMIN_PERMISSIONS.MANAGE_SUGGESTIONS));
-
-  let items: SuggestionItem[] = [];
-  let dbError: string | null = null;
-
-  if (canView) {
-    try {
-      const result = await listSuggestionsAction();
-      if (result.success) {
-        items = result.data;
-      } else {
-        dbError = result.error ?? "Could not load suggestions.";
-      }
-    } catch {
-      dbError = "Could not connect to MongoDB.";
-    }
-  }
-
-  return <SuggestionsSection initialSuggestions={items} initialError={dbError} canView={canView} />;
+  return <SuggestionsSection />;
 }
 
 async function NewsSection() {

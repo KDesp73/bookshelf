@@ -1,39 +1,18 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { Send, Eye, EyeOff, Clock } from "lucide-react";
+import { Send, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { submitSuggestionAction, listSuggestionsAction } from "@/actions/suggestions";
-import type { SuggestionItem } from "@/types/suggestion";
+import { submitSuggestionAction } from "@/actions/suggestions";
 
 const MAX_LENGTH = 1000;
 
-interface SuggestionsSectionProps {
-  initialSuggestions: SuggestionItem[];
-  initialError?: string | null;
-  canView?: boolean;
-}
-
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString();
-}
-
-export function SuggestionsSection({ initialSuggestions, initialError, canView = false }: SuggestionsSectionProps) {
+export function SuggestionsSection() {
   const [text, setText] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [suggestions, setSuggestions] = useState<SuggestionItem[]>(initialSuggestions);
-  const [loadError, setLoadError] = useState<string | null>(initialError ?? null);
   const formRef = useRef<HTMLFormElement>(null);
 
   const remaining = MAX_LENGTH - text.length;
@@ -52,31 +31,12 @@ export function SuggestionsSection({ initialSuggestions, initialError, canView =
     if (result.success) {
       setText("");
       setSuccess(true);
-      setSuggestions((prev) => [
-        {
-          _id: result.data.id,
-          content,
-          isAnonymous: anonymous,
-          createdAt: new Date().toISOString(),
-        },
-        ...prev,
-      ]);
       setTimeout(() => setSuccess(false), 3000);
     } else {
       setError(result.error ?? "Something went wrong.");
     }
 
     setSubmitting(false);
-  }, []);
-
-  const handleRefresh = useCallback(async () => {
-    setLoadError(null);
-    const result = await listSuggestionsAction();
-    if (result.success) {
-      setSuggestions(result.data);
-    } else {
-      setLoadError(result.error ?? "Could not load suggestions.");
-    }
   }, []);
 
   return (
@@ -165,60 +125,6 @@ export function SuggestionsSection({ initialSuggestions, initialError, canView =
           )}
         </form>
       </div>
-
-      {/* Recent suggestions — admins only */}
-      {canView && (
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-serif text-lg font-medium text-stone-800 dark:text-stone-200">
-              Recent ideas
-            </h3>
-            <button
-              onClick={handleRefresh}
-              className="text-xs text-stone-500 underline-offset-2 hover:underline dark:text-stone-400"
-            >
-              Refresh
-            </button>
-          </div>
-
-        {loadError ? (
-          <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
-            {loadError}
-          </div>
-        ) : suggestions.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-stone-300 bg-white/50 px-6 py-16 text-center dark:border-stone-600 dark:bg-stone-900/30">
-            <p className="font-serif text-lg text-stone-700 dark:text-stone-300">
-              No suggestions yet
-            </p>
-            <p className="mt-1 text-sm text-stone-500">
-              Be the first to share your idea!
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {suggestions.map((s) => (
-              <div
-                key={s._id}
-                className="rounded-xl border border-stone-200 bg-white px-5 py-4 transition hover:border-amber-200 dark:border-stone-700 dark:bg-stone-900/50 dark:hover:border-amber-800"
-              >
-                <p className="text-sm text-stone-800 dark:text-stone-200">
-                  {s.content}
-                </p>
-                <div className="mt-2 flex items-center gap-3 text-xs text-stone-500 dark:text-stone-400">
-                  <span>
-                    {s.isAnonymous ? "Anonymous" : (s.userName ?? "Bookling")}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {timeAgo(s.createdAt)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      )}
     </div>
   );
 }

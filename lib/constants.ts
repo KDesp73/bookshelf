@@ -44,6 +44,14 @@ export const ADMIN_PERMISSION_LABELS: Record<AdminPermission, string> = {
   manage_suggestions: "Manage suggestions",
 };
 
+export const SUGGESTION_STATUS_LABELS: Record<string, string> = {
+  pending: "Pending",
+  todo: "To do",
+  in_progress: "In progress",
+  done: "Done",
+  wont_implement: "Won't implement",
+};
+
 export const ACHIEVEMENT_CONDITION_TYPES = [
   "books_added",
   "books_read",

@@ -71,11 +71,57 @@ export async function listSuggestionsAction(): Promise<ActionResult<SuggestionIt
       userId: s.userId?.toString(),
       userName: s.userId ? (userMap.get(s.userId.toString()) ?? "Anonymous") : undefined,
       isAnonymous: s.isAnonymous,
+      status: s.status ?? "pending",
       createdAt: s.createdAt?.toISOString() ?? new Date().toISOString(),
     }));
 
     return { success: true, data: items };
   } catch {
     return { success: false, error: "Could not load suggestions." };
+  }
+}
+
+export async function deleteSuggestionAction(
+  suggestionId: string,
+): Promise<ActionResult<null>> {
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_SUGGESTIONS);
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Admin access required." };
+  }
+
+  try {
+    await connectDB();
+    const result = await Suggestion.deleteOne({ _id: suggestionId });
+    if (result.deletedCount === 0) {
+      return { success: false, error: "Suggestion not found." };
+    }
+
+    revalidatePath("/admin/suggestions");
+    return { success: true, data: null };
+  } catch {
+    return { success: false, error: "Failed to delete suggestion." };
+  }
+}
+
+export async function updateSuggestionStatusAction(
+  suggestionId: string,
+  status: string,
+): Promise<ActionResult<null>> {
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_SUGGESTIONS);
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Admin access required." };
+  }
+
+  try {
+    await connectDB();
+    const result = await Suggestion.findByIdAndUpdate(suggestionId, { status });
+    if (!result) {
+      return { success: false, error: "Suggestion not found." };
+    }
+
+    revalidatePath("/admin/suggestions");
+    return { success: true, data: null };
+  } catch {
+    return { success: false, error: "Failed to update suggestion status." };
   }
 }

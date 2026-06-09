@@ -1,5 +1,14 @@
 import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 
+export const SUGGESTION_STATUSES = [
+  "pending",
+  "todo",
+  "in_progress",
+  "done",
+  "wont_implement",
+] as const;
+export type SuggestionStatus = (typeof SUGGESTION_STATUSES)[number];
+
 const suggestionSchema = new Schema(
   {
     content: {
@@ -17,9 +26,14 @@ const suggestionSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    status: {
+      type: String,
+      enum: SUGGESTION_STATUSES,
+      default: "pending",
+    },
   },
   {
-    timestamps: { createdAt: true, updatedAt: false },
+    timestamps: { createdAt: true, updatedAt: true },
     versionKey: false,
   },
 );
