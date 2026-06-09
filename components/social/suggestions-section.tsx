@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { Sparkles, Send, Eye, EyeOff, Lightbulb, Clock } from "lucide-react";
+import { Send, Eye, EyeOff, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { submitSuggestionAction, listSuggestionsAction } from "@/actions/suggestions";
 import type { SuggestionItem } from "@/types/suggestion";
@@ -81,36 +81,17 @@ export function SuggestionsSection({ initialSuggestions, initialError, canView =
 
   return (
     <div className="space-y-8">
-      {/* Playful header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 via-amber-100/50 to-stone-50 px-6 py-8 dark:from-amber-950/30 dark:via-amber-900/20 dark:to-stone-900/30">
-        {/* Decorative sparkles */}
-        <Sparkles className="absolute right-4 top-4 h-6 w-6 text-amber-300 dark:text-amber-600" />
-        <Sparkles className="absolute bottom-6 right-12 h-4 w-4 text-amber-400/60 dark:text-amber-500/40" />
-        <Sparkles className="absolute left-8 top-6 h-3 w-3 text-amber-400/40 dark:text-amber-500/30" />
-
-        <div className="relative">
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-amber-200/60 px-3 py-1 text-xs font-medium text-amber-800 dark:bg-amber-800/40 dark:text-amber-200">
-            <Lightbulb className="h-3.5 w-3.5" />
-            We&apos;re all ears
-          </div>
-          <h2 className="mt-3 font-serif text-2xl font-semibold text-amber-950 dark:text-amber-100">
-            Got an idea?
-          </h2>
-          <p className="mt-1 max-w-lg text-sm text-stone-600 dark:text-stone-400">
-            Share your suggestions for features, improvements, or anything that would make
-            Bookshelf better. Every idea matters.
-          </p>
-        </div>
+      <div>
+        <h2 className="font-serif text-2xl font-semibold text-amber-950 dark:text-amber-100">
+          Suggestions
+        </h2>
+        <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
+          Share your ideas for features or improvements.
+        </p>
       </div>
 
-      {/* Suggestion box form */}
-      <div className="relative rounded-2xl border-2 border-dashed border-amber-200 bg-white p-6 dark:border-amber-800 dark:bg-stone-900/50">
-        {/* Slot decoration */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-100 px-4 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/60 dark:text-amber-300">
-          Drop your idea here ✨
-        </div>
-
-        <form ref={formRef} action={handleSubmit} className="mt-2 space-y-4">
+      <div className="rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-700 dark:bg-stone-900/50">
+        <form ref={formRef} action={handleSubmit} className="space-y-4">
           <div className="relative">
             <textarea
               name="content"
@@ -178,8 +159,7 @@ export function SuggestionsSection({ initialSuggestions, initialError, canView =
           )}
 
           {success && (
-            <p className="flex items-center gap-1.5 text-sm text-emerald-600 dark:text-emerald-400">
-              <Sparkles className="h-4 w-4" />
+            <p className="text-sm text-emerald-600 dark:text-emerald-400">
               Thanks for the suggestion!
             </p>
           )}
@@ -207,8 +187,7 @@ export function SuggestionsSection({ initialSuggestions, initialError, canView =
           </div>
         ) : suggestions.length === 0 ? (
           <div className="rounded-xl border border-dashed border-stone-300 bg-white/50 px-6 py-16 text-center dark:border-stone-600 dark:bg-stone-900/30">
-            <Lightbulb className="mx-auto h-8 w-8 text-stone-400" />
-            <p className="mt-3 font-serif text-lg text-stone-700 dark:text-stone-300">
+            <p className="font-serif text-lg text-stone-700 dark:text-stone-300">
               No suggestions yet
             </p>
             <p className="mt-1 text-sm text-stone-500">
