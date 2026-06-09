@@ -1,4 +1,4 @@
-export type RecommendationSource = "community" | "openlibrary";
+export type RecommendationSource = "community";
 
 export interface RecommendationItem {
   title: string;

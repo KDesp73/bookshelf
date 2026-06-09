@@ -9,7 +9,7 @@ const recommendationItemSchema = new Schema(
     isbn13: String,
     source: {
       type: String,
-      enum: ["community", "openlibrary"],
+      enum: ["community"],
       required: true,
     },
     reason: { type: String, required: true },
