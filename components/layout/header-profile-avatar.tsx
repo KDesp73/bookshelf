@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react";
 import type { AvatarUser } from "@/lib/users/avatar";
+import type { AvatarType } from "@/lib/constants";
 import { UserAvatar } from "@/components/users/user-avatar";
 
 interface HeaderProfileAvatarProps {
   userId: string;
   name?: string | null;
   username?: string | null;
+  image?: string | null;
+  avatarType?: AvatarType | null;
   className?: string;
 }
 
@@ -15,12 +18,16 @@ export function HeaderProfileAvatar({
   userId,
   name,
   username,
+  image,
+  avatarType,
   className,
 }: HeaderProfileAvatarProps) {
   const [avatarUser, setAvatarUser] = useState<AvatarUser>({
     _id: userId,
     name,
     username,
+    image: image ?? undefined,
+    avatarType: avatarType ?? undefined,
   });
 
   useEffect(() => {
@@ -46,12 +53,14 @@ export function HeaderProfileAvatar({
       }
     }
 
-    void loadAvatar();
+    if (!image) {
+      void loadAvatar();
+    }
 
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, image]);
 
   return <UserAvatar user={avatarUser} className={className} />;
 }

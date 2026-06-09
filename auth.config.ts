@@ -29,8 +29,8 @@ export const authConfig = {
           typeof token.username === "string" ? token.username : null;
         session.user.isAdmin = token.isAdmin === true;
         session.user.adminPermissions = token.adminPermissions;
-        // Avatars are loaded from the database, not stored in the JWT cookie.
-        delete session.user.image;
+        session.user.image =
+          typeof token.image === "string" ? token.image : null;
       }
       return session;
     },

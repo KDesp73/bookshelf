@@ -6,6 +6,7 @@ import { Book } from "@/models/Book";
 import { CollectionLike } from "@/models/CollectionLike";
 import type { AchievementConditionType } from "@/lib/constants";
 import { comicReadWeight } from "@/lib/books/comic-weight";
+import { EASTER_EGGS, isEasterEggId } from "@/lib/easter-eggs";
 
 export interface AchievementWithProgress extends IAchievement {
   _id: { toString(): string };
@@ -200,12 +201,31 @@ export async function getUserAchievements(
     userAchievements.map((ua) => [ua.achievementId, ua.earnedAt.toISOString()]),
   );
 
-  return achievements.map((a) => ({
+  const results: AchievementWithProgress[] = achievements.map((a) => ({
     ...a,
     _id: a._id as { toString(): string },
     earned: earnedMap.has(a._id.toString()),
     earnedAt: earnedMap.get(a._id.toString()),
   }));
+
+  const easterEggEntries = userAchievements.filter((ua) =>
+    isEasterEggId(ua.achievementId),
+  );
+
+  for (const ua of easterEggEntries) {
+    const egg = EASTER_EGGS[ua.achievementId as keyof typeof EASTER_EGGS];
+    results.push({
+      _id: { toString: () => ua.achievementId },
+      name: egg.name,
+      description: egg.description,
+      conditionType: "books_added" as AchievementConditionType,
+      conditionValue: 0,
+      earned: true,
+      earnedAt: ua.earnedAt.toISOString(),
+    } as AchievementWithProgress);
+  }
+
+  return results;
 }
 
 export async function getAllAchievements() {
