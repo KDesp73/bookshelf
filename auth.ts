@@ -159,25 +159,31 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       }
 
       if (token.id) {
-        try {
-          await connectDB();
-          const dbUser = await User.findById(token.id)
-            .select("username isAdmin email adminPermissions")
-            .lean();
+        const lastRefresh = (token as Record<string, unknown>).lastDbRefresh as number | undefined;
+        const now = Date.now();
+        // Only refresh from the database once every 10 minutes per session.
+        if (!lastRefresh || now - lastRefresh > 600_000) {
+          try {
+            await connectDB();
+            const dbUser = await User.findById(token.id)
+              .select("username isAdmin email adminPermissions")
+              .lean();
 
-          if (dbUser) {
-            const isSuper = isAdminEmail(dbUser.email);
-            token.isAdmin = isSuper ? true : (dbUser.isAdmin ?? false);
-            token.adminPermissions = isSuper
-              ? ALL_ADMIN_PERMISSIONS
-              : ((dbUser.adminPermissions as typeof ALL_ADMIN_PERMISSIONS) ?? []);
-            if (isSuper && !dbUser.isAdmin) {
-              await User.findByIdAndUpdate(token.id, { isAdmin: true, adminPermissions: ALL_ADMIN_PERMISSIONS });
+            if (dbUser) {
+              const isSuper = isAdminEmail(dbUser.email);
+              token.isAdmin = isSuper ? true : (dbUser.isAdmin ?? false);
+              token.adminPermissions = isSuper
+                ? ALL_ADMIN_PERMISSIONS
+                : ((dbUser.adminPermissions as typeof ALL_ADMIN_PERMISSIONS) ?? []);
+              if (isSuper && !dbUser.isAdmin) {
+                await User.findByIdAndUpdate(token.id, { isAdmin: true, adminPermissions: ALL_ADMIN_PERMISSIONS });
+              }
+              token.username = dbUser.username ?? null;
             }
-            token.username = dbUser.username ?? null;
+            (token as Record<string, unknown>).lastDbRefresh = now;
+          } catch {
+            // Keep session usable if the database is temporarily unavailable.
           }
-        } catch {
-          // Keep session usable if the database is temporarily unavailable.
         }
       }
 

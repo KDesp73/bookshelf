@@ -58,6 +58,7 @@ bookSchema.index(
   { language_override: "searchLanguage" },
 );
 bookSchema.index({ userId: 1, genres: 1 });
+bookSchema.index({ userId: 1, status: 1 });
 bookSchema.index({ metadataEnrichedAt: 1 });
 
 export type IBook = InferSchemaType<typeof bookSchema>;

@@ -90,54 +90,55 @@ export async function listUsers(
     matchQuery.username = { $exists: true, $ne: null };
   }
 
-  const allMatchingUsers = await User.find(matchQuery)
-    .select("_id createdAt")
-    .lean();
-
-  if (allMatchingUsers.length === 0) {
+  const total = await User.countDocuments(matchQuery);
+  if (total === 0) {
     return { items: [], hasMore: false };
   }
 
-  const userIdToCreatedAt = new Map(
-    allMatchingUsers.map((u) => [
-      (u as IUser & { _id: { toString(): string } })._id.toString(),
-      (u as IUser & { _id: { toString(): string } }).createdAt,
-    ]),
-  );
+  let paginatedIds: string[];
+  let hasMore: boolean;
 
-  const allIds = Array.from(userIdToCreatedAt.keys());
+  if (sort === "likes" || sort === "books") {
+    // For computed sorts, fetch only IDs for matching users, aggregate counts, then paginate.
+    const allMatchingIds = (await User.find(matchQuery).select("_id").lean())
+      .map((u) => (u as IUser & { _id: { toString(): string } })._id.toString());
 
-  if (sort === "likes") {
-    const likeCounts = await CollectionLike.aggregate<{
-      _id: string;
-      count: number;
-    }>([
-      { $match: { targetUserId: { $in: allIds } } },
-      { $group: { _id: "$targetUserId", count: { $sum: 1 } } },
-    ]);
-    const likeMap = new Map(likeCounts.map((l) => [l._id, l.count]));
-    allIds.sort(
-      (a, b) => (likeMap.get(b) ?? 0) - (likeMap.get(a) ?? 0),
-    );
-  } else if (sort === "books") {
-    const bookCounts = await Book.aggregate<{ _id: string; count: number }>([
-      { $match: { userId: { $in: allIds }, isWishlist: { $ne: true } } },
-      { $group: { _id: "$userId", count: { $sum: 1 } } },
-    ]);
-    const bookMap = new Map(bookCounts.map((b) => [b._id, b.count]));
-    allIds.sort(
-      (a, b) => (bookMap.get(b) ?? 0) - (bookMap.get(a) ?? 0),
-    );
+    const countAgg = sort === "likes"
+      ? await CollectionLike.aggregate<{ _id: string; count: number }>([
+          { $match: { targetUserId: { $in: allMatchingIds } } },
+          { $group: { _id: "$targetUserId", count: { $sum: 1 } } },
+          { $sort: { count: -1 } },
+        ])
+      : await Book.aggregate<{ _id: string; count: number }>([
+          { $match: { userId: { $in: allMatchingIds }, isWishlist: { $ne: true } } },
+          { $group: { _id: "$userId", count: { $sum: 1 } } },
+          { $sort: { count: -1 } },
+        ]);
+
+    const sortedIds = countAgg.map((c) => c._id);
+    // Append users with 0 count at the end
+    const countedSet = new Set(sortedIds);
+    for (const id of allMatchingIds) {
+      if (!countedSet.has(id)) sortedIds.push(id);
+    }
+
+    paginatedIds = sortedIds.slice(skip, skip + limit);
+    hasMore = skip + limit < sortedIds.length;
   } else {
-    allIds.sort(
-      (a, b) =>
-        userIdToCreatedAt.get(b)!.getTime() -
-        userIdToCreatedAt.get(a)!.getTime(),
-    );
-  }
+    // "recent" sort — paginate directly in MongoDB
+    const users = await User.find(matchQuery)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit + 1) // Fetch one extra to determine hasMore
+      .select("_id")
+      .lean();
 
-  const paginatedIds = allIds.slice(skip, skip + limit);
-  const hasMore = skip + limit < allIds.length;
+    const ids = users.map((u) =>
+      (u as IUser & { _id: { toString(): string } })._id.toString(),
+    );
+    hasMore = ids.length > limit;
+    paginatedIds = ids.slice(0, limit);
+  }
 
   if (paginatedIds.length === 0) {
     return { items: [], hasMore: false };
@@ -243,63 +244,105 @@ export async function listRankedUsers(
 
   const skip = (page - 1) * limit;
 
-  const allUsers = await User.find({ username: { $exists: true, $ne: null } })
-    .select("_id")
-    .lean();
+  let paginatedIds: string[];
+  let hasMore: boolean;
 
-  if (allUsers.length === 0) {
-    return { items: [], hasMore: false };
-  }
+  if (sort === "books_added" || sort === "books_read" || sort === "likes" || sort === "achievements") {
+    // Direct aggregation — push sort, skip, limit to MongoDB.
+    const agg = sort === "books_added"
+      ? await Book.aggregate<{ _id: string; count: number }>([
+          { $match: { isWishlist: { $ne: true } } },
+          { $group: { _id: "$userId", count: { $sum: 1 } } },
+          { $sort: { count: -1 } },
+          { $skip: skip },
+          { $limit: limit + 1 },
+        ])
+      : sort === "books_read"
+        ? await Book.aggregate<{ _id: string; count: number }>([
+            { $match: { status: "Read" } },
+            { $group: { _id: "$userId", count: comicReadWeight() } },
+            { $sort: { count: -1 } },
+            { $skip: skip },
+            { $limit: limit + 1 },
+          ])
+        : sort === "likes"
+          ? await CollectionLike.aggregate<{ _id: string; count: number }>([
+              { $group: { _id: "$targetUserId", count: { $sum: 1 } } },
+              { $sort: { count: -1 } },
+              { $skip: skip },
+              { $limit: limit + 1 },
+            ])
+          : await UserAchievement.aggregate<{ _id: string; count: number }>([
+              { $group: { _id: "$userId", count: { $sum: 1 } } },
+              { $sort: { count: -1 } },
+              { $skip: skip },
+              { $limit: limit + 1 },
+            ]);
 
-  const allIds = allUsers.map((u) =>
-    (u as IUser & { _id: { toString(): string } })._id.toString(),
-  );
+    hasMore = agg.length > limit;
+    paginatedIds = agg.slice(0, limit).map((r) => r._id);
 
-  const [allBookCounts, allReadCounts, allLikeCounts, allAchievementCounts] = await Promise.all([
-    Book.aggregate<{ _id: string; count: number }>([
-      { $match: { userId: { $in: allIds }, isWishlist: { $ne: true } } },
-      { $group: { _id: "$userId", count: { $sum: 1 } } },
-    ]),
-    Book.aggregate<{ _id: string; count: number }>([
-      { $match: { userId: { $in: allIds }, status: "Read" } },
-      { $group: { _id: "$userId", count: comicReadWeight() } },
-    ]),
-    CollectionLike.aggregate<{ _id: string; count: number }>([
-      { $match: { targetUserId: { $in: allIds } } },
-      { $group: { _id: "$targetUserId", count: { $sum: 1 } } },
-    ]),
-    UserAchievement.aggregate<{ _id: string; count: number }>([
-      { $match: { userId: { $in: allIds } } },
-      { $group: { _id: "$userId", count: { $sum: 1 } } },
-    ]),
-  ]);
+    // Filter out any user IDs that don't exist anymore (soft-safety)
+    if (paginatedIds.length === 0) {
+      const allIds = agg.map((r) => r._id);
+      // If aggregation returned results but all are invalid, return empty
+      if (allIds.length === 0) return { items: [], hasMore: false };
+    }
+  } else {
+    // "overall" — needs all stats to compute weighted score.
+    const allUserIds = (await User.find({ username: { $exists: true, $ne: null } })
+      .select("_id")
+      .lean())
+      .map((u) => (u as IUser & { _id: { toString(): string } })._id.toString());
 
-  const bookMap = new Map(allBookCounts.map((c) => [c._id, c.count]));
-  const readMap = new Map(allReadCounts.map((c) => [c._id, c.count]));
-  const likeMap = new Map(allLikeCounts.map((c) => [c._id, c.count]));
-  const achievementMap = new Map(allAchievementCounts.map((c) => [c._id, c.count]));
+    if (allUserIds.length === 0) return { items: [], hasMore: false };
 
-  const allStats = new Map<string, { bookCount: number; readCount: number; likeCount: number; achievementCount: number }>();
-  for (const id of allIds) {
-    allStats.set(id, {
-      bookCount: bookMap.get(id) ?? 0,
-      readCount: readMap.get(id) ?? 0,
-      likeCount: likeMap.get(id) ?? 0,
-      achievementCount: achievementMap.get(id) ?? 0,
+    const [allBookCounts, allReadCounts, allLikeCounts, allAchievementCounts] = await Promise.all([
+      Book.aggregate<{ _id: string; count: number }>([
+        { $match: { userId: { $in: allUserIds }, isWishlist: { $ne: true } } },
+        { $group: { _id: "$userId", count: { $sum: 1 } } },
+      ]),
+      Book.aggregate<{ _id: string; count: number }>([
+        { $match: { userId: { $in: allUserIds }, status: "Read" } },
+        { $group: { _id: "$userId", count: comicReadWeight() } },
+      ]),
+      CollectionLike.aggregate<{ _id: string; count: number }>([
+        { $match: { targetUserId: { $in: allUserIds } } },
+        { $group: { _id: "$targetUserId", count: { $sum: 1 } } },
+      ]),
+      UserAchievement.aggregate<{ _id: string; count: number }>([
+        { $match: { userId: { $in: allUserIds } } },
+        { $group: { _id: "$userId", count: { $sum: 1 } } },
+      ]),
+    ]);
+
+    const bookMap = new Map(allBookCounts.map((c) => [c._id, c.count]));
+    const readMap = new Map(allReadCounts.map((c) => [c._id, c.count]));
+    const likeMap = new Map(allLikeCounts.map((c) => [c._id, c.count]));
+    const achievementMap = new Map(allAchievementCounts.map((c) => [c._id, c.count]));
+
+    const allStats = new Map<string, { bookCount: number; readCount: number; likeCount: number; achievementCount: number }>();
+    for (const id of allUserIds) {
+      allStats.set(id, {
+        bookCount: bookMap.get(id) ?? 0,
+        readCount: readMap.get(id) ?? 0,
+        likeCount: likeMap.get(id) ?? 0,
+        achievementCount: achievementMap.get(id) ?? 0,
+      });
+    }
+
+    allUserIds.sort((a, b) => {
+      const valA = computeSortValue(sort, allStats.get(a)!);
+      const valB = computeSortValue(sort, allStats.get(b)!);
+      return valB - valA;
     });
-  }
 
-  allIds.sort((a, b) => {
-    const valA = computeSortValue(sort, allStats.get(a)!);
-    const valB = computeSortValue(sort, allStats.get(b)!);
-    return valB - valA;
-  });
+    paginatedIds = allUserIds.slice(skip, skip + limit);
+    hasMore = skip + limit < allUserIds.length;
 
-  const paginatedIds = allIds.slice(skip, skip + limit);
-  const hasMore = skip + limit < allIds.length;
-
-  if (paginatedIds.length === 0) {
-    return { items: [], hasMore: false };
+    if (paginatedIds.length === 0) {
+      return { items: [], hasMore: false };
+    }
   }
 
   const users = await User.find({ _id: { $in: paginatedIds } }).lean();

@@ -12,6 +12,7 @@ const collectionLikeSchema = new Schema(
 );
 
 collectionLikeSchema.index({ likerId: 1, targetUserId: 1 }, { unique: true });
+collectionLikeSchema.index({ targetUserId: 1, createdAt: -1 });
 
 export type ICollectionLike = InferSchemaType<typeof collectionLikeSchema>;
 

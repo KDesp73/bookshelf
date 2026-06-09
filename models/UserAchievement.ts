@@ -10,6 +10,7 @@ const userAchievementSchema = new Schema(
 );
 
 userAchievementSchema.index({ userId: 1, achievementId: 1 }, { unique: true });
+userAchievementSchema.index({ achievementId: 1 });
 
 export type IUserAchievement = InferSchemaType<typeof userAchievementSchema>;
 

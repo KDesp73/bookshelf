@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
 import { Link2 } from "lucide-react";
 import { fetchCoverOptionsAction } from "@/actions/books";
 import type { CoverOption } from "@/lib/books/covers";
@@ -36,6 +36,8 @@ export function CoverPicker({
 
   const canSearch = Boolean(title.trim() && authors.length > 0);
 
+  const authorsKey = useMemo(() => JSON.stringify(authors), [authors]);
+
   useEffect(() => {
     if (!canSearch) {
       setOptions([]);
@@ -69,8 +71,7 @@ export function CoverPicker({
         onSelect(result.data[0].url);
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload when lookup identity changes
-  }, [title, authors.join("|"), isbn13, initialCoverUrl, canSearch]);
+  }, [title, authorsKey, isbn13, initialCoverUrl, canSearch]);
 
   const usingCustomUrl =
     customMode ||

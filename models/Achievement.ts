@@ -16,6 +16,9 @@ const achievementSchema = new Schema(
   { timestamps: { createdAt: true, updatedAt: true }, versionKey: false },
 );
 
+achievementSchema.index({ conditionType: 1, conditionValue: 1 });
+achievementSchema.index({ createdAt: -1 });
+
 export type IAchievement = InferSchemaType<typeof achievementSchema>;
 
 export const Achievement: Model<IAchievement> =

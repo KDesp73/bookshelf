@@ -11,7 +11,6 @@ import { searchBooks as searchBooksLib } from "@/lib/books/search";
 import { metadataFieldsFromInput } from "@/lib/books/persist-metadata";
 import {
   findBookByIsbn,
-  findBookById,
   listBooks,
   getAllTags,
 } from "@/lib/books/queries";
@@ -270,12 +269,7 @@ export async function moveToLibraryAction(
 
     revalidateBookPaths(auth.user.username!);
 
-    const doc = await findBookById(id, auth.user.id);
-    if (!doc) {
-      return { success: false, error: "Book not found after update." };
-    }
-
-    return { success: true, data: doc };
+    return { success: true, data: serializeBook(book) };
   } catch {
     return { success: false, error: "Failed to move book to library." };
   }
@@ -304,12 +298,7 @@ export async function moveToWishlistAction(
 
     revalidateBookPaths(auth.user.username!);
 
-    const doc = await findBookById(id, auth.user.id);
-    if (!doc) {
-      return { success: false, error: "Book not found after update." };
-    }
-
-    return { success: true, data: doc };
+    return { success: true, data: serializeBook(book) };
   } catch {
     return { success: false, error: "Failed to move book to wishlist." };
   }
@@ -397,12 +386,7 @@ export async function updateBookAction(
 
     checkAndAwardAchievements(auth.user.id).catch(console.error);
 
-    const doc = await findBookById(id, auth.user.id);
-    if (!doc) {
-      return { success: false, error: "Book not found after update." };
-    }
-
-    return { success: true, data: doc };
+    return { success: true, data: serializeBook(book) };
   } catch {
     return { success: false, error: "Failed to update book." };
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useTransition } from "react";
+import { useCallback, useRef, useTransition } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -50,6 +50,21 @@ export function LibraryFilters({
     [router, searchParams, basePath],
   );
 
+  // Debounce the search param updates — use a ref to avoid stale closures.
+  const searchTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  function handleSearchChange(value: string) {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    if (value || search) {
+      searchTimer.current = setTimeout(() => {
+        searchTimer.current = undefined;
+        updateParams({ search: value || null });
+      }, 300);
+    } else {
+      updateParams({ search: null });
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
       <div className="relative w-full sm:min-w-[200px] sm:flex-1">
@@ -58,7 +73,7 @@ export function LibraryFilters({
           className="pl-9"
           placeholder="Search title, author, ISBN, tags…"
           defaultValue={search}
-          onChange={(e) => updateParams({ search: e.target.value || null })}
+          onChange={(e) => handleSearchChange(e.target.value)}
         />
       </div>
 
