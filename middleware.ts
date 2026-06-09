@@ -34,6 +34,7 @@ export default auth((req) => {
     pathname === "/login/verify" ||
     pathname === "/register";
   const isPublicProfile = pathname.startsWith("/u/");
+  const isCommunity = pathname.startsWith("/community");
   const isDiscover = pathname.startsWith("/discover");
   const isNews = pathname.startsWith("/news");
   const isOnboarding = pathname.startsWith("/onboarding");
@@ -63,6 +64,7 @@ export default auth((req) => {
     !isLoggedIn &&
     !isAuthPage &&
     !isPublicProfile &&
+    !isCommunity &&
     !isDiscover &&
     !isNews &&
     needsAuth

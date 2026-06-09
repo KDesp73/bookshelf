@@ -37,12 +37,17 @@ function TabButton({
   );
 }
 
-export function DiscoverFilters() {
+interface DiscoverFiltersProps {
+  basePath?: string;
+  subTabKey?: string;
+}
+
+export function DiscoverFilters({ basePath = "/discover", subTabKey = "tab" }: DiscoverFiltersProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
 
-  const tab = searchParams.get("tab") ?? "collections";
+  const tab = searchParams.get(subTabKey) ?? "collections";
   const search = searchParams.get("search") ?? "";
   const sort = searchParams.get("sort") ?? "recent";
 
@@ -57,16 +62,16 @@ export function DiscoverFilters() {
         }
       }
       startTransition(() => {
-        router.push(`/discover?${params.toString()}`);
+        router.push(`${basePath}?${params.toString()}`);
       });
     },
-    [router, searchParams],
+    [router, searchParams, basePath],
   );
 
   const tabHref = (t: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("tab", t);
-    return `/discover?${params.toString()}`;
+    params.set(subTabKey, t);
+    return `${basePath}?${params.toString()}`;
   };
 
   return (
