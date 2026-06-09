@@ -16,7 +16,7 @@ export const authConfig = {
         token.id = user.id;
         token.username = user.username ?? null;
         token.isAdmin = user.isAdmin === true;
-        token.adminPermissions = user.adminPermissions;
+        token.adminPermissions = Array.isArray(user.adminPermissions) ? user.adminPermissions.slice() : user.adminPermissions;
       }
       delete token.picture;
       delete token.image;

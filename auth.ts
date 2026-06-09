@@ -127,9 +127,13 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       user.id = dbUser._id.toString();
       user.username = dbUser.username ?? null;
       user.isAdmin = dbUser.isAdmin ?? false;
-      user.adminPermissions =
-        (dbUser.adminPermissions as typeof ALL_ADMIN_PERMISSIONS) ??
-        (shouldBeAdmin ? ALL_ADMIN_PERMISSIONS : []);
+      user.adminPermissions = (
+        Array.isArray(dbUser.adminPermissions)
+          ? dbUser.adminPermissions.slice()
+          : shouldBeAdmin
+            ? ALL_ADMIN_PERMISSIONS
+            : []
+      ) as typeof ALL_ADMIN_PERMISSIONS;
       return true;
     },
     async jwt({ token, user, trigger, session }) {
