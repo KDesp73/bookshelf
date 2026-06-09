@@ -30,6 +30,7 @@ export const ADMIN_PERMISSIONS = {
   MANAGE_EMAILS: "manage_emails",
   MANAGE_BOOKS: "manage_books",
   MANAGE_METADATA: "manage_metadata",
+  MANAGE_SUGGESTIONS: "manage_suggestions",
 } as const;
 export type AdminPermission = (typeof ADMIN_PERMISSIONS)[keyof typeof ADMIN_PERMISSIONS];
 export const ALL_ADMIN_PERMISSIONS: AdminPermission[] = Object.values(ADMIN_PERMISSIONS);
@@ -40,6 +41,7 @@ export const ADMIN_PERMISSION_LABELS: Record<AdminPermission, string> = {
   manage_emails: "Send promotional emails",
   manage_books: "Manage all books",
   manage_metadata: "Metadata enrichment",
+  manage_suggestions: "Manage suggestions",
 };
 
 export const ACHIEVEMENT_CONDITION_TYPES = [

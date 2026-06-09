@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Compass, Newspaper, Trophy } from "lucide-react";
+import { Compass, Lightbulb, Newspaper, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TABS = [
   { id: "discover", label: "Discover", icon: Compass },
   { id: "rankings", label: "Rankings", icon: Trophy },
   { id: "news", label: "News", icon: Newspaper },
+  { id: "suggestions", label: "Suggestions", icon: Lightbulb },
 ] as const;
 
 interface CommunityNavProps {

@@ -6,15 +6,20 @@ import { RankingsList } from "@/components/social/rankings-list";
 import { BookCard } from "@/components/social/book-card";
 import { LoadMoreUsers } from "@/components/social/load-more-users";
 import { NewsPostCard } from "@/components/blog/news-post-card";
+import { SuggestionsSection } from "@/components/social/suggestions-section";
 import { listRecentBooks, listUsers } from "@/lib/social/queries";
 import { getSessionUser } from "@/lib/auth/get-session-user";
 import {
   getBulkPostReactionSummaries,
   listPublishedPosts,
 } from "@/lib/blog/queries";
+import { listSuggestionsAction } from "@/actions/suggestions";
+import { isAdminEmail } from "@/lib/auth/admin";
+import { ADMIN_PERMISSIONS } from "@/lib/constants";
 import type { DiscoverFilters as DiscoverFiltersType } from "@/types/user";
 import type { DiscoverBook } from "@/types/book";
 import type { BlogReactionSummary } from "@/types/blog";
+import type { SuggestionItem } from "@/types/suggestion";
 
 interface CommunityPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -22,10 +27,11 @@ interface CommunityPageProps {
 
 function parseCommunityTab(
   params: Record<string, string | string[] | undefined>,
-): "discover" | "rankings" | "news" {
+): "discover" | "rankings" | "news" | "suggestions" {
   const raw = typeof params.tab === "string" ? params.tab : "discover";
   if (raw === "rankings") return "rankings";
   if (raw === "news") return "news";
+  if (raw === "suggestions") return "suggestions";
   return "discover";
 }
 
@@ -54,6 +60,10 @@ export default async function CommunityPage({ searchParams }: CommunityPageProps
         </Suspense>
       ) : tab === "news" ? (
         <NewsSection />
+      ) : tab === "suggestions" ? (
+        <Suspense fallback={<div className="h-40 animate-pulse rounded-xl bg-stone-200 dark:bg-stone-800" />}>
+          <SuggestionsSectionWrapper />
+        </Suspense>
       ) : (
         <DiscoverSection params={params} />
       )}
@@ -191,6 +201,32 @@ function formatDate(value?: string) {
   return new Intl.DateTimeFormat(undefined, { dateStyle: "long" }).format(
     new Date(value),
   );
+}
+
+async function SuggestionsSectionWrapper() {
+  const user = await getSessionUser();
+  const canView =
+    user !== null &&
+    user.isAdmin &&
+    (isAdminEmail(user.email) || user.adminPermissions.includes(ADMIN_PERMISSIONS.MANAGE_SUGGESTIONS));
+
+  let items: SuggestionItem[] = [];
+  let dbError: string | null = null;
+
+  if (canView) {
+    try {
+      const result = await listSuggestionsAction();
+      if (result.success) {
+        items = result.data;
+      } else {
+        dbError = result.error ?? "Could not load suggestions.";
+      }
+    } catch {
+      dbError = "Could not connect to MongoDB.";
+    }
+  }
+
+  return <SuggestionsSection initialSuggestions={items} initialError={dbError} canView={canView} />;
 }
 
 async function NewsSection() {
