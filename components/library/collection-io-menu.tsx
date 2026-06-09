@@ -149,7 +149,7 @@ export function CollectionIOMenu({
             }}
           >
             <Upload className="h-4 w-4" />
-            Import JSON
+            Import
           </Button>
         ) : null}
       </div>
@@ -161,10 +161,8 @@ export function CollectionIOMenu({
           </DialogHeader>
 
           <p className="text-sm text-stone-600 dark:text-stone-400">
-            Upload a BookShelf JSON export. Books already in your{" "}
-            {listLabel} (matched by ISBN) are skipped. Each book&apos;s{" "}
-            <code className="text-xs">isWishlist</code> field is respected; otherwise
-            imports go to your {listLabel}.
+            Upload a BookShelf JSON export or a Goodreads CSV export. Books
+            already in your {listLabel} (matched by ISBN) are skipped.
           </p>
 
           <form onSubmit={handleImportSubmit} className="space-y-4">
@@ -172,7 +170,7 @@ export function CollectionIOMenu({
               ref={fileInputRef}
               type="file"
               name="file"
-              accept="application/json,.json"
+              accept="application/json,.json,text/csv,.csv"
               required
               className="block w-full text-sm text-stone-600 file:mr-3 file:rounded-md file:border-0 file:bg-amber-800 file:px-3 file:py-2 file:text-sm file:font-medium file:text-amber-50 hover:file:bg-amber-900 dark:text-stone-300"
             />

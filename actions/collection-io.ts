@@ -6,13 +6,14 @@ import { Book } from "@/models/Book";
 import {
   defaultIsWishlistForList,
   normalizeImportBook,
+  parseGoodreadsCsv,
   parseImportJson,
 } from "@/lib/books/import";
 import { metadataFieldsFromInput } from "@/lib/books/persist-metadata";
 import { requireUserWithUsername } from "@/lib/auth/require-user";
 import { isValidRating } from "@/lib/constants";
 import type { BookListKind } from "@/types/book";
-import type { ImportCollectionResult } from "@/types/export";
+import type { ImportBookInput, ImportCollectionResult } from "@/types/export";
 
 export type CollectionActionResult<T> =
   | { success: true; data: T }
@@ -37,11 +38,11 @@ export async function importCollectionAction(
   const file = formData.get("file");
 
   if (!(file instanceof File) || file.size === 0) {
-    return { success: false, error: "Choose a JSON file to import." };
+    return { success: false, error: "Choose a file to import." };
   }
 
   if (file.size > 5 * 1024 * 1024) {
-    return { success: false, error: "JSON file must be 5 MB or smaller." };
+    return { success: false, error: "File must be 5 MB or smaller." };
   }
 
   let raw: string;
@@ -51,9 +52,11 @@ export async function importCollectionAction(
     return { success: false, error: "Could not read the file." };
   }
 
-  let entries: ReturnType<typeof parseImportJson>;
+  const isCsv = file.name.toLowerCase().endsWith(".csv");
+
+  let entries: ImportBookInput[];
   try {
-    entries = parseImportJson(raw);
+    entries = isCsv ? parseGoodreadsCsv(raw) : parseImportJson(raw);
   } catch (error) {
     return {
       success: false,
