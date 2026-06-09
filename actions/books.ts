@@ -17,6 +17,7 @@ import {
 import { requireUserWithUsername } from "@/lib/auth/require-user";
 import { removeFavoriteBookId } from "@/lib/books/favorites";
 import { checkAndAwardAchievements } from "@/lib/achievements";
+import { SECRET_ISBN, awardEasterEgg } from "@/lib/easter-eggs";
 import type { BookDocument, BookInput, LibraryFilters } from "@/types/book";
 import type { SearchResult } from "@/lib/books/search";
 import type { ReadingStatus } from "@/lib/constants";
@@ -232,6 +233,10 @@ export async function saveBookAction(
     revalidateBookPaths(auth.user.username!);
 
     checkAndAwardAchievements(auth.user.id).catch(console.error);
+
+    if (isbn13 === SECRET_ISBN) {
+      awardEasterEgg(auth.user.id, "easter_egg_isbn").catch(console.error);
+    }
 
     return { success: true, data: serializeBook(book) };
   } catch (error) {

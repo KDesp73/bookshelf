@@ -8,17 +8,34 @@ import { HeaderProfileAvatar } from "@/components/layout/header-profile-avatar";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { useCallback, useRef } from "react";
+import { awardEasterEggAction } from "@/actions/easter-eggs";
 
 export function AppHeader() {
   const { data: session, status } = useSession();
   const user = session?.user;
   const isLoading = status === "loading";
+  const logoClickCount = useRef(0);
+
+  const handleLogoClick = useCallback(() => {
+    if (!user?.id) return;
+    logoClickCount.current++;
+    if (logoClickCount.current >= 10) {
+      logoClickCount.current = 0;
+      awardEasterEggAction("easter_egg_logo").then((result) => {
+        if (result.success && result.data) {
+          alert(`Easter egg found: ${result.data.name}!\n\n${result.data.description}`);
+        }
+      });
+    }
+  }, [user?.id]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-stone-200/80 bg-background/90 backdrop-blur-md dark:border-stone-700">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
         <Link
           href="/"
+          onClick={handleLogoClick}
           className="flex items-center gap-2 font-serif text-lg font-semibold text-amber-950 dark:text-amber-100"
         >
           <BookOpen className="h-5 w-5 text-amber-800" />

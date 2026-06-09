@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Loader2, BookOpen, AlertCircle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { awardEasterEggAction } from "@/actions/easter-eggs";
 
 type View = "search" | "preview" | "existing";
 
@@ -32,6 +33,14 @@ export function BookSearch() {
   function handleSearch() {
     const trimmed = query.trim();
     if (trimmed.length < 2) return;
+
+    if (trimmed === "42") {
+      awardEasterEggAction("easter_egg_42").then((result) => {
+        if (result.success && result.data) {
+          alert(`Easter egg found: ${result.data.name}!\n\n${result.data.description}`);
+        }
+      });
+    }
 
     setError(null);
     setResults([]);
