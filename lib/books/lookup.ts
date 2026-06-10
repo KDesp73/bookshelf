@@ -455,7 +455,7 @@ function mergeMetadata(
 
   const subjects = mergeStringArrays(sources.map((s) => s.subjects));
   const categories = mergeStringArrays(sources.map((s) => s.categories));
-  const genres = buildGenres(subjects, categories);
+  const genres = buildGenres(categories);
 
   const publishYear =
     sources.find((s) => s.publishYear != null)?.publishYear ??

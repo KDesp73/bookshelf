@@ -31,11 +31,9 @@ export function parsePublishYear(publishedDate?: string): number | undefined {
   return year;
 }
 
-export function buildGenres(
-  subjects: string[],
-  categories: string[],
-): string[] {
-  return normalizeMetadataList([...subjects, ...categories]);
+/** Build genres from categories only. Subjects are specific topics, not genres. */
+export function buildGenres(categories: string[]): string[] {
+  return normalizeMetadataList(categories);
 }
 
 export function mergeStringArrays(
@@ -72,7 +70,7 @@ export function recommendationFieldsFromMetadata(
   const subjects = mergeStringArrays([meta.subjects]);
   const categories = mergeStringArrays([meta.categories]);
   const genres =
-    meta.genres?.length ? mergeStringArrays([meta.genres]) : buildGenres(subjects, categories);
+    meta.genres?.length ? mergeStringArrays([meta.genres]) : buildGenres(categories);
 
   const fields: RecommendationFieldUpdate & { metadataEnrichedAt: Date } = {
     metadataEnrichedAt: new Date(),

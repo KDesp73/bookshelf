@@ -95,10 +95,12 @@ async function getCommunityRecommendations(
     const b = book as LeanBook;
     const owner = userMap.get(b.userId);
     const sharedGenres = genreOverlapMap.get(b.userId) ?? [];
-    const topGenres = sharedGenres.slice(0, 2);
+    const topGenres = sharedGenres
+      .filter((g) => g.length <= 25)
+      .slice(0, 2);
     const reason =
       topGenres.length > 0
-        ? `Because you both read ${topGenres.join(" & ")}`
+        ? `Both of you enjoy ${topGenres.join(" & ")}`
         : "From a similar collection";
 
     return {
