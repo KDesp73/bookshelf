@@ -50,7 +50,6 @@ export function RefreshRecommendationsPanel() {
         className="mt-4"
         onClick={handleRefresh}
         disabled={pending}
-        variant="outline"
       >
         {pending ? "Refreshing…" : "Refresh all recommendations"}
       </Button>

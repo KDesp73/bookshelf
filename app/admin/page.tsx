@@ -1,5 +1,6 @@
 import { AdminNav } from "@/components/admin/admin-nav";
 import { MetadataEnrichmentPanel } from "@/components/admin/metadata-enrichment-panel";
+import { RefreshDashboardButton } from "@/components/admin/refresh-dashboard-button";
 import { RefreshRecommendationsPanel } from "@/components/admin/refresh-recommendations-panel";
 import { getAdminStats } from "@/lib/admin/queries";
 import { countBooksNeedingMetadataEnrichment } from "@/lib/books/backfill-metadata";
@@ -29,15 +30,19 @@ export default async function AdminDashboardPage() {
         </div>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <StatCard label="Users" value={stats.userCount} />
-            <StatCard label="Books" value={stats.bookCount} />
-            <StatCard label="Collection likes" value={stats.likeCount} />
+          <div className="flex items-start justify-between gap-4">
+            <div className="grid flex-1 gap-4 sm:grid-cols-3">
+              <StatCard label="Users" value={stats.userCount} />
+              <StatCard label="Books" value={stats.bookCount} />
+              <StatCard label="Collection likes" value={stats.likeCount} />
+            </div>
+            <RefreshDashboardButton />
           </div>
 
-          <MetadataEnrichmentPanel pendingCount={booksNeedingMetadata} />
-
-          <RefreshRecommendationsPanel />
+          <div className="grid gap-4 md:grid-cols-2">
+            <MetadataEnrichmentPanel pendingCount={booksNeedingMetadata} />
+            <RefreshRecommendationsPanel />
+          </div>
         </>
       )}
     </>
