@@ -31,6 +31,7 @@ export const ADMIN_PERMISSIONS = {
   MANAGE_BOOKS: "manage_books",
   MANAGE_METADATA: "manage_metadata",
   MANAGE_SUGGESTIONS: "manage_suggestions",
+  MANAGE_RECOMMENDATIONS: "manage_recommendations",
 } as const;
 export type AdminPermission = (typeof ADMIN_PERMISSIONS)[keyof typeof ADMIN_PERMISSIONS];
 export const ALL_ADMIN_PERMISSIONS: AdminPermission[] = Object.values(ADMIN_PERMISSIONS);
@@ -42,6 +43,7 @@ export const ADMIN_PERMISSION_LABELS: Record<AdminPermission, string> = {
   manage_books: "Manage all books",
   manage_metadata: "Metadata enrichment",
   manage_suggestions: "Manage suggestions",
+  manage_recommendations: "Refresh recommendations",
 };
 
 export const SUGGESTION_STATUS_LABELS: Record<string, string> = {

@@ -1,5 +1,6 @@
 import { AdminNav } from "@/components/admin/admin-nav";
 import { MetadataEnrichmentPanel } from "@/components/admin/metadata-enrichment-panel";
+import { RefreshRecommendationsPanel } from "@/components/admin/refresh-recommendations-panel";
 import { getAdminStats } from "@/lib/admin/queries";
 import { countBooksNeedingMetadataEnrichment } from "@/lib/books/backfill-metadata";
 
@@ -35,6 +36,8 @@ export default async function AdminDashboardPage() {
           </div>
 
           <MetadataEnrichmentPanel pendingCount={booksNeedingMetadata} />
+
+          <RefreshRecommendationsPanel />
         </>
       )}
     </>

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { connectDB } from "@/lib/db";
 import { Book } from "@/models/Book";
 import { User } from "@/models/User";
+import { RecommendationModel } from "@/models/Recommendation";
 import { requireAdmin, requirePermission } from "@/lib/auth/require-admin";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { deleteUserAndData, listAllUsers } from "@/lib/admin/queries";
@@ -262,5 +263,27 @@ export async function getBooksNeedingMetadataCountAction(): Promise<
     return { success: true, data: { count } };
   } catch {
     return { success: false, error: "Failed to count books." };
+  }
+}
+
+export async function refreshRecommendationsAction(): Promise<
+  ActionResult<{ deletedCount: number }>
+> {
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_RECOMMENDATIONS);
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Admin access required." };
+  }
+
+  try {
+    await connectDB();
+    const result = await RecommendationModel.deleteMany({});
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return {
+      success: true,
+      data: { deletedCount: result.deletedCount },
+    };
+  } catch {
+    return { success: false, error: "Failed to refresh recommendations." };
   }
 }
