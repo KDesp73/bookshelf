@@ -24,6 +24,9 @@ const sourceSans = Source_Sans_3({
 export const metadata: Metadata = {
   title: "BookShelf — Social Library",
   description: "Catalog your books, rate your reads, and discover other readers' collections.",
+  icons: {
+    icon: '/favicon.ico',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
