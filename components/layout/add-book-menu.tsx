@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChevronDown, Plus, ScanLine, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,8 +12,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function AddBookMenu() {
+  const router = useRouter();
+
+  function handleOpenChange(open: boolean) {
+    if (open) {
+      router.prefetch("/search");
+      router.prefetch("/scan");
+      router.prefetch("/add");
+    }
+  }
+
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button size="sm">
           <Plus className="h-4 w-4" />

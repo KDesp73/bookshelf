@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { BookOpen, LogIn, Shield, Users } from "lucide-react";
 import { AddBookMenu } from "@/components/layout/add-book-menu";
@@ -8,14 +9,27 @@ import { HeaderProfileAvatar } from "@/components/layout/header-profile-avatar";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { awardEasterEggAction } from "@/actions/easter-eggs";
 
 export function AppHeader() {
   const { data: session, status } = useSession();
   const user = session?.user;
   const isLoading = status === "loading";
+  const router = useRouter();
   const logoClickCount = useRef(0);
+
+  useEffect(() => {
+    if (user?.id) {
+      router.prefetch("/community");
+      if (user.username) {
+        router.prefetch(`/u/${user.username}`);
+      }
+    } else if (!isLoading) {
+      router.prefetch("/register");
+      router.prefetch("/discover");
+    }
+  }, [user?.id, user?.username, isLoading, router]);
 
   const handleLogoClick = useCallback(() => {
     if (!user?.id) return;

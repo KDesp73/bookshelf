@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Loader2, BookOpen, AlertCircle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { awardEasterEggAction } from "@/actions/easter-eggs";
+import { preloadCoverUrls } from "@/lib/books/preload-covers";
 
 type View = "search" | "preview" | "existing";
 
@@ -51,6 +52,8 @@ export function BookSearch() {
         return;
       }
       setResults(result.data);
+      const coverUrls = result.data.map((r) => r.coverUrl).filter(Boolean) as string[];
+      void preloadCoverUrls(coverUrls);
       if (result.data.length === 0) {
         setError("No books found. Try a different search.");
       }

@@ -1,15 +1,27 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { lookupIsbnAction } from "@/actions/books";
 import type { BookInput } from "@/types/book";
-import { BarcodeScanner } from "@/components/scanner/barcode-scanner";
 import { BookPreviewForm } from "@/components/books/book-preview-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Camera } from "lucide-react";
 import Link from "next/link";
+
+const BarcodeScanner = dynamic(
+  () => import("@/components/scanner/barcode-scanner").then((m) => ({ default: m.BarcodeScanner })),
+  {
+    loading: () => (
+      <div className="flex min-h-[280px] items-center justify-center rounded-xl border border-stone-300 bg-stone-900/80 text-stone-200 dark:border-stone-600">
+        <Camera className="mr-2 h-5 w-5 animate-pulse" />
+        Starting camera…
+      </div>
+    ),
+  },
+);
 
 type ScanStep = "scan" | "manual-isbn" | "preview" | "existing";
 
@@ -21,6 +33,17 @@ export function ScanFlow() {
   const [preview, setPreview] = useState<BookInput | null>(null);
   const [existingTitle, setExistingTitle] = useState<string | null>(null);
   const [existingIsWishlist, setExistingIsWishlist] = useState(false);
+
+  useEffect(() => {
+    const preload = async () => {
+      try {
+        await import("@/components/scanner/barcode-scanner");
+      } catch {
+        // preload is best-effort
+      }
+    };
+    preload();
+  }, []);
 
   function resolveIsbn(isbn: string) {
     setError(null);

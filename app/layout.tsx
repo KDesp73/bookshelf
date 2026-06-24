@@ -51,6 +51,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={`${lora.variable} ${sourceSans.variable} h-full`}>
+      <head>
+        <link rel="preconnect" href="https://covers.openlibrary.org" />
+        <link rel="preconnect" href="https://openlibrary.org" />
+        <link rel="preconnect" href="https://www.googleapis.com" />
+        <link rel="dns-prefetch" href="https://covers.openlibrary.org" />
+        <link rel="dns-prefetch" href="https://openlibrary.org" />
+        <link rel="dns-prefetch" href="https://www.googleapis.com" />
+      </head>
       <body className="min-h-full bg-background font-sans text-foreground antialiased">
         <ThemeProvider>
           <ShelfPresetStyles />
