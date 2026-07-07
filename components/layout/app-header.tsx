@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { BookOpen, LogIn, Shield, Users } from "lucide-react";
+import { BookOpen, LogIn, Shield, Store, Users } from "lucide-react";
 import { AddBookMenu } from "@/components/layout/add-book-menu";
 import { HeaderProfileAvatar } from "@/components/layout/header-profile-avatar";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -61,6 +61,12 @@ export function AppHeader() {
             <Link href="/community">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Community</span>
+            </Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/store/dashboard">
+              <Store className="h-4 w-4" />
+              <span className="hidden sm:inline">Store</span>
             </Link>
           </Button>
 

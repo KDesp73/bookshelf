@@ -11,11 +11,20 @@ export default auth((req) => {
   const hasUsername = !!session?.user?.username;
   const isAdmin = session?.user?.isAdmin === true;
 
-  if (pathname.startsWith("/api/auth")) {
+  if (pathname.startsWith("/api/auth") || pathname.startsWith("/api/store")) {
     return NextResponse.next();
   }
 
   const isAdminRoute = pathname.startsWith("/admin");
+  const isStoreDashboardRoute = pathname.startsWith("/store/dashboard");
+
+  if (isStoreDashboardRoute) {
+    const storeSession = req.cookies.get("store_session");
+    if (!storeSession?.value) {
+      return NextResponse.redirect(new URL("/store/login", req.url));
+    }
+    return NextResponse.next();
+  }
 
   if (isAdminRoute) {
     if (!isLoggedIn) {
