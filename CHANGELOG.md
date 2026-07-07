@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.7.0] - 2026-07-07 
+
+### Added
+
+- Favicon
+- Sitemap
+- Easter eggs
+- Preloading
+- Actions and info in Recent books page
+- Lighter svg background based on cover colors
+
+### Fixed
+
+- Google Auth callback
+- Book share svg rendering
+
+
 ## [1.6.0] - 2026-06-09 
 
 ### Added
@@ -23,9 +40,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Optional public notes
 - Search for a book
 - Advanced editing
-- Optional public notes
 - Daily quote
 - Achievements
 - Different admin permissions
@@ -47,10 +64,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- Sending promotional emails
-- Contact section
-- Forgot password?
 - Delete account option
+- Contact section
+- Sending promotional emails
+- Forgot password?
 
 ### Changed
 
@@ -79,7 +96,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- Share profile as svg
 - News
 - Add docker support (@creatorkostas)
 - Collecting more metadata about the books
@@ -87,6 +103,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Displaying collection likes
 - Public wishlist option
 - Skeleton screens while content is loading
+- Share profile as svg
 
 ### Fixed
 
@@ -97,10 +114,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Import/Export collection
 - Wishlist
 - Landing page
 - Profile icons and images
-- Import/Export collection
 - Share profile
 - Theme toggle
 - Custom bookshelf appearence
@@ -132,4 +149,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 [1.4.0]: https://github.com/KDesp73/bookshelf//releases/tag/v1.4.0
 [1.5.0]: https://github.com/KDesp73/bookshelf//releases/tag/v1.5.0
 [1.6.0]: https://github.com/KDesp73/bookshelf//releases/tag/v1.6.0
+[1.7.0]: https://github.com/KDesp73/bookshelf//releases/tag/v1.7.0
 
