@@ -51,6 +51,24 @@ function truncate(value: string, maxLength: number): string {
   return `${trimmed.slice(0, maxLength - 1).trim()}…`;
 }
 
+function wordWrap(text: string, maxCharsPerLine: number): string[] {
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    const candidate = currentLine ? `${currentLine} ${word}` : word;
+    if (candidate.length <= maxCharsPerLine) {
+      currentLine = candidate;
+    } else {
+      if (currentLine) lines.push(currentLine);
+      currentLine = word;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+  return lines;
+}
+
 function renderStars(rating: number): string {
   const full = Math.floor(rating);
   const half = rating % 1 >= 0.5 ? 1 : 0;
@@ -100,7 +118,8 @@ export async function loadBookShareCardData(
 }
 
 export function renderBookShareSvg(data: BookShareCardData): string {
-  const title = escapeXml(truncate(data.title, 45));
+  const titleLines = wordWrap(data.title, 28);
+  const escapedTitleLines = titleLines.map((line) => escapeXml(line));
   const authors = escapeXml(truncate(data.authors || "Unknown author", 50));
   const reader = escapeXml(data.readerName);
   const username = escapeXml(data.readerUsername);
@@ -113,7 +132,8 @@ export function renderBookShareSvg(data: BookShareCardData): string {
 
   const starsY = coverY + coverHeight + 28;
   const titleY = starsY + 28;
-  const authorY = titleY + 28;
+  const titleLineHeight = 30;
+  const authorY = titleY + titleLines.length * titleLineHeight;
   const dividerY = authorY + 18;
   const readerY = dividerY + 18;
 
@@ -125,8 +145,17 @@ export function renderBookShareSvg(data: BookShareCardData): string {
     ? `<text x="${CARD_WIDTH / 2}" y="${starsY}" text-anchor="middle" font-family="serif" font-size="20" fill="#fbbf24">${renderStars(data.rating)}</text>`
     : "";
 
+  const titleMarkup = escapedTitleLines
+    .map((line, i) => {
+      const dy = i === 0 ? 0 : titleLineHeight;
+      return `<tspan x="${CARD_WIDTH / 2}" dy="${dy}">${line}</tspan>`;
+    })
+    .join("");
+
+  const ariaLabel = escapeXml(data.title);
+
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${CARD_WIDTH}" height="${CARD_HEIGHT}" viewBox="0 0 ${CARD_WIDTH} ${CARD_HEIGHT}" role="img" aria-label="${title} on BookShelf">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${CARD_WIDTH}" height="${CARD_HEIGHT}" viewBox="0 0 ${CARD_WIDTH} ${CARD_HEIGHT}" role="img" aria-label="${ariaLabel} on BookShelf">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#292524" stop-opacity="1" />
@@ -155,7 +184,7 @@ export function renderBookShareSvg(data: BookShareCardData): string {
 
   ${ratingMarkup}
 
-  <text x="${CARD_WIDTH / 2}" y="${titleY}" text-anchor="middle" font-family="serif" font-size="24" font-weight="bold" fill="#fafaf9">${title}</text>
+  <text x="${CARD_WIDTH / 2}" y="${titleY}" text-anchor="middle" font-family="serif" font-size="24" font-weight="bold" fill="#fafaf9">${titleMarkup}</text>
 
   <text x="${CARD_WIDTH / 2}" y="${authorY}" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#d6d3d1">${authors}</text>
 
