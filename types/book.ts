@@ -53,12 +53,23 @@ export interface DiscoverBook {
   _id: string;
   isbn13: string;
   title: string;
+  subtitle?: string;
   authors: string[];
+  publisher?: string;
+  publishedDate?: string;
+  description?: string;
+  pageCount?: number;
   coverUrl?: string;
   userId: string;
   username: string;
   userDisplayName?: string;
   dateAdded: string;
+  status: string;
+  tags: string[];
+  rating?: number;
+  isWishlist: boolean;
+  notes?: string;
+  isPublicNote: boolean;
 }
 
 export type BookListKind = "library" | "wishlist" | "all";

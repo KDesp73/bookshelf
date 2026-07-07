@@ -3,7 +3,7 @@ import Link from "next/link";
 import { listRecentBooks, listUsers } from "@/lib/social/queries";
 import { DiscoverFilters } from "@/components/social/discover-filters";
 import { UserCard } from "@/components/social/user-card";
-import { BookCard } from "@/components/social/book-card";
+import { RecentBooksGrid } from "@/components/social/recent-books-grid";
 import { LoadMoreUsers } from "@/components/social/load-more-users";
 import { Button } from "@/components/ui/button";
 import type { DiscoverFilters as DiscoverFiltersType } from "@/types/user";
@@ -143,10 +143,6 @@ async function BooksTabContent() {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-      {books.map((book) => (
-        <BookCard key={book._id} book={book} />
-      ))}
-    </div>
+    <RecentBooksGrid books={books} />
   );
 }

@@ -441,12 +441,23 @@ export async function listRecentBooks(
         _id: b._id.toString(),
         isbn13: b.isbn13,
         title: b.title,
+        subtitle: b.subtitle,
         authors: b.authors ?? [],
+        publisher: b.publisher,
+        publishedDate: b.publishedDate,
+        description: b.description,
+        pageCount: b.pageCount,
         coverUrl: b.coverUrl ?? undefined,
         userId: b.userId,
         username: user.username,
         userDisplayName: user.name ?? undefined,
         dateAdded: b.dateAdded.toISOString(),
+        status: b.status,
+        tags: b.tags ?? [],
+        rating: b.rating,
+        isWishlist: b.isWishlist,
+        notes: b.notes,
+        isPublicNote: b.isPublicNote,
       };
     })
     .filter(Boolean) as DiscoverBook[];

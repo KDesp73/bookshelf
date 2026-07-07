@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import type { BookDocument } from "@/types/book";
 import { preloadCoverUrls } from "@/lib/books/preload-covers";
 
 interface PreloadBookCoversProps {
-  books: BookDocument[];
+  books: { coverUrl?: string }[];
 }
 
 export function PreloadBookCovers({ books }: PreloadBookCoversProps) {

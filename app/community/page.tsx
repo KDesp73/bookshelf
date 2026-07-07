@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CommunityNav } from "@/components/social/community-nav";
 import { DiscoverFilters } from "@/components/social/discover-filters";
 import { RankingsList } from "@/components/social/rankings-list";
-import { BookCard } from "@/components/social/book-card";
+import { RecentBooksGrid } from "@/components/social/recent-books-grid";
 import { LoadMoreUsers } from "@/components/social/load-more-users";
 import { NewsPostCard } from "@/components/blog/news-post-card";
 import { SuggestionsSection } from "@/components/social/suggestions-section";
@@ -184,11 +184,7 @@ async function BooksTabContent() {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-      {books.map((book) => (
-        <BookCard key={book._id} book={book} />
-      ))}
-    </div>
+    <RecentBooksGrid books={books} />
   );
 }
 
