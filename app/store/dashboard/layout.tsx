@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { LayoutDashboard, BookCopy, Megaphone, LogOut, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, BookCopy, Megaphone, Settings, ArrowLeft } from "lucide-react";
 import { getSessionUser } from "@/lib/auth/get-session-user";
 import { redirect } from "next/navigation";
-import { logoutAction } from "@/actions/auth";
 
 export default async function StoreDashboardLayout({
   children,
@@ -20,6 +19,7 @@ export default async function StoreDashboardLayout({
     { href: "/store/dashboard", label: "Overview", icon: LayoutDashboard },
     { href: "/store/dashboard/books", label: "Books", icon: BookCopy },
     { href: "/store/dashboard/ads", label: "Ads", icon: Megaphone },
+    { href: "/store/dashboard/settings", label: "Information", icon: Settings },
   ];
 
   return (
@@ -42,15 +42,7 @@ export default async function StoreDashboardLayout({
             <ArrowLeft className="h-4 w-4" />
             Back to site
           </Link>
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="flex items-center gap-1 text-sm text-red-600 hover:text-red-700 dark:text-red-400"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign out
-            </button>
-          </form>
+          
         </div>
       </div>
 

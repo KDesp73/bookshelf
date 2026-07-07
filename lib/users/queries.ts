@@ -24,6 +24,10 @@ function toUserProfile(user: IUser & { _id: { toString(): string } }): UserProfi
     storeAddress: (user as Record<string, unknown>).storeAddress as string | undefined,
     storePhone: (user as Record<string, unknown>).storePhone as string | undefined,
     storeLogo: (user as Record<string, unknown>).storeLogo as string | undefined,
+    storePostalCode: (user as Record<string, unknown>).storePostalCode as string | undefined,
+    storeCity: (user as Record<string, unknown>).storeCity as string | undefined,
+    storeImages: (user as Record<string, unknown>).storeImages as string[] | undefined,
+    storeWebsite: (user as Record<string, unknown>).storeWebsite as string | undefined,
     createdAt: user.createdAt.toISOString(),
   };
 }

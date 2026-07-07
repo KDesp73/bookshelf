@@ -20,6 +20,10 @@ export interface UserProfile {
   storeAddress?: string;
   storePhone?: string;
   storeLogo?: string;
+  storePostalCode?: string;
+  storeCity?: string;
+  storeImages?: string[];
+  storeWebsite?: string;
   createdAt: string;
 }
 

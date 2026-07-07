@@ -83,7 +83,9 @@ export async function listUsers(
   const sort = filters.sort ?? "recent";
   const skip = (page - 1) * limit;
 
-  const matchQuery: Record<string, unknown> = {};
+  const matchQuery: Record<string, unknown> = {
+    isStore: { $ne: true },
+  };
   if (filters.search?.trim()) {
     matchQuery.username = { $regex: filters.search.trim(), $options: "i" };
   } else {

@@ -135,26 +135,12 @@ export function ProfileHeader({
       return (
         <>
           {user.isStore ? (
-            <>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/store/dashboard">
-                  <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
-                </Link>
-              </Button>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/store/dashboard/books">
-                  <BookCopy className="h-4 w-4" />
-                  Books
-                </Link>
-              </Button>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/store/dashboard/ads">
-                  <Megaphone className="h-4 w-4" />
-                  Ads
-                </Link>
-              </Button>
-            </>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/store/dashboard">
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </Link>
+            </Button>
           ) : null}
           <Button variant="outline" size="sm" asChild>
             <Link href="/settings">
@@ -162,18 +148,22 @@ export function ProfileHeader({
               Settings
             </Link>
           </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/wishlist">
-              <Heart className="h-4 w-4" />
-              Wishlist
-            </Link>
-          </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/">
-              <BookOpen className="h-4 w-4" />
-              My library
-            </Link>
-          </Button>
+          {!user.isStore ? (
+            <>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/wishlist">
+                  <Heart className="h-4 w-4" />
+                  Wishlist
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/">
+                  <BookOpen className="h-4 w-4" />
+                  My library
+                </Link>
+              </Button>
+            </>
+          ) : null}
         </>
       );
     }
@@ -216,26 +206,12 @@ export function ProfileHeader({
       return (
         <>
           {user.isStore ? (
-            <>
-              <Button variant="outline" size="sm" className="w-full justify-center" asChild>
-                <Link href="/store/dashboard">
-                  <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
-                </Link>
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-center" asChild>
-                <Link href="/store/dashboard/books">
-                  <BookCopy className="h-4 w-4" />
-                  Books
-                </Link>
-              </Button>
-              <Button variant="outline" size="sm" className="col-span-2 w-full justify-center" asChild>
-                <Link href="/store/dashboard/ads">
-                  <Megaphone className="h-4 w-4" />
-                  Ads
-                </Link>
-              </Button>
-            </>
+            <Button variant="outline" size="sm" className="w-full justify-center" asChild>
+              <Link href="/store/dashboard">
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </Link>
+            </Button>
           ) : null}
           <Button variant="outline" size="sm" className="w-full justify-center" asChild>
             <Link href="/settings">
@@ -243,18 +219,22 @@ export function ProfileHeader({
               Settings
             </Link>
           </Button>
-          <Button variant="outline" size="sm" className="w-full justify-center" asChild>
-            <Link href="/wishlist">
-              <Heart className="h-4 w-4" />
-              Wishlist
-            </Link>
-          </Button>
-          <Button variant="outline" size="sm" className="col-span-2 w-full justify-center" asChild>
-            <Link href="/">
-              <BookOpen className="h-4 w-4" />
-              My library
-            </Link>
-          </Button>
+          {!user.isStore ? (
+            <>
+              <Button variant="outline" size="sm" className="w-full justify-center" asChild>
+                <Link href="/wishlist">
+                  <Heart className="h-4 w-4" />
+                  Wishlist
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" className="col-span-2 w-full justify-center" asChild>
+                <Link href="/">
+                  <BookOpen className="h-4 w-4" />
+                  My library
+                </Link>
+              </Button>
+            </>
+          ) : null}
         </>
       );
     }

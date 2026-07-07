@@ -16,6 +16,15 @@ export interface SessionUser {
   isAdmin: boolean;
   isStore: boolean;
   adminPermissions: AdminPermission[];
+  storeName?: string;
+  storeDescription?: string;
+  storeAddress?: string;
+  storePhone?: string;
+  storePostalCode?: string;
+  storeCity?: string;
+  storeImages?: string[];
+  storeWebsite?: string;
+  storeLogo?: string;
 }
 
 export async function getSessionUser(): Promise<SessionUser | null> {
@@ -25,7 +34,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   try {
     await connectDB();
     const dbUser = await User.findById(session.user.id)
-      .select("avatarType image name username email isAdmin adminPermissions isStore storeName storeLogo")
+      .select("avatarType image name username email isAdmin adminPermissions isStore storeName storeDescription storeAddress storePhone storePostalCode storeCity storeImages storeWebsite storeLogo")
       .lean();
 
     const isAdmin = dbUser?.isAdmin === true || session.user.isAdmin === true;
@@ -45,6 +54,15 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       adminPermissions: isAdmin && (!permissions || permissions.length === 0)
         ? ALL_ADMIN_PERMISSIONS
         : (permissions ?? ALL_ADMIN_PERMISSIONS),
+      storeName: (dbUser as Record<string, unknown>)?.storeName as string | undefined,
+      storeDescription: (dbUser as Record<string, unknown>)?.storeDescription as string | undefined,
+      storeAddress: (dbUser as Record<string, unknown>)?.storeAddress as string | undefined,
+      storePhone: (dbUser as Record<string, unknown>)?.storePhone as string | undefined,
+      storePostalCode: (dbUser as Record<string, unknown>)?.storePostalCode as string | undefined,
+      storeCity: (dbUser as Record<string, unknown>)?.storeCity as string | undefined,
+      storeImages: (dbUser as Record<string, unknown>)?.storeImages as string[] | undefined,
+      storeWebsite: (dbUser as Record<string, unknown>)?.storeWebsite as string | undefined,
+      storeLogo: (dbUser as Record<string, unknown>)?.storeLogo as string | undefined,
     };
   } catch {
     const isAdmin = session.user.isAdmin === true;

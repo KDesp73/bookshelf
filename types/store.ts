@@ -1,3 +1,14 @@
+export interface StoreListItem {
+  _id: string;
+  storeName: string;
+  storeDescription?: string;
+  storeLogo?: string;
+  storeCity?: string;
+  storeImages?: string[];
+  username: string;
+  name?: string;
+}
+
 export type StoreBookDocument = {
   _id: string;
   userId: string;

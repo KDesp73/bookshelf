@@ -22,6 +22,9 @@ export async function convertToStoreAction(
   const storeDescription = String(formData.get("storeDescription") ?? "").trim();
   const storeAddress = String(formData.get("storeAddress") ?? "").trim();
   const storePhone = String(formData.get("storePhone") ?? "").trim();
+  const storePostalCode = String(formData.get("storePostalCode") ?? "").trim();
+  const storeCity = String(formData.get("storeCity") ?? "").trim();
+  const storeWebsite = String(formData.get("storeWebsite") ?? "").trim();
 
   if (!storeName) return { error: "Store name is required." };
 
@@ -33,6 +36,9 @@ export async function convertToStoreAction(
       storeDescription: storeDescription || undefined,
       storeAddress: storeAddress || undefined,
       storePhone: storePhone || undefined,
+      storePostalCode: storePostalCode || undefined,
+      storeCity: storeCity || undefined,
+      storeWebsite: storeWebsite || undefined,
     });
   } catch {
     return { error: "Could not convert account. Try again." };
@@ -40,6 +46,7 @@ export async function convertToStoreAction(
 
   revalidatePath("/settings");
   revalidatePath("/store/dashboard");
+  revalidatePath("/store/dashboard/settings");
   return { success: true };
 }
 
@@ -55,6 +62,13 @@ export async function updateStoreInfoAction(
   const storeDescription = String(formData.get("storeDescription") ?? "").trim();
   const storeAddress = String(formData.get("storeAddress") ?? "").trim();
   const storePhone = String(formData.get("storePhone") ?? "").trim();
+  const storePostalCode = String(formData.get("storePostalCode") ?? "").trim();
+  const storeCity = String(formData.get("storeCity") ?? "").trim();
+  const storeWebsite = String(formData.get("storeWebsite") ?? "").trim();
+  const storeImagesRaw = formData.getAll("storeImages");
+  const storeImages = storeImagesRaw
+    .map((v) => String(v).trim())
+    .filter(Boolean);
 
   if (!storeName) return { error: "Store name is required." };
 
@@ -65,6 +79,10 @@ export async function updateStoreInfoAction(
       storeDescription: storeDescription || undefined,
       storeAddress: storeAddress || undefined,
       storePhone: storePhone || undefined,
+      storePostalCode: storePostalCode || undefined,
+      storeCity: storeCity || undefined,
+      storeWebsite: storeWebsite || undefined,
+      storeImages: storeImages.length > 0 ? storeImages : undefined,
     });
   } catch {
     return { error: "Could not update store info. Try again." };
@@ -72,5 +90,6 @@ export async function updateStoreInfoAction(
 
   revalidatePath("/settings");
   revalidatePath("/store/dashboard");
+  revalidatePath("/store/dashboard/settings");
   return { success: true };
 }

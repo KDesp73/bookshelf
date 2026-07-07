@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Compass, Lightbulb, Newspaper, Trophy } from "lucide-react";
+import { Compass, Lightbulb, Newspaper, Store, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TABS = [
@@ -34,6 +34,16 @@ export function CommunityNav({ activeTab }: CommunityNavProps) {
           </Link>
         );
       })}
+      <Link
+        href="/stores"
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition",
+          "text-stone-600 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800",
+        )}
+      >
+        <Store className="h-4 w-4" />
+        Stores
+      </Link>
     </div>
   );
 }

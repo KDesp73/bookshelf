@@ -22,14 +22,16 @@ export function AppHeader() {
   useEffect(() => {
     if (user?.id) {
       router.prefetch("/community");
-      if (user.username) {
+      if (user.isStore) {
+        router.prefetch("/store/dashboard");
+      } else if (user.username) {
         router.prefetch(`/u/${user.username}`);
       }
     } else if (!isLoading) {
       router.prefetch("/register");
       router.prefetch("/discover");
     }
-  }, [user?.id, user?.username, isLoading, router]);
+  }, [user?.id, user?.username, user?.isStore, isLoading, router]);
 
   const handleLogoClick = useCallback(() => {
     if (!user?.id) return;
@@ -63,15 +65,12 @@ export function AppHeader() {
               <span className="hidden sm:inline">Community</span>
             </Link>
           </Button>
-          {user?.isStore ? (
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/store/dashboard">
-                <Store className="h-4 w-4" />
-                <span className="hidden sm:inline">Store</span>
-              </Link>
-            </Button>
-          ) : null}
-
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/stores">
+              <Store className="h-4 w-4" />
+              <span className="hidden sm:inline">Stores</span>
+            </Link>
+          </Button>
           {isLoading ? (
             <Skeleton className="h-8 w-8 rounded-full" />
           ) : user ? (

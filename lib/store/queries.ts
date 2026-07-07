@@ -1,9 +1,11 @@
 import "server-only";
 import { connectDB } from "@/lib/db";
+import { User } from "@/models/User";
 import { StoreBook } from "@/models/StoreBook";
 import { Ad } from "@/models/Ad";
-import type { StoreBookDocument } from "@/types/store";
+import type { StoreListItem, StoreBookDocument } from "@/types/store";
 import type { AdDocument } from "@/types/ad";
+import type { PaginatedResult } from "@/types/user";
 
 function toStoreBookDocument(
   book: Record<string, unknown>,
@@ -65,4 +67,46 @@ export async function getAdById(adId: string): Promise<AdDocument | null> {
   const ad = await Ad.findById(adId).lean();
   if (!ad) return null;
   return toAdDocument(ad);
+}
+
+export async function listStores(
+  page = 1,
+  limit = 12,
+): Promise<PaginatedResult<StoreListItem>> {
+  await connectDB();
+
+  const skip = (page - 1) * limit;
+
+  const matchQuery = { isStore: true, username: { $exists: true, $ne: null } };
+
+  const total = await User.countDocuments(matchQuery);
+  if (total === 0) {
+    return { items: [], hasMore: false };
+  }
+
+  const users = await User.find(matchQuery)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit + 1)
+    .select("storeName storeDescription storeLogo storeCity storeImages username name")
+    .lean();
+
+  const hasMore = users.length > limit;
+  const sliced = users.slice(0, limit);
+
+  const items: StoreListItem[] = sliced.map((u) => {
+    const user = u as Record<string, unknown>;
+    return {
+      _id: String(user._id),
+      storeName: (user.storeName as string) || (user.name as string) || "Store",
+      storeDescription: (user.storeDescription as string) ?? undefined,
+      storeLogo: (user.storeLogo as string) ?? undefined,
+      storeCity: (user.storeCity as string) ?? undefined,
+      storeImages: (user.storeImages as string[]) ?? undefined,
+      username: user.username as string,
+      name: (user.name as string) ?? undefined,
+    };
+  });
+
+  return { items, hasMore };
 }

@@ -58,6 +58,10 @@ const userSchema = new Schema(
     storeAddress: { type: String, trim: true },
     storePhone: { type: String, trim: true },
     storeLogo: { type: String, trim: true },
+    storePostalCode: { type: String, trim: true },
+    storeCity: { type: String, trim: true },
+    storeImages: { type: [String], default: [] },
+    storeWebsite: { type: String, trim: true },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },

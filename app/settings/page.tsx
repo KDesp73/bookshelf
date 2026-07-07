@@ -12,7 +12,7 @@ import { ThemeSettings } from "@/components/settings/theme-settings";
 import { ShelfAppearanceForm } from "@/components/shelf/shelf-appearance-form";
 import { WishlistVisibilityToggle } from "@/components/wishlist/wishlist-visibility-toggle";
 import { Button } from "@/components/ui/button";
-import { StoreConvertForm } from "@/components/store/store-convert-form";
+
 
 export default async function SettingsPage() {
   const viewer = await getSessionUser();
@@ -103,17 +103,6 @@ export default async function SettingsPage() {
             </Button>
           </form>
         </div>
-      </SettingsSection>
-
-      <SettingsSection
-        title={viewer.isStore ? "Store settings" : "Store account"}
-        description={
-          viewer.isStore
-            ? "Manage your bookstore information."
-            : "Convert your account to a store account to list books and run ads."
-        }
-      >
-        <StoreConvertForm user={viewer} />
       </SettingsSection>
 
       <SettingsSection
