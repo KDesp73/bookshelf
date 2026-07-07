@@ -119,10 +119,10 @@ export function renderBookShareSvg(data: BookShareCardData): string {
 
   const coverMarkup = data.hasCover
     ? `<g mask="url(#cm)"><image href="${data.coverDataUri}" x="${coverX}" y="${coverY}" width="${coverWidth}" height="${coverHeight}" preserveAspectRatio="xMidYMid slice" /></g>`
-    : `<text x="${CARD_WIDTH / 2}" y="${coverY + coverHeight / 2 + 4}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="52" font-weight="bold" fill="#a8a29e">${escapeXml(data.title[0]?.toUpperCase() ?? "?")}</text>`;
+    : `<text x="${CARD_WIDTH / 2}" y="${coverY + coverHeight / 2 + 4}" text-anchor="middle" font-family="serif" font-size="52" font-weight="bold" fill="#a8a29e">${escapeXml(data.title[0]?.toUpperCase() ?? "?")}</text>`;
 
   const ratingMarkup = data.rating != null
-    ? `<text x="${CARD_WIDTH / 2}" y="${starsY}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="20" fill="#fbbf24">${renderStars(data.rating)}</text>`
+    ? `<text x="${CARD_WIDTH / 2}" y="${starsY}" text-anchor="middle" font-family="serif" font-size="20" fill="#fbbf24">${renderStars(data.rating)}</text>`
     : "";
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -155,17 +155,17 @@ export function renderBookShareSvg(data: BookShareCardData): string {
 
   ${ratingMarkup}
 
-  <text x="${CARD_WIDTH / 2}" y="${titleY}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="24" font-weight="bold" fill="#fafaf9">${title}</text>
+  <text x="${CARD_WIDTH / 2}" y="${titleY}" text-anchor="middle" font-family="serif" font-size="24" font-weight="bold" fill="#fafaf9">${title}</text>
 
-  <text x="${CARD_WIDTH / 2}" y="${authorY}" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" fill="#d6d3d1">${authors}</text>
+  <text x="${CARD_WIDTH / 2}" y="${authorY}" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#d6d3d1">${authors}</text>
 
   <rect x="180" y="${dividerY}" width="120" height="1" fill="rgba(255,255,255,0.06)" />
 
-  <text x="${CARD_WIDTH / 2}" y="${readerY}" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#a8a29e">Read by ${reader} · @${username}</text>
+  <text x="${CARD_WIDTH / 2}" y="${readerY}" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#a8a29e">Read by ${reader} · @${username}</text>
 
-  <text x="${CARD_WIDTH / 2}" y="${CARD_HEIGHT - 24}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="#78716c">BookShelf</text>
+  <text x="${CARD_WIDTH / 2}" y="${CARD_HEIGHT - 24}" text-anchor="middle" font-family="serif" font-size="11" fill="#78716c">BookShelf</text>
 
-  <text x="${CARD_WIDTH / 2}" y="${CARD_HEIGHT - 10}" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="9" fill="#57534e">${siteUrl}</text>
+  <text x="${CARD_WIDTH / 2}" y="${CARD_HEIGHT - 10}" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#57534e">${siteUrl}</text>
 </svg>`;
 }
 

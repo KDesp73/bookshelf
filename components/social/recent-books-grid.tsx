@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { BookDocument, DiscoverBook } from "@/types/book";
 import { BookCover } from "@/components/books/book-cover";
 import { BookDetailsDialog } from "@/components/library/book-details-dialog";
@@ -19,34 +20,45 @@ export function RecentBooksGrid({ books }: RecentBooksGridProps) {
     <>
       <PreloadBookCovers books={books} />
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-        {books.map((book, index) => (
+        {books.map((book) => (
           <div
             key={book._id}
-            role="button"
-            tabIndex={0}
-            aria-label={`View ${book.title}`}
-            onClick={() => setSelected(book)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                setSelected(book);
-              }
-            }}
-            className="group shelf-card relative cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600/50 rounded-md"
+            className="group rounded-xl border border-stone-200/80 bg-white/50 p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-stone-700 dark:bg-stone-900/30"
           >
-            <BookCover
-              title={book.title}
-              coverUrl={book.coverUrl}
-              priority={index < 12}
-              className="w-full transition-transform duration-200 group-hover:-translate-y-1 group-hover:shadow-lg"
-            />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-md bg-gradient-to-t from-black/80 via-black/50 to-transparent p-2 pt-8 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 sm:opacity-0">
-              <p className="line-clamp-2 text-xs font-medium text-white">
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label={`View ${book.title}`}
+              onClick={() => setSelected(book)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setSelected(book);
+                }
+              }}
+              className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600/50 rounded-md"
+            >
+              <BookCover
+                title={book.title}
+                coverUrl={book.coverUrl}
+                className="mx-auto w-full max-w-28 transition-transform duration-200 group-hover:-translate-y-1 group-hover:shadow-lg"
+              />
+            </div>
+            <div className="mt-3 space-y-1">
+              <p className="line-clamp-2 text-sm font-medium text-stone-900 dark:text-stone-100">
                 {book.title}
               </p>
-              <p className="line-clamp-1 text-[10px] text-stone-300">
-                {book.authors.join(", ")}
-              </p>
+              {book.authors.length > 0 ? (
+                <p className="line-clamp-1 text-xs text-stone-500 dark:text-stone-400">
+                  {book.authors.join(", ")}
+                </p>
+              ) : null}
+              <Link
+                href={`/u/${book.username}`}
+                className="block pt-1 text-xs font-medium text-amber-700 hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300"
+              >
+                {book.userDisplayName ?? book.username}
+              </Link>
             </div>
           </div>
         ))}
