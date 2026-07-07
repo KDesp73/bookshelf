@@ -21,9 +21,9 @@ interface ShareBookButtonProps {
 
 function cardUrl(bookId: string): string {
   if (typeof window !== "undefined") {
-    return `${window.location.origin}/api/books/${bookId}/share.png`;
+    return `${window.location.origin}/api/books/${bookId}/share.svg`;
   }
-  return `/api/books/${bookId}/share.png`;
+  return `/api/books/${bookId}/share.svg`;
 }
 
 export function ShareBookButton({
@@ -87,7 +87,7 @@ export function ShareBookButton({
       const objectUrl = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = objectUrl;
-      anchor.download = `${title.toLowerCase().replace(/\s+/g, "-")}-bookshelf.png`;
+      anchor.download = `${title.toLowerCase().replace(/\s+/g, "-")}-bookshelf.svg`;
       anchor.click();
       URL.revokeObjectURL(objectUrl);
       setStatusMessage("Image downloaded");
@@ -138,7 +138,7 @@ export function ShareBookButton({
           disabled={pending}
         >
           <Download className="h-4 w-4" />
-          Download PNG card
+          Download card
         </DropdownMenuItem>
         <DropdownMenuItem onClick={openShareCardPreview} disabled={pending}>
           <Share2 className="h-4 w-4" />
