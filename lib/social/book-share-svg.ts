@@ -76,6 +76,11 @@ function renderStars(rating: number): string {
   return "★".repeat(full) + (half ? "½" : "") + "☆".repeat(empty);
 }
 
+export interface CoverColors {
+  top: string;
+  bottom: string;
+}
+
 export interface BookShareCardData {
   title: string;
   authors: string;
@@ -84,6 +89,29 @@ export interface BookShareCardData {
   readerName: string;
   readerUsername: string;
   hasCover: boolean;
+  coverColors: CoverColors | null;
+}
+
+async function extractCoverColors(
+  coverDataUri: string,
+): Promise<CoverColors | null> {
+  try {
+    const raw = coverDataUri.split(",")[1];
+    if (!raw) return null;
+
+    const buffer = Buffer.from(raw, "base64");
+    const { channels } = await sharp(buffer).stats();
+    const r = channels[0]?.mean ?? 128;
+    const g = channels[1]?.mean ?? 128;
+    const b = channels[2]?.mean ?? 128;
+
+    const top = `rgb(${Math.round(r * 0.6 + 30)}, ${Math.round(g * 0.6 + 30)}, ${Math.round(b * 0.6 + 30)})`;
+    const bottom = `rgb(${Math.round(r * 0.35 + 15)}, ${Math.round(g * 0.35 + 15)}, ${Math.round(b * 0.35 + 15)})`;
+
+    return { top, bottom };
+  } catch {
+    return null;
+  }
 }
 
 export async function loadBookShareCardData(
@@ -106,6 +134,11 @@ export async function loadBookShareCardData(
     }
   }
 
+  let coverColors: CoverColors | null = null;
+  if (coverDataUri) {
+    coverColors = await extractCoverColors(coverDataUri);
+  }
+
   return {
     title: book.title,
     authors: (book.authors ?? []).join(", "),
@@ -114,6 +147,7 @@ export async function loadBookShareCardData(
     readerName: user.name ?? user.username ?? "a reader",
     readerUsername: user.username ?? "unknown",
     hasCover: Boolean(coverDataUri),
+    coverColors,
   };
 }
 
@@ -152,15 +186,20 @@ export function renderBookShareSvg(data: BookShareCardData): string {
     })
     .join("");
 
+  const cc = data.coverColors;
+  const bgTop = cc?.top ?? "#292524";
+  const bgMid = cc?.bottom ?? "#1c1917";
+  const bgBottom = cc?.bottom ?? "#0c0a09";
+
   const ariaLabel = escapeXml(data.title);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${CARD_WIDTH}" height="${CARD_HEIGHT}" viewBox="0 0 ${CARD_WIDTH} ${CARD_HEIGHT}" role="img" aria-label="${ariaLabel} on BookShelf">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#292524" stop-opacity="1" />
-      <stop offset="60%" stop-color="#1c1917" stop-opacity="1" />
-      <stop offset="100%" stop-color="#0c0a09" stop-opacity="1" />
+      <stop offset="0%" stop-color="${bgTop}" stop-opacity="1" />
+      <stop offset="60%" stop-color="${bgMid}" stop-opacity="1" />
+      <stop offset="100%" stop-color="${bgBottom}" stop-opacity="1" />
     </linearGradient>
     <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.08" />
