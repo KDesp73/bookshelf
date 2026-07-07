@@ -1,6 +1,6 @@
 "use server";
 
-import { getStoreFromSession } from "@/lib/store/auth";
+import { getSessionUser } from "@/lib/auth/get-session-user";
 import { fetchCoverOptions } from "@/lib/books/covers";
 
 type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
@@ -11,9 +11,9 @@ export async function fetchStoreCoverOptionsAction(input: {
   isbn13?: string;
   initialCoverUrl?: string;
 }): Promise<ActionResult<Awaited<ReturnType<typeof fetchCoverOptions>>>> {
-  const store = await getStoreFromSession();
-  if (!store) {
-    return { success: false, error: "Not authenticated." };
+  const user = await getSessionUser();
+  if (!user) {
+    return { success: false, error: "Sign in required." };
   }
 
   if (!input.title?.trim()) {

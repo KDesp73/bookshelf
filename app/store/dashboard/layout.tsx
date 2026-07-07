@@ -1,15 +1,20 @@
 import Link from "next/link";
-import { BookOpen, LayoutDashboard, BookCopy, Megaphone, LogOut, ArrowLeft } from "lucide-react";
-import { getStoreFromSession } from "@/lib/store/auth";
+import { LayoutDashboard, BookCopy, Megaphone, LogOut, ArrowLeft } from "lucide-react";
+import { getSessionUser } from "@/lib/auth/get-session-user";
 import { redirect } from "next/navigation";
+import { logoutAction } from "@/actions/auth";
 
 export default async function StoreDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const store = await getStoreFromSession();
-  if (!store) redirect("/store/login");
+  const user = await getSessionUser();
+  if (!user) redirect("/login?callbackUrl=/store/dashboard");
+  if (!user.isStore) redirect("/");
+
+  const storeName = user.name ?? "Store";
+  const displayName = user.name ?? "Store";
 
   const navItems = [
     { href: "/store/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -25,9 +30,9 @@ export default async function StoreDashboardLayout({
             href="/store/dashboard"
             className="font-serif text-xl font-semibold text-amber-950 dark:text-amber-100"
           >
-            {store.name}
+            {displayName}
           </Link>
-          <p className="text-sm text-stone-500">{store.email}</p>
+          <p className="text-sm text-stone-500">{user.email}</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
@@ -37,7 +42,7 @@ export default async function StoreDashboardLayout({
             <ArrowLeft className="h-4 w-4" />
             Back to site
           </Link>
-          <form action="/api/store/logout" method="post">
+          <form action={logoutAction}>
             <button
               type="submit"
               className="flex items-center gap-1 text-sm text-red-600 hover:text-red-700 dark:text-red-400"

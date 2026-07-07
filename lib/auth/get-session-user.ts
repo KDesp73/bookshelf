@@ -14,6 +14,7 @@ export interface SessionUser {
   avatarType?: AvatarType | null;
   username?: string | null;
   isAdmin: boolean;
+  isStore: boolean;
   adminPermissions: AdminPermission[];
 }
 
@@ -24,7 +25,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   try {
     await connectDB();
     const dbUser = await User.findById(session.user.id)
-      .select("avatarType image name username email isAdmin adminPermissions")
+      .select("avatarType image name username email isAdmin adminPermissions isStore storeName storeLogo")
       .lean();
 
     const isAdmin = dbUser?.isAdmin === true || session.user.isAdmin === true;
@@ -40,6 +41,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       avatarType: (dbUser?.avatarType as AvatarType | undefined) ?? undefined,
       username: dbUser?.username ?? session.user.username,
       isAdmin,
+      isStore: (dbUser?.isStore as boolean | undefined) ?? session.user.isStore === true,
       adminPermissions: isAdmin && (!permissions || permissions.length === 0)
         ? ALL_ADMIN_PERMISSIONS
         : (permissions ?? ALL_ADMIN_PERMISSIONS),
@@ -55,6 +57,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       image: session.user.image ?? undefined,
       username: session.user.username,
       isAdmin,
+      isStore: session.user.isStore === true,
       adminPermissions: isAdmin && (!permissions || permissions.length === 0)
         ? ALL_ADMIN_PERMISSIONS
         : (permissions ?? ALL_ADMIN_PERMISSIONS),

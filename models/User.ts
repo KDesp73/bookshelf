@@ -52,6 +52,12 @@ const userSchema = new Schema(
       enum: ALL_ADMIN_PERMISSIONS,
     },
     passwordHash: { type: String, select: false },
+    isStore: { type: Boolean, default: false, index: true },
+    storeName: { type: String, trim: true, maxlength: 200 },
+    storeDescription: { type: String, trim: true, maxlength: 1000 },
+    storeAddress: { type: String, trim: true },
+    storePhone: { type: String, trim: true },
+    storeLogo: { type: String, trim: true },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },

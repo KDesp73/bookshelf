@@ -1,31 +1,16 @@
 import "server-only";
 import { connectDB } from "@/lib/db";
-import { Store } from "@/models/Store";
 import { StoreBook } from "@/models/StoreBook";
 import { Ad } from "@/models/Ad";
-import type { StoreDocument, StoreBookDocument } from "@/types/store";
+import type { StoreBookDocument } from "@/types/store";
 import type { AdDocument } from "@/types/ad";
-
-function toStoreDocument(store: Record<string, unknown>): StoreDocument {
-  return {
-    _id: String(store._id),
-    name: store.name as string,
-    email: store.email as string,
-    description: (store.description as string) ?? undefined,
-    address: (store.address as string) ?? undefined,
-    phone: (store.phone as string) ?? undefined,
-    logo: (store.logo as string) ?? undefined,
-    createdAt: (store.createdAt as Date).toISOString(),
-    updatedAt: (store.updatedAt as Date).toISOString(),
-  };
-}
 
 function toStoreBookDocument(
   book: Record<string, unknown>,
 ): StoreBookDocument {
   return {
     _id: String(book._id),
-    storeId: String(book.storeId),
+    userId: String(book.userId),
     title: book.title as string,
     author: book.author as string,
     isbn: (book.isbn as string) ?? undefined,
@@ -41,10 +26,10 @@ function toStoreBookDocument(
 function toAdDocument(ad: Record<string, unknown>): AdDocument {
   return {
     _id: String(ad._id),
-    storeId: String(ad.storeId),
+    userId: String(ad.userId),
     title: ad.title as string,
     text: ad.text as string,
-    image: ad.image as string,
+    image: (ad.image as string) ?? undefined,
     link: (ad.link as string) ?? undefined,
     status: ad.status as AdDocument["status"],
     createdAt: (ad.createdAt as Date).toISOString(),
@@ -52,27 +37,11 @@ function toAdDocument(ad: Record<string, unknown>): AdDocument {
   };
 }
 
-export async function getStoreById(id: string): Promise<StoreDocument | null> {
-  await connectDB();
-  const store = await Store.findById(id).lean();
-  if (!store) return null;
-  return toStoreDocument(store);
-}
-
-export async function getStoreByEmail(
-  email: string,
-): Promise<StoreDocument | null> {
-  await connectDB();
-  const store = await Store.findOne({ email: email.toLowerCase() }).lean();
-  if (!store) return null;
-  return toStoreDocument(store);
-}
-
 export async function getStoreBooks(
-  storeId: string,
+  userId: string,
 ): Promise<StoreBookDocument[]> {
   await connectDB();
-  const books = await StoreBook.find({ storeId }).sort({ createdAt: -1 }).lean();
+  const books = await StoreBook.find({ userId }).sort({ createdAt: -1 }).lean();
   return books.map(toStoreBookDocument);
 }
 
@@ -85,9 +54,9 @@ export async function getStoreBookById(
   return toStoreBookDocument(book);
 }
 
-export async function getStoreAds(storeId: string): Promise<AdDocument[]> {
+export async function getStoreAds(userId: string): Promise<AdDocument[]> {
   await connectDB();
-  const ads = await Ad.find({ storeId }).sort({ createdAt: -1 }).lean();
+  const ads = await Ad.find({ userId }).sort({ createdAt: -1 }).lean();
   return ads.map(toAdDocument);
 }
 

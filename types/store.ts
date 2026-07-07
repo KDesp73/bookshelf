@@ -1,18 +1,6 @@
-export type StoreDocument = {
-  _id: string;
-  name: string;
-  email: string;
-  description?: string;
-  address?: string;
-  phone?: string;
-  logo?: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
 export type StoreBookDocument = {
   _id: string;
-  storeId: string;
+  userId: string;
   title: string;
   author: string;
   isbn?: string;

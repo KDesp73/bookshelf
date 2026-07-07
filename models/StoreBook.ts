@@ -2,9 +2,9 @@ import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 
 const storeBookSchema = new Schema(
   {
-    storeId: {
+    userId: {
       type: Schema.Types.ObjectId,
-      ref: "Store",
+      ref: "User",
       required: true,
       index: true,
     },
@@ -19,7 +19,7 @@ const storeBookSchema = new Schema(
   { timestamps: true, versionKey: false },
 );
 
-storeBookSchema.index({ storeId: 1, title: 1 });
+storeBookSchema.index({ userId: 1, title: 1 });
 
 export type IStoreBook = InferSchemaType<typeof storeBookSchema>;
 

@@ -17,7 +17,13 @@ function toUserProfile(user: IUser & { _id: { toString(): string } }): UserProfi
     wishlistPublic: user.wishlistPublic === true,
     favoriteBookIds: user.favoriteBookIds ?? [],
     isAdmin: user.isAdmin ?? false,
+    isStore: (user as Record<string, unknown>).isStore === true,
     adminPermissions: user.adminPermissions as string[] | undefined,
+    storeName: (user as Record<string, unknown>).storeName as string | undefined,
+    storeDescription: (user as Record<string, unknown>).storeDescription as string | undefined,
+    storeAddress: (user as Record<string, unknown>).storeAddress as string | undefined,
+    storePhone: (user as Record<string, unknown>).storePhone as string | undefined,
+    storeLogo: (user as Record<string, unknown>).storeLogo as string | undefined,
     createdAt: user.createdAt.toISOString(),
   };
 }

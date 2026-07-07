@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { connectDB } from "@/lib/db";
 import { StoreBook } from "@/models/StoreBook";
-import { getStoreFromSession } from "@/lib/store/auth";
+import { getSessionUser } from "@/lib/auth/get-session-user";
 
 export type StoreBookActionState = {
   error?: string;
@@ -14,8 +14,9 @@ export async function addStoreBookAction(
   _prevState: StoreBookActionState,
   formData: FormData,
 ): Promise<StoreBookActionState> {
-  const store = await getStoreFromSession();
-  if (!store) return { error: "Not authenticated." };
+  const user = await getSessionUser();
+  if (!user) return { error: "Sign in required." };
+  if (!user.isStore) return { error: "Only store accounts can manage books." };
 
   const title = String(formData.get("title") ?? "").trim();
   const author = String(formData.get("author") ?? "").trim();
@@ -32,7 +33,7 @@ export async function addStoreBookAction(
   try {
     await connectDB();
     await StoreBook.create({
-      storeId: store._id,
+      userId: user.id,
       title,
       author,
       isbn: isbn || undefined,
@@ -53,8 +54,9 @@ export async function updateStoreBookAction(
   _prevState: StoreBookActionState,
   formData: FormData,
 ): Promise<StoreBookActionState> {
-  const store = await getStoreFromSession();
-  if (!store) return { error: "Not authenticated." };
+  const user = await getSessionUser();
+  if (!user) return { error: "Sign in required." };
+  if (!user.isStore) return { error: "Only store accounts can manage books." };
 
   const bookId = String(formData.get("bookId") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
@@ -72,7 +74,7 @@ export async function updateStoreBookAction(
 
   try {
     await connectDB();
-    const book = await StoreBook.findOne({ _id: bookId, storeId: store._id });
+    const book = await StoreBook.findOne({ _id: bookId, userId: user.id });
     if (!book) return { error: "Book not found." };
 
     book.title = title;
@@ -92,12 +94,13 @@ export async function updateStoreBookAction(
 }
 
 export async function deleteStoreBookAction(bookId: string): Promise<StoreBookActionState> {
-  const store = await getStoreFromSession();
-  if (!store) return { error: "Not authenticated." };
+  const user = await getSessionUser();
+  if (!user) return { error: "Sign in required." };
+  if (!user.isStore) return { error: "Only store accounts can manage books." };
 
   try {
     await connectDB();
-    await StoreBook.deleteOne({ _id: bookId, storeId: store._id });
+    await StoreBook.deleteOne({ _id: bookId, userId: user.id });
   } catch {
     return { error: "Could not delete book." };
   }

@@ -3,18 +3,19 @@ import { BookCopy, Megaphone } from "lucide-react";
 import { connectDB } from "@/lib/db";
 import { StoreBook } from "@/models/StoreBook";
 import { Ad } from "@/models/Ad";
-import { getStoreFromSession } from "@/lib/store/auth";
+import { getSessionUser } from "@/lib/auth/get-session-user";
 import { redirect } from "next/navigation";
 
 export default async function StoreDashboardPage() {
-  const store = await getStoreFromSession();
-  if (!store) redirect("/store/login");
+  const user = await getSessionUser();
+  if (!user) redirect("/login?callbackUrl=/store/dashboard");
+  if (!user.isStore) redirect("/");
 
   await connectDB();
   const [bookCount, pendingAdCount, approvedAdCount] = await Promise.all([
-    StoreBook.countDocuments({ storeId: store._id }),
-    Ad.countDocuments({ storeId: store._id, status: "pending" }),
-    Ad.countDocuments({ storeId: store._id, status: "approved" }),
+    StoreBook.countDocuments({ userId: user.id }),
+    Ad.countDocuments({ userId: user.id, status: "pending" }),
+    Ad.countDocuments({ userId: user.id, status: "approved" }),
   ]);
 
   return (

@@ -63,12 +63,14 @@ export function AppHeader() {
               <span className="hidden sm:inline">Community</span>
             </Link>
           </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/store/dashboard">
-              <Store className="h-4 w-4" />
-              <span className="hidden sm:inline">Store</span>
-            </Link>
-          </Button>
+          {user?.isStore ? (
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/store/dashboard">
+                <Store className="h-4 w-4" />
+                <span className="hidden sm:inline">Store</span>
+              </Link>
+            </Button>
+          ) : null}
 
           {isLoading ? (
             <Skeleton className="h-8 w-8 rounded-full" />

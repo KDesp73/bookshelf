@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { BookCopy, MapPin, Megaphone, Phone, Store } from "lucide-react";
 import { getSessionUser } from "@/lib/auth/get-session-user";
 import { getUserByUsername } from "@/lib/users/queries";
 import {
@@ -12,6 +14,9 @@ import { getBookCount, getWishlistCount, listPublicBooks, getAllTags } from "@/l
 import { getFavoriteBooks } from "@/lib/books/favorites";
 import { parseLibraryFilters } from "@/lib/books/filters";
 import { profileUrl } from "@/lib/site-url";
+import { connectDB } from "@/lib/db";
+import { StoreBook } from "@/models/StoreBook";
+import { Ad } from "@/models/Ad";
 import { ProfileHeader } from "@/components/social/profile-header";
 import { ProfileFavorites } from "@/components/social/profile-favorites";
 import { ProfileListNav } from "@/components/social/profile-list-nav";
@@ -20,6 +25,7 @@ import { ShelfThemeWrapper } from "@/components/shelf/shelf-theme-wrapper";
 import { CollectionIOMenu } from "@/components/library/collection-io-menu";
 import { LibraryFilters } from "@/components/library/library-filters";
 import { BookGrid } from "@/components/library/book-grid";
+import { Button } from "@/components/ui/button";
 import { getUserAchievements } from "@/lib/achievements";
 
 interface ProfilePageProps {
@@ -86,7 +92,12 @@ export default async function ProfilePage({
   let wishlistCount = 0;
   let favoriteBooks: Awaited<ReturnType<typeof getFavoriteBooks>> = [];
   let achievements: Awaited<ReturnType<typeof getUserAchievements>> = [];
+  const isOwner = viewer?.id === user._id;
+
   let dbError: string | null = null;
+  let storeBookCount = 0;
+  let storePendingAdCount = 0;
+  let storeApprovedAdCount = 0;
 
   try {
     [books, tags, bookCount, likeCount, wishlistCount, favoriteBooks, achievements] =
@@ -100,6 +111,15 @@ export default async function ProfilePage({
       getUserAchievements(user._id),
     ]);
 
+    if (isOwner && user.isStore) {
+      await connectDB();
+      [storeBookCount, storePendingAdCount, storeApprovedAdCount] = await Promise.all([
+        StoreBook.countDocuments({ userId: user._id }),
+        Ad.countDocuments({ userId: user._id, status: "pending" }),
+        Ad.countDocuments({ userId: user._id, status: "approved" }),
+      ]);
+    }
+
     if (likeCount > 0) {
       likers = await listCollectionLikers(user._id);
     }
@@ -111,8 +131,6 @@ export default async function ProfilePage({
     dbError =
       "Could not connect to MongoDB. Set MONGODB_URI in .env.local and ensure the database is running.";
   }
-
-  const isOwner = viewer?.id === user._id;
 
   return (
     <ShelfThemeWrapper
@@ -167,6 +185,89 @@ export default async function ProfilePage({
           ) : null}
         </div>
       </div>
+
+      {isOwner && user.isStore ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-800 dark:bg-amber-950/20">
+          <div className="flex items-center gap-2 border-b border-amber-200 pb-3 dark:border-amber-800">
+            <Store className="h-5 w-5 text-amber-800 dark:text-amber-300" />
+            <h2 className="font-serif text-lg font-semibold text-amber-950 dark:text-amber-100">
+              {user.storeName || "Store"}
+            </h2>
+          </div>
+
+          {user.storeDescription ? (
+            <p className="mt-3 text-sm text-stone-700 dark:text-stone-300">
+              {user.storeDescription}
+            </p>
+          ) : null}
+
+          <div className="mt-3 flex flex-wrap gap-3 text-sm text-stone-600 dark:text-stone-400">
+            {user.storeAddress ? (
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5" />
+                {user.storeAddress}
+              </span>
+            ) : null}
+            {user.storePhone ? (
+              <span className="inline-flex items-center gap-1">
+                <Phone className="h-3.5 w-3.5" />
+                {user.storePhone}
+              </span>
+            ) : null}
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border border-stone-200 bg-white p-3 dark:border-stone-700 dark:bg-stone-900">
+              <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                <BookCopy className="h-4 w-4" />
+                <span className="text-xs font-medium">Books</span>
+              </div>
+              <p className="mt-1 text-xl font-semibold text-stone-900 dark:text-stone-100">
+                {storeBookCount}
+              </p>
+            </div>
+            <div className="rounded-lg border border-stone-200 bg-white p-3 dark:border-stone-700 dark:bg-stone-900">
+              <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                <Megaphone className="h-4 w-4" />
+                <span className="text-xs font-medium">Pending ads</span>
+              </div>
+              <p className="mt-1 text-xl font-semibold text-stone-900 dark:text-stone-100">
+                {storePendingAdCount}
+              </p>
+            </div>
+            <div className="rounded-lg border border-stone-200 bg-white p-3 dark:border-stone-700 dark:bg-stone-900">
+              <div className="flex items-center gap-1.5 text-green-700 dark:text-green-400">
+                <Megaphone className="h-4 w-4" />
+                <span className="text-xs font-medium">Approved ads</span>
+              </div>
+              <p className="mt-1 text-xl font-semibold text-stone-900 dark:text-stone-100">
+                {storeApprovedAdCount}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/store/dashboard/books">
+                <BookCopy className="h-4 w-4" />
+                Manage books
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/store/dashboard/ads">
+                <Megaphone className="h-4 w-4" />
+                Manage ads
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/settings">
+                <Store className="h-4 w-4" />
+                Store settings
+              </Link>
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       {dbError ? (
         <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">

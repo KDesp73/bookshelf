@@ -2,9 +2,9 @@ import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 
 const adSchema = new Schema(
   {
-    storeId: {
+    userId: {
       type: Schema.Types.ObjectId,
-      ref: "Store",
+      ref: "User",
       required: true,
       index: true,
     },
@@ -21,7 +21,7 @@ const adSchema = new Schema(
   { timestamps: true, versionKey: false },
 );
 
-adSchema.index({ storeId: 1, status: 1 });
+adSchema.index({ userId: 1, status: 1 });
 
 export type IAd = InferSchemaType<typeof adSchema>;
 

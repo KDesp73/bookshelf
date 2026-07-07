@@ -1,6 +1,6 @@
 export type AdDocument = {
   _id: string;
-  storeId: string;
+  userId: string;
   title: string;
   text: string;
   image?: string;
