@@ -25,6 +25,8 @@ export interface SessionUser {
   storeImages?: string[];
   storeWebsite?: string;
   storeLogo?: string;
+  storeLatitude?: number;
+  storeLongitude?: number;
 }
 
 export async function getSessionUser(): Promise<SessionUser | null> {
@@ -34,7 +36,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   try {
     await connectDB();
     const dbUser = await User.findById(session.user.id)
-      .select("avatarType image name username email isAdmin adminPermissions isStore storeName storeDescription storeAddress storePhone storePostalCode storeCity storeImages storeWebsite storeLogo")
+      .select("avatarType image name username email isAdmin adminPermissions isStore storeName storeDescription storeAddress storePhone storePostalCode storeCity storeImages storeWebsite storeLogo storeLatitude storeLongitude")
       .lean();
 
     const isAdmin = dbUser?.isAdmin === true || session.user.isAdmin === true;
@@ -63,6 +65,8 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       storeImages: (dbUser as Record<string, unknown>)?.storeImages as string[] | undefined,
       storeWebsite: (dbUser as Record<string, unknown>)?.storeWebsite as string | undefined,
       storeLogo: (dbUser as Record<string, unknown>)?.storeLogo as string | undefined,
+      storeLatitude: (dbUser as Record<string, unknown>)?.storeLatitude as number | undefined,
+      storeLongitude: (dbUser as Record<string, unknown>)?.storeLongitude as number | undefined,
     };
   } catch {
     const isAdmin = session.user.isAdmin === true;

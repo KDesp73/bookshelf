@@ -7,6 +7,8 @@ export interface StoreListItem {
   storeImages?: string[];
   username: string;
   name?: string;
+  storeLatitude?: number;
+  storeLongitude?: number;
 }
 
 export type StoreBookDocument = {

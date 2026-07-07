@@ -62,6 +62,8 @@ const userSchema = new Schema(
     storeCity: { type: String, trim: true },
     storeImages: { type: [String], default: [] },
     storeWebsite: { type: String, trim: true },
+    storeLatitude: { type: Number },
+    storeLongitude: { type: Number },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },

@@ -138,6 +138,33 @@ export function StoreConvertForm({ user }: StoreConvertFormProps) {
         />
       </div>
 
+      <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-2">
+          <Label htmlFor="storeLatitude">Latitude (optional)</Label>
+          <Input
+            id="storeLatitude"
+            name="storeLatitude"
+            type="number"
+            step="any"
+            placeholder="48.8566"
+            defaultValue={user.storeLatitude ?? ""}
+            disabled={pending}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="storeLongitude">Longitude (optional)</Label>
+          <Input
+            id="storeLongitude"
+            name="storeLongitude"
+            type="number"
+            step="any"
+            placeholder="2.3522"
+            defaultValue={user.storeLongitude ?? ""}
+            disabled={pending}
+          />
+        </div>
+      </div>
+
       {isStore ? (
         <div className="grid gap-2">
           <Label>Images (optional)</Label>

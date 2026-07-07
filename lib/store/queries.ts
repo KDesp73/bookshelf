@@ -88,7 +88,7 @@ export async function listStores(
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit + 1)
-    .select("storeName storeDescription storeLogo storeCity storeImages username name")
+    .select("storeName storeDescription storeLogo storeCity storeImages username name storeLatitude storeLongitude")
     .lean();
 
   const hasMore = users.length > limit;
@@ -105,6 +105,8 @@ export async function listStores(
       storeImages: (user.storeImages as string[]) ?? undefined,
       username: user.username as string,
       name: (user.name as string) ?? undefined,
+      storeLatitude: (user.storeLatitude as number) ?? undefined,
+      storeLongitude: (user.storeLongitude as number) ?? undefined,
     };
   });
 

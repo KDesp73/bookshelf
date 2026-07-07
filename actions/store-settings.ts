@@ -25,6 +25,10 @@ export async function convertToStoreAction(
   const storePostalCode = String(formData.get("storePostalCode") ?? "").trim();
   const storeCity = String(formData.get("storeCity") ?? "").trim();
   const storeWebsite = String(formData.get("storeWebsite") ?? "").trim();
+  const storeLatitudeRaw = formData.get("storeLatitude");
+  const storeLongitudeRaw = formData.get("storeLongitude");
+  const storeLatitude = storeLatitudeRaw ? Number(storeLatitudeRaw) : undefined;
+  const storeLongitude = storeLongitudeRaw ? Number(storeLongitudeRaw) : undefined;
 
   if (!storeName) return { error: "Store name is required." };
 
@@ -39,6 +43,8 @@ export async function convertToStoreAction(
       storePostalCode: storePostalCode || undefined,
       storeCity: storeCity || undefined,
       storeWebsite: storeWebsite || undefined,
+      storeLatitude,
+      storeLongitude,
     });
   } catch {
     return { error: "Could not convert account. Try again." };
@@ -69,6 +75,10 @@ export async function updateStoreInfoAction(
   const storeImages = storeImagesRaw
     .map((v) => String(v).trim())
     .filter(Boolean);
+  const storeLatitudeRaw = formData.get("storeLatitude");
+  const storeLongitudeRaw = formData.get("storeLongitude");
+  const storeLatitude = storeLatitudeRaw ? Number(storeLatitudeRaw) : undefined;
+  const storeLongitude = storeLongitudeRaw ? Number(storeLongitudeRaw) : undefined;
 
   if (!storeName) return { error: "Store name is required." };
 
@@ -83,6 +93,8 @@ export async function updateStoreInfoAction(
       storeCity: storeCity || undefined,
       storeWebsite: storeWebsite || undefined,
       storeImages: storeImages.length > 0 ? storeImages : undefined,
+      storeLatitude,
+      storeLongitude,
     });
   } catch {
     return { error: "Could not update store info. Try again." };
