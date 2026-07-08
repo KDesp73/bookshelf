@@ -17,35 +17,39 @@ const pinIcon = L.divIcon({
 interface LocationPickerProps {
   latitude?: number;
   longitude?: number;
-  onChange: (lat: number, lng: number) => void;
+  onChange?: (lat: number, lng: number) => void;
+  disabled?: boolean;
 }
 
 function ClickHandler({
   onClick,
+  disabled,
 }: {
   onClick: (lat: number, lng: number) => void;
+  disabled?: boolean;
 }) {
   useMapEvents({
     click(e) {
-      onClick(e.latlng.lat, e.latlng.lng);
+      if (!disabled) onClick(e.latlng.lat, e.latlng.lng);
     },
   });
   return null;
 }
 
-export function LocationPicker({ latitude, longitude, onChange }: LocationPickerProps) {
+export function LocationPicker({ latitude, longitude, onChange, disabled }: LocationPickerProps) {
   const [lat, setLat] = useState(latitude);
   const [lng, setLng] = useState(longitude);
   const [error, setError] = useState<string | null>(null);
 
   const handleMapClick = useCallback(
     (newLat: number, newLng: number) => {
+      if (disabled) return;
       setLat(newLat);
       setLng(newLng);
       setError(null);
-      onChange(newLat, newLng);
+      onChange?.(newLat, newLng);
     },
-    [onChange],
+    [onChange, disabled],
   );
 
   const handleInputChange = (field: "lat" | "lng", value: string) => {
@@ -53,10 +57,10 @@ export function LocationPicker({ latitude, longitude, onChange }: LocationPicker
     if (isNaN(parsed)) return;
     if (field === "lat") {
       setLat(parsed);
-      onChange(parsed, lng ?? 0);
+      onChange?.(parsed, lng ?? 0);
     } else {
       setLng(parsed);
-      onChange(lat ?? 0, parsed);
+      onChange?.(lat ?? 0, parsed);
     }
     setError(null);
   };
@@ -85,6 +89,7 @@ export function LocationPicker({ latitude, longitude, onChange }: LocationPicker
             step="any"
             placeholder="48.8566"
             value={lat ?? ""}
+            disabled={disabled}
             onChange={(e) => handleInputChange("lat", e.target.value)}
           />
         </div>
@@ -97,6 +102,7 @@ export function LocationPicker({ latitude, longitude, onChange }: LocationPicker
             step="any"
             placeholder="2.3522"
             value={lng ?? ""}
+            disabled={disabled}
             onChange={(e) => handleInputChange("lng", e.target.value)}
           />
         </div>
@@ -113,7 +119,7 @@ export function LocationPicker({ latitude, longitude, onChange }: LocationPicker
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <ClickHandler onClick={handleMapClick} />
+          <ClickHandler onClick={handleMapClick} disabled={disabled} />
           {lat != null && lng != null ? (
             <Marker
               position={[lat, lng]}

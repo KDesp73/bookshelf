@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { LocationPicker } from "@/components/store/location-picker";
 
 interface StoreConvertFormProps {
   user: SessionUser;
@@ -138,32 +139,11 @@ export function StoreConvertForm({ user }: StoreConvertFormProps) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="grid gap-2">
-          <Label htmlFor="storeLatitude">Latitude (optional)</Label>
-          <Input
-            id="storeLatitude"
-            name="storeLatitude"
-            type="number"
-            step="any"
-            placeholder="48.8566"
-            defaultValue={user.storeLatitude ?? ""}
-            disabled={pending}
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="storeLongitude">Longitude (optional)</Label>
-          <Input
-            id="storeLongitude"
-            name="storeLongitude"
-            type="number"
-            step="any"
-            placeholder="2.3522"
-            defaultValue={user.storeLongitude ?? ""}
-            disabled={pending}
-          />
-        </div>
-      </div>
+      <LocationPicker
+        latitude={user.storeLatitude}
+        longitude={user.storeLongitude}
+        disabled={pending}
+      />
 
       {isStore ? (
         <div className="grid gap-2">
