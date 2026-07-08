@@ -186,7 +186,7 @@ export function ProfileHeader({
             disabled={pending}
           >
             <Heart className={cn("h-4 w-4", liked && "fill-current")} />
-            {liked ? "Liked" : "Like collection"}
+            {liked ? "Liked" : user.isStore ? "Like store" : "Like collection"}
           </Button>
         </>
       );
@@ -263,7 +263,7 @@ export function ProfileHeader({
             disabled={pending}
           >
             <Heart className={cn("h-4 w-4", liked && "fill-current")} />
-            {liked ? "Liked" : "Like collection"}
+            {liked ? "Liked" : user.isStore ? "Like store" : "Like collection"}
           </Button>
         </>
       );

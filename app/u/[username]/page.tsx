@@ -114,7 +114,7 @@ export default async function ProfilePage({
 
     if (user.isStore) {
       storeBooks = await getStoreBooks(user._id);
-      storeBookCount = storeBooks.length;
+      storeBookCount = storeBooks.reduce((sum, b) => sum + (b.quantity || 1), 0);
       if (isOwner) {
         await connectDB();
         [storePendingAdCount, storeApprovedAdCount] = await Promise.all([

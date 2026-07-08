@@ -290,9 +290,14 @@ export async function listRankedUsers(
       // If aggregation returned results but all are invalid, return empty
       if (allIds.length === 0) return { items: [], hasMore: false };
     }
+
+    // Exclude store accounts from rankings
+    const storeUsers = await User.find({ _id: { $in: paginatedIds }, isStore: true }).select("_id").lean();
+    const storeIds = new Set(storeUsers.map((u) => (u as IUser & { _id: { toString(): string } })._id.toString()));
+    paginatedIds = paginatedIds.filter((id) => !storeIds.has(id));
   } else {
     // "overall" — needs all stats to compute weighted score.
-    const allUserIds = (await User.find({ username: { $exists: true, $ne: null } })
+    const allUserIds = (await User.find({ username: { $exists: true, $ne: null }, isStore: { $ne: true } })
       .select("_id")
       .lean())
       .map((u) => (u as IUser & { _id: { toString(): string } })._id.toString());
