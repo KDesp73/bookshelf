@@ -21,3 +21,9 @@ export type AdActionState = {
   error?: string;
   success?: boolean;
 };
+
+export type AdminAdRow = AdDocument & {
+  storeName: string;
+  storeCity?: string;
+  storeUsername?: string;
+};

@@ -10,6 +10,7 @@ import { StoreBook } from "@/models/StoreBook";
 import { User, type IUser } from "@/models/User";
 import { UserAchievement } from "@/models/UserAchievement";
 import type { AdminStats, AdminStoreRow, AdminUserRow } from "@/types/user";
+import type { AdminAdRow } from "@/types/ad";
 
 export async function getAdminStats(): Promise<AdminStats> {
   await connectDB();
@@ -114,6 +115,47 @@ export async function listAllStores(search?: string): Promise<AdminStoreRow[]> {
       storeBookCount: bookCountMap.get(id) ?? 0,
       adCount: adCountMap.get(id) ?? 0,
       createdAt: typedUser.createdAt.toISOString(),
+    };
+  });
+}
+
+export async function listAllAds(): Promise<AdminAdRow[]> {
+  await connectDB();
+
+  const ads = await Ad.find().sort({ createdAt: -1 }).lean();
+  if (ads.length === 0) return [];
+
+  const userIds = [...new Set(ads.map((a) => a.userId.toString()))];
+  const stores = await User.find({ _id: { $in: userIds } })
+    .select("storeName storeCity username")
+    .lean();
+
+  const storeMap = new Map(
+    stores.map((s) => [
+      s._id.toString(),
+      {
+        storeName: (s as Record<string, unknown>).storeName as string,
+        storeCity: (s as Record<string, unknown>).storeCity as string | undefined,
+        storeUsername: (s as Record<string, unknown>).username as string | undefined,
+      },
+    ]),
+  );
+
+  return ads.map((ad) => {
+    const store = storeMap.get(ad.userId.toString());
+    return {
+      _id: ad._id.toString(),
+      userId: ad.userId.toString(),
+      title: ad.title,
+      text: ad.text,
+      image: ad.image ?? undefined,
+      link: ad.link ?? undefined,
+      status: ad.status as "pending" | "approved" | "rejected",
+      createdAt: ad.createdAt.toISOString(),
+      updatedAt: ad.updatedAt.toISOString(),
+      storeName: store?.storeName ?? "Unknown",
+      storeCity: store?.storeCity,
+      storeUsername: store?.storeUsername,
     };
   });
 }

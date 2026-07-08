@@ -384,3 +384,43 @@ export async function deleteStoreDataAction(
     return { success: false, error: "Could not delete store data. Try again." };
   }
 }
+
+export async function approveAdAction(
+  adId: string,
+): Promise<ActionResult<null>> {
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_ADS);
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Admin access required." };
+  }
+
+  try {
+    await connectDB();
+    const result = await Ad.findByIdAndUpdate(adId, { status: "approved" });
+    if (!result) return { success: false, error: "Ad not found." };
+    revalidatePath("/admin/ads");
+    revalidatePath("/admin/stores");
+    return { success: true, data: null };
+  } catch {
+    return { success: false, error: "Could not approve ad." };
+  }
+}
+
+export async function rejectAdAction(
+  adId: string,
+): Promise<ActionResult<null>> {
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_ADS);
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Admin access required." };
+  }
+
+  try {
+    await connectDB();
+    const result = await Ad.findByIdAndUpdate(adId, { status: "rejected" });
+    if (!result) return { success: false, error: "Ad not found." };
+    revalidatePath("/admin/ads");
+    revalidatePath("/admin/stores");
+    return { success: true, data: null };
+  } catch {
+    return { success: false, error: "Could not reject ad." };
+  }
+}
