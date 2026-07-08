@@ -105,3 +105,36 @@ export async function updateStoreInfoAction(
   revalidatePath("/store/dashboard/settings");
   return { success: true };
 }
+
+export async function revertToUserAction(): Promise<StoreSettingsState> {
+  const user = await getSessionUser();
+  if (!user) return { error: "Sign in required." };
+  if (!user.isStore) return { error: "Not a store account." };
+
+  try {
+    await connectDB();
+    await User.findByIdAndUpdate(user.id, {
+      $set: { isStore: false },
+      $unset: {
+        storeName: "",
+        storeDescription: "",
+        storeAddress: "",
+        storePhone: "",
+        storeLogo: "",
+        storePostalCode: "",
+        storeCity: "",
+        storeImages: "",
+        storeWebsite: "",
+        storeLatitude: "",
+        storeLongitude: "",
+      },
+    });
+  } catch {
+    return { error: "Could not revert account. Try again." };
+  }
+
+  revalidatePath("/settings");
+  revalidatePath("/store/dashboard");
+  revalidatePath("/store/dashboard/settings");
+  return { success: true };
+}

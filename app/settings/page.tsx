@@ -11,6 +11,7 @@ import { SettingsSection } from "@/components/settings/settings-section";
 import { ThemeSettings } from "@/components/settings/theme-settings";
 import { ShelfAppearanceForm } from "@/components/shelf/shelf-appearance-form";
 import { WishlistVisibilityToggle } from "@/components/wishlist/wishlist-visibility-toggle";
+import { RevertStoreButton } from "@/components/settings/revert-store-button";
 import { Button } from "@/components/ui/button";
 
 
@@ -77,6 +78,30 @@ export default async function SettingsPage() {
           promotionalEmailsOptIn={settings.promotionalEmailsOptIn}
         />
       </SettingsSection>
+
+      {settings.isStore ? (
+        <SettingsSection
+          title="Store"
+          description="Manage your bookstore settings."
+        >
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-stone-800 dark:text-stone-200">
+                {settings.storeName}
+              </p>
+              <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
+                Your account is currently set up as a bookstore.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/store/dashboard/settings">Manage store info</Link>
+              </Button>
+              <RevertStoreButton />
+            </div>
+          </div>
+        </SettingsSection>
+      ) : null}
 
       {settings.hasPassword ? (
         <SettingsSection
