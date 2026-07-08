@@ -24,6 +24,12 @@ export async function submitAdAction(
 
   try {
     await connectDB();
+
+    const existingCount = await Ad.countDocuments({ userId: user.id });
+    if (existingCount >= 3) {
+      return { error: "Maximum of 3 ads per store. Delete an existing ad first." };
+    }
+
     await Ad.create({
       userId: user.id,
       title,

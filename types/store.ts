@@ -25,6 +25,13 @@ export type StoreBookDocument = {
   updatedAt: string;
 };
 
+export type RelevantStoreBook = StoreBookDocument & {
+  storeName: string;
+  storeCity?: string;
+  storeUsername: string;
+  matchReason: "wishlist" | "author";
+};
+
 export type StoreBookInput = {
   title: string;
   author: string;

@@ -3,7 +3,8 @@ import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { StoreBook } from "@/models/StoreBook";
 import { Ad } from "@/models/Ad";
-import type { StoreListItem, StoreBookDocument } from "@/types/store";
+import { Book } from "@/models/Book";
+import type { StoreListItem, StoreBookDocument, RelevantStoreBook } from "@/types/store";
 import type { AdDocument } from "@/types/ad";
 import type { PaginatedResult } from "@/types/user";
 
@@ -111,4 +112,77 @@ export async function listStores(
   });
 
   return { items, hasMore };
+}
+
+export async function getRelevantStoreBooks(
+  userId: string,
+): Promise<RelevantStoreBook[]> {
+  await connectDB();
+
+  const userBooks = await Book.find({ userId })
+    .select("isbn13 authors")
+    .lean();
+
+  const wishlistIsbns = new Set<string>();
+  const authorNames = new Set<string>();
+
+  for (const book of userBooks) {
+    if (book.isWishlist && book.isbn13) {
+      wishlistIsbns.add(book.isbn13);
+    }
+    for (const author of book.authors) {
+      if (author) authorNames.add(author.toLowerCase().trim());
+    }
+  }
+
+  if (wishlistIsbns.size === 0 && authorNames.size === 0) {
+    return [];
+  }
+
+  const stores = await User.find({
+    isStore: true,
+    storeName: { $exists: true, $ne: null },
+  })
+    .select("_id storeName storeCity username")
+    .lean();
+
+  if (stores.length === 0) return [];
+
+  const results: RelevantStoreBook[] = [];
+
+  for (const store of stores) {
+    const storeId = store._id.toString();
+    const storeName = (store as Record<string, unknown>).storeName as string;
+    const storeCity = (store as Record<string, unknown>).storeCity as string | undefined;
+    const username = (store as Record<string, unknown>).username as string;
+
+    const storeBooks = await StoreBook.find({ userId: storeId }).lean();
+
+    for (const sb of storeBooks) {
+      const bookIsbn = (sb.isbn as string) ?? "";
+      const bookAuthor = ((sb.author as string) ?? "").toLowerCase().trim();
+
+      const matchesWishlist = wishlistIsbns.size > 0 && bookIsbn.length > 0
+        ? wishlistIsbns.has(bookIsbn)
+        : false;
+
+      const matchesAuthor = authorNames.size > 0 && bookAuthor.length > 0
+        ? authorNames.has(bookAuthor)
+        : false;
+
+      if (!matchesWishlist && !matchesAuthor) continue;
+
+      results.push({
+        ...toStoreBookDocument(sb as Record<string, unknown>),
+        storeName,
+        storeCity,
+        storeUsername: username,
+        matchReason: matchesWishlist ? "wishlist" : "author",
+      });
+    }
+  }
+
+  results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  return results.slice(0, 20);
 }

@@ -11,6 +11,8 @@ import { CollectionIOMenu } from "@/components/library/collection-io-menu";
 import { ShelfThemeWrapper } from "@/components/shelf/shelf-theme-wrapper";
 import { DailyQuote } from "@/components/daily-quote";
 import { Recommendations } from "@/components/recommendations";
+import { getRelevantStoreBooks } from "@/lib/store/queries";
+import { StoreRelevantBooks } from "@/components/store/store-relevant-books";
 
 interface HomePageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -32,13 +34,15 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   let books: Awaited<ReturnType<typeof listBooks>> = [];
   let tags: string[] = [];
+  let relevantStoreBooks: Awaited<ReturnType<typeof getRelevantStoreBooks>> = [];
   let dbError: string | null = null;
   const profile = await getUserByUsername(user.username);
 
   try {
-    [books, tags] = await Promise.all([
+    [books, tags, relevantStoreBooks] = await Promise.all([
       listBooks(user.id, filters),
       getAllTags(user.id),
+      getRelevantStoreBooks(user.id),
     ]);
   } catch {
     dbError =
@@ -88,6 +92,17 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           >
             <Recommendations userId={user.id} />
           </Suspense>
+
+          {relevantStoreBooks.length > 0 ? (
+            <Suspense
+              fallback={
+                <div className="h-[200px] animate-pulse rounded-xl bg-stone-200 dark:bg-stone-800" />
+              }
+            >
+              <StoreRelevantBooks books={relevantStoreBooks} />
+            </Suspense>
+          ) : null}
+
           <Suspense fallback={<div className="h-10 animate-pulse rounded-md bg-stone-200 dark:bg-stone-800" />}>
             <LibraryFilters tags={tags} />
           </Suspense>
