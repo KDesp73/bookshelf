@@ -6,7 +6,7 @@ import { getAdminStats } from "@/lib/admin/queries";
 import { countBooksNeedingMetadataEnrichment } from "@/lib/books/backfill-metadata";
 
 export default async function AdminDashboardPage() {
-  let stats = { userCount: 0, bookCount: 0, likeCount: 0 };
+  let stats: Awaited<ReturnType<typeof getAdminStats>> = { userCount: 0, bookCount: 0, likeCount: 0, storeCount: 0 };
   let booksNeedingMetadata = 0;
   let dbError: string | null = null;
 
@@ -31,9 +31,10 @@ export default async function AdminDashboardPage() {
       ) : (
         <>
           <div className="flex items-start justify-between gap-4">
-            <div className="grid flex-1 gap-4 sm:grid-cols-3">
+            <div className="grid flex-1 gap-4 sm:grid-cols-4">
               <StatCard label="Users" value={stats.userCount} />
               <StatCard label="Books" value={stats.bookCount} />
+              <StatCard label="Stores" value={stats.storeCount} />
               <StatCard label="Collection likes" value={stats.likeCount} />
             </div>
             <RefreshDashboardButton />

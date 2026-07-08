@@ -44,10 +44,25 @@ export interface AdminUserRow {
   createdAt: string;
 }
 
+export interface AdminStoreRow {
+  _id: string;
+  email: string;
+  name?: string;
+  username?: string;
+  storeName?: string;
+  storeCity?: string;
+  storePhone?: string;
+  storeWebsite?: string;
+  storeBookCount: number;
+  adCount: number;
+  createdAt: string;
+}
+
 export interface AdminStats {
   userCount: number;
   bookCount: number;
   likeCount: number;
+  storeCount: number;
 }
 
 export interface UserListItem {
