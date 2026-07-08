@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Heart, Settings, ShieldCheck } from "lucide-react";
+import { BookCopy, BookOpen, Heart, LayoutDashboard, Megaphone, Settings, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toggleCollectionLikeAction } from "@/actions/social";
 import type { CollectionLiker, UserProfile } from "@/types/user";
@@ -134,24 +134,36 @@ export function ProfileHeader({
     if (isOwner) {
       return (
         <>
+          {user.isStore ? (
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/store/dashboard">
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </Link>
+            </Button>
+          ) : null}
           <Button variant="outline" size="sm" asChild>
             <Link href="/settings">
               <Settings className="h-4 w-4" />
               Settings
             </Link>
           </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/wishlist">
-              <Heart className="h-4 w-4" />
-              Wishlist
-            </Link>
-          </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/">
-              <BookOpen className="h-4 w-4" />
-              My library
-            </Link>
-          </Button>
+          {!user.isStore ? (
+            <>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/wishlist">
+                  <Heart className="h-4 w-4" />
+                  Wishlist
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/">
+                  <BookOpen className="h-4 w-4" />
+                  My library
+                </Link>
+              </Button>
+            </>
+          ) : null}
         </>
       );
     }
@@ -193,24 +205,36 @@ export function ProfileHeader({
     if (isOwner) {
       return (
         <>
+          {user.isStore ? (
+            <Button variant="outline" size="sm" className="w-full justify-center" asChild>
+              <Link href="/store/dashboard">
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </Link>
+            </Button>
+          ) : null}
           <Button variant="outline" size="sm" className="w-full justify-center" asChild>
             <Link href="/settings">
               <Settings className="h-4 w-4" />
               Settings
             </Link>
           </Button>
-          <Button variant="outline" size="sm" className="w-full justify-center" asChild>
-            <Link href="/wishlist">
-              <Heart className="h-4 w-4" />
-              Wishlist
-            </Link>
-          </Button>
-          <Button variant="outline" size="sm" className="col-span-2 w-full justify-center" asChild>
-            <Link href="/">
-              <BookOpen className="h-4 w-4" />
-              My library
-            </Link>
-          </Button>
+          {!user.isStore ? (
+            <>
+              <Button variant="outline" size="sm" className="w-full justify-center" asChild>
+                <Link href="/wishlist">
+                  <Heart className="h-4 w-4" />
+                  Wishlist
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" className="col-span-2 w-full justify-center" asChild>
+                <Link href="/">
+                  <BookOpen className="h-4 w-4" />
+                  My library
+                </Link>
+              </Button>
+            </>
+          ) : null}
         </>
       );
     }

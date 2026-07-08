@@ -15,6 +15,8 @@ import {
   backfillBookMetadata,
   countBooksNeedingMetadataEnrichment,
 } from "@/lib/books/backfill-metadata";
+import { StoreBook } from "@/models/StoreBook";
+import { Ad } from "@/models/Ad";
 import { ADMIN_PERMISSIONS, ALL_ADMIN_PERMISSIONS } from "@/lib/constants";
 import type { AdminPermission } from "@/lib/constants";
 import type { BackfillMetadataResult } from "@/lib/books/backfill-metadata";
@@ -285,5 +287,100 @@ export async function refreshRecommendationsAction(): Promise<
     };
   } catch {
     return { success: false, error: "Failed to refresh recommendations." };
+  }
+}
+
+export async function deleteAdminStoreBookAction(
+  bookId: string,
+): Promise<ActionResult<null>> {
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_STORES);
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Admin access required." };
+  }
+
+  try {
+    await connectDB();
+    await StoreBook.deleteOne({ _id: bookId });
+    revalidatePath("/admin/stores");
+    return { success: true, data: null };
+  } catch {
+    return { success: false, error: "Could not delete store book." };
+  }
+}
+
+export async function revertStoreAction(
+  userId: string,
+): Promise<ActionResult<{ email: string }>> {
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_STORES);
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Admin access required." };
+  }
+
+  try {
+    await connectDB();
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: { isStore: false },
+        $unset: {
+          storeName: "",
+          storeDescription: "",
+          storeAddress: "",
+          storePhone: "",
+          storeLogo: "",
+          storePostalCode: "",
+          storeCity: "",
+          storeImages: "",
+          storeWebsite: "",
+          storeLatitude: "",
+          storeLongitude: "",
+        },
+      },
+      { new: true },
+    );
+
+    if (!user) {
+      return { success: false, error: "User not found." };
+    }
+
+    if (auth.user.id === userId) {
+      return { success: false, error: "You cannot revert your own store." };
+    }
+
+    revalidatePath("/admin/stores");
+    if (userId) revalidatePath(`/admin/stores/${userId}`);
+    revalidatePath("/stores");
+    return { success: true, data: { email: user.email } };
+  } catch {
+    return { success: false, error: "Could not revert store. Try again." };
+  }
+}
+
+export async function deleteStoreDataAction(
+  userId: string,
+): Promise<ActionResult<{ deletedBooks: number; deletedAds: number }>> {
+  const auth = await requirePermission(ADMIN_PERMISSIONS.MANAGE_STORES);
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Admin access required." };
+  }
+
+  try {
+    await connectDB();
+    const [bookResult, adResult] = await Promise.all([
+      StoreBook.deleteMany({ userId }),
+      Ad.deleteMany({ userId }),
+    ]);
+
+    revalidatePath("/admin/stores");
+    if (userId) revalidatePath(`/admin/stores/${userId}`);
+    return {
+      success: true,
+      data: {
+        deletedBooks: bookResult.deletedCount,
+        deletedAds: adResult.deletedCount,
+      },
+    };
+  } catch {
+    return { success: false, error: "Could not delete store data. Try again." };
   }
 }

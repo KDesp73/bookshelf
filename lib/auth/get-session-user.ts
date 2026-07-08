@@ -14,7 +14,19 @@ export interface SessionUser {
   avatarType?: AvatarType | null;
   username?: string | null;
   isAdmin: boolean;
+  isStore: boolean;
   adminPermissions: AdminPermission[];
+  storeName?: string;
+  storeDescription?: string;
+  storeAddress?: string;
+  storePhone?: string;
+  storePostalCode?: string;
+  storeCity?: string;
+  storeImages?: string[];
+  storeWebsite?: string;
+  storeLogo?: string;
+  storeLatitude?: number;
+  storeLongitude?: number;
 }
 
 export async function getSessionUser(): Promise<SessionUser | null> {
@@ -24,7 +36,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   try {
     await connectDB();
     const dbUser = await User.findById(session.user.id)
-      .select("avatarType image name username email isAdmin adminPermissions")
+      .select("avatarType image name username email isAdmin adminPermissions isStore storeName storeDescription storeAddress storePhone storePostalCode storeCity storeImages storeWebsite storeLogo storeLatitude storeLongitude")
       .lean();
 
     const isAdmin = dbUser?.isAdmin === true || session.user.isAdmin === true;
@@ -40,9 +52,21 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       avatarType: (dbUser?.avatarType as AvatarType | undefined) ?? undefined,
       username: dbUser?.username ?? session.user.username,
       isAdmin,
+      isStore: (dbUser?.isStore as boolean | undefined) ?? session.user.isStore === true,
       adminPermissions: isAdmin && (!permissions || permissions.length === 0)
         ? ALL_ADMIN_PERMISSIONS
         : (permissions ?? ALL_ADMIN_PERMISSIONS),
+      storeName: (dbUser as Record<string, unknown>)?.storeName as string | undefined,
+      storeDescription: (dbUser as Record<string, unknown>)?.storeDescription as string | undefined,
+      storeAddress: (dbUser as Record<string, unknown>)?.storeAddress as string | undefined,
+      storePhone: (dbUser as Record<string, unknown>)?.storePhone as string | undefined,
+      storePostalCode: (dbUser as Record<string, unknown>)?.storePostalCode as string | undefined,
+      storeCity: (dbUser as Record<string, unknown>)?.storeCity as string | undefined,
+      storeImages: (dbUser as Record<string, unknown>)?.storeImages as string[] | undefined,
+      storeWebsite: (dbUser as Record<string, unknown>)?.storeWebsite as string | undefined,
+      storeLogo: (dbUser as Record<string, unknown>)?.storeLogo as string | undefined,
+      storeLatitude: (dbUser as Record<string, unknown>)?.storeLatitude as number | undefined,
+      storeLongitude: (dbUser as Record<string, unknown>)?.storeLongitude as number | undefined,
     };
   } catch {
     const isAdmin = session.user.isAdmin === true;
@@ -55,6 +79,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       image: session.user.image ?? undefined,
       username: session.user.username,
       isAdmin,
+      isStore: session.user.isStore === true,
       adminPermissions: isAdmin && (!permissions || permissions.length === 0)
         ? ALL_ADMIN_PERMISSIONS
         : (permissions ?? ALL_ADMIN_PERMISSIONS),

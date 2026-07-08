@@ -8,6 +8,7 @@ import { ShelfPresetStyles } from "@/components/shelf/shelf-preset-styles";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Analytics } from "@vercel/analytics/next"
 import { EasterEggDetector } from "@/components/easter-eggs/easter-egg-detector";
+import { AdSlideshow } from "@/components/layout/ad-slideshow";
 import "./globals.css";
 
 const lora = Lora({
@@ -67,6 +68,7 @@ export default function RootLayout({
               <NavigationProgress />
             </Suspense>
             <AppHeader />
+            <AdSlideshow />
             <EasterEggDetector />
             <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-6 sm:py-6">{children}</main>
             <Analytics />

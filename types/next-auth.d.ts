@@ -7,6 +7,7 @@ declare module "next-auth" {
       id: string;
       username?: string | null;
       isAdmin?: boolean;
+      isStore?: boolean;
       adminPermissions?: AdminPermission[];
     } & DefaultSession["user"];
   }
@@ -15,6 +16,7 @@ declare module "next-auth" {
     id: string;
     username?: string | null;
     isAdmin?: boolean;
+    isStore?: boolean;
     adminPermissions?: AdminPermission[];
   }
 }
@@ -24,6 +26,7 @@ declare module "next-auth/jwt" {
     id: string;
     username?: string | null;
     isAdmin?: boolean;
+    isStore?: boolean;
     adminPermissions?: AdminPermission[];
   }
 }

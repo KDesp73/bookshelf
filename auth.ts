@@ -127,6 +127,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       user.id = dbUser._id.toString();
       user.username = dbUser.username ?? null;
       user.isAdmin = dbUser.isAdmin ?? false;
+      user.isStore = (dbUser as unknown as Record<string, boolean | undefined>).isStore === true;
       user.adminPermissions = (
         Array.isArray(dbUser.adminPermissions)
           ? dbUser.adminPermissions.slice()
@@ -141,6 +142,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         token.id = user.id;
         token.username = user.username ?? null;
         token.isAdmin = user.isAdmin === true;
+        token.isStore = user.isStore === true;
         token.adminPermissions = user.adminPermissions;
         return compactAuthToken(token);
       }
@@ -159,6 +161,8 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         if (typeof nextName === "string") {
           token.name = nextName;
         }
+        // Force DB refresh on explicit session update so isStore is picked up immediately.
+        (token as Record<string, unknown>).lastDbRefresh = 0;
         return compactAuthToken(token);
       }
 
@@ -170,20 +174,21 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
           try {
             await connectDB();
             const dbUser = await User.findById(token.id)
-              .select("username isAdmin email adminPermissions")
+              .select("username isAdmin email adminPermissions isStore")
               .lean();
 
-            if (dbUser) {
-              const isSuper = isAdminEmail(dbUser.email);
-              token.isAdmin = isSuper ? true : (dbUser.isAdmin ?? false);
-              token.adminPermissions = isSuper
-                ? ALL_ADMIN_PERMISSIONS
-                : ((dbUser.adminPermissions as typeof ALL_ADMIN_PERMISSIONS) ?? []);
-              if (isSuper && !dbUser.isAdmin) {
-                await User.findByIdAndUpdate(token.id, { isAdmin: true, adminPermissions: ALL_ADMIN_PERMISSIONS });
+              if (dbUser) {
+                const isSuper = isAdminEmail(dbUser.email);
+                token.isAdmin = isSuper ? true : (dbUser.isAdmin ?? false);
+                token.isStore = (dbUser as unknown as Record<string, boolean | undefined>).isStore === true;
+                token.adminPermissions = isSuper
+                  ? ALL_ADMIN_PERMISSIONS
+                  : ((dbUser.adminPermissions as typeof ALL_ADMIN_PERMISSIONS) ?? []);
+                if (isSuper && !dbUser.isAdmin) {
+                  await User.findByIdAndUpdate(token.id, { isAdmin: true, adminPermissions: ALL_ADMIN_PERMISSIONS });
+                }
+                token.username = dbUser.username ?? null;
               }
-              token.username = dbUser.username ?? null;
-            }
             (token as Record<string, unknown>).lastDbRefresh = now;
           } catch {
             // Keep session usable if the database is temporarily unavailable.

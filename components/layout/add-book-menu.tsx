@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Plus, ScanLine, Search } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { BookCopy, ChevronDown, Plus, ScanLine, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,13 +14,30 @@ import {
 
 export function AddBookMenu() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const isStore = session?.user?.isStore === true;
 
   function handleOpenChange(open: boolean) {
     if (open) {
-      router.prefetch("/search");
-      router.prefetch("/scan");
-      router.prefetch("/add");
+      if (isStore) {
+        router.prefetch("/store/dashboard/books");
+      } else {
+        router.prefetch("/search");
+        router.prefetch("/scan");
+        router.prefetch("/add");
+      }
     }
+  }
+
+  if (isStore) {
+    return (
+      <Button size="sm" asChild>
+        <Link href="/store/dashboard/books">
+          <BookCopy className="h-4 w-4" />
+          <span className="hidden sm:inline">Inventory</span>
+        </Link>
+      </Button>
+    );
   }
 
   return (

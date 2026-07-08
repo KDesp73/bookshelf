@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { BookOpen, LogIn, Shield, Users } from "lucide-react";
+import { BookOpen, LogIn, Shield, Store, Users } from "lucide-react";
 import { AddBookMenu } from "@/components/layout/add-book-menu";
 import { HeaderProfileAvatar } from "@/components/layout/header-profile-avatar";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -22,14 +22,16 @@ export function AppHeader() {
   useEffect(() => {
     if (user?.id) {
       router.prefetch("/community");
-      if (user.username) {
+      if (user.isStore) {
+        router.prefetch("/store/dashboard");
+      } else if (user.username) {
         router.prefetch(`/u/${user.username}`);
       }
     } else if (!isLoading) {
       router.prefetch("/register");
       router.prefetch("/discover");
     }
-  }, [user?.id, user?.username, isLoading, router]);
+  }, [user?.id, user?.username, user?.isStore, isLoading, router]);
 
   const handleLogoClick = useCallback(() => {
     if (!user?.id) return;
@@ -63,7 +65,12 @@ export function AppHeader() {
               <span className="hidden sm:inline">Community</span>
             </Link>
           </Button>
-
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/stores">
+              <Store className="h-4 w-4" />
+              <span className="hidden sm:inline">Stores</span>
+            </Link>
+          </Button>
           {isLoading ? (
             <Skeleton className="h-8 w-8 rounded-full" />
           ) : user ? (

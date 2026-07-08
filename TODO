@@ -1,33 +1,33 @@
-TODO: reports (inappropriate custom covers or bios)
-TODO: bookshop non-intrusive ads
-TODO: collection groups
-TODO: bookshop accounts
-TODO: friends
-TODO: renting
-DONE: about page
-DONE: landing page
-DONE: wishlist
-DONE: hash user image
-DONE: export collection
-DONE: share profile
-DONE: mobile ui
-DONE: themes
-DONE: customize bookshelf appearence (custom css)
-DONE: genre information
-DONE: restricting/deleting users
-DONE: email verification
-DONE: batch email sending to users
-DONE: forgot password?
-DONE: allow users to delete their account
-DONE: search for a book to add it
-DONE: social media panel shares
-DONE: better discover page
-DONE: preview user collections on discover page
-DONE: quotes
-DONE: achievements
-DONE: performance
-DONE: community suggestions
-DONE: recommendations
-DONE: import from goodreads
-DONE: easter eggs
-DONE: favicon
+TODO: reports (inappropriate custom covers or bios) []
+TODO: bookshop non-intrusive ads []
+TODO: collection groups []
+PROG: bookshop accounts []
+TODO: friends []
+TODO: renting []
+DONE: about page []
+DONE: landing page []
+DONE: wishlist []
+DONE: hash user image []
+DONE: export collection []
+DONE: share profile []
+DONE: mobile ui []
+DONE: themes []
+DONE: customize bookshelf appearence (custom css) []
+DONE: genre information []
+DONE: restricting/deleting users []
+DONE: email verification []
+DONE: batch email sending to users []
+DONE: forgot password? []
+DONE: allow users to delete their account []
+DONE: search for a book to add it []
+DONE: social media panel shares []
+DONE: better discover page []
+DONE: preview user collections on discover page []
+DONE: quotes []
+DONE: achievements []
+DONE: performance []
+DONE: community suggestions []
+DONE: recommendations []
+DONE: import from goodreads []
+DONE: easter eggs []
+DONE: favicon []
