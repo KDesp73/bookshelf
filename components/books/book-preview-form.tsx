@@ -79,9 +79,11 @@ export function BookPreviewForm({ initial }: BookPreviewFormProps) {
           <p className="mt-1 text-sm text-stone-700 dark:text-stone-300">
             {authors}
           </p>
-          <p className="mt-2 font-mono text-xs text-stone-500">
-            ISBN-13: {initial.isbn13}
-          </p>
+          {!initial.isbn13?.startsWith("manual-") && initial.isbn13 && (
+            <p className="mt-2 font-mono text-xs text-stone-500">
+              ISBN-13: {initial.isbn13}
+            </p>
+          )}
         </div>
       </div>
 
@@ -94,7 +96,7 @@ export function BookPreviewForm({ initial }: BookPreviewFormProps) {
       <CoverPicker
         title={initial.title}
         authors={initial.authors ?? []}
-        isbn13={initial.isbn13}
+        isbn13={!initial.isbn13?.startsWith("manual-") ? initial.isbn13 : undefined}
         initialCoverUrl={initial.coverUrl}
         selectedUrl={coverUrl}
         onSelect={setCoverUrl}

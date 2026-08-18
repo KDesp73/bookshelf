@@ -57,6 +57,7 @@ export function BookEditForm({ book }: BookEditFormProps) {
   const [notes, setNotes] = useState(book.notes ?? "");
   const [isPublicNote, setIsPublicNote] = useState(book.isPublicNote);
   const [rating, setRating] = useState<number | undefined>(book.rating);
+  const [isbn, setIsbn] = useState(book.isbn13);
 
   const isWishlist = book.isWishlist === true;
 
@@ -100,6 +101,7 @@ export function BookEditForm({ book }: BookEditFormProps) {
           .filter(Boolean),
         notes: notes || undefined,
         isPublicNote,
+        isbn13: isbn.trim() || undefined,
       });
 
       if (!result.success) {
@@ -271,8 +273,15 @@ export function BookEditForm({ book }: BookEditFormProps) {
 
       <div className="grid gap-2">
         <Label htmlFor="isbn">ISBN</Label>
-        <Input id="isbn" value={book.isbn13} readOnly className="bg-stone-100 dark:bg-stone-800" />
-        <p className="text-xs text-stone-500">ISBN cannot be changed.</p>
+        <Input
+          id="isbn"
+          value={isbn}
+          onChange={(e) => setIsbn(e.target.value)}
+          placeholder="9780143127550"
+        />
+        <p className="text-xs text-stone-500">
+          Enter a valid 10 or 13 digit ISBN.
+        </p>
       </div>
 
       <div className="grid gap-2">

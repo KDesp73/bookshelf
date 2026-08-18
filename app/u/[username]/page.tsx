@@ -131,7 +131,7 @@ export default async function ProfilePage({
         wishlistPublic={user.wishlistPublic}
       />
 
-      <ProfileAchievements achievements={achievements} />
+      <ProfileAchievements achievements={achievements.map((a) => ({ ...a, _id: a._id.toString() }))} />
 
       <ProfileFavorites
         books={favoriteBooks}

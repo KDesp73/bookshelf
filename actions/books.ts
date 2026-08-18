@@ -264,7 +264,7 @@ export async function moveToLibraryAction(
 
     const book = await Book.findOneAndUpdate(
       { _id: id, userId: auth.user.id, isWishlist: true },
-      { isWishlist: false, status: "Unread" },
+      { isWishlist: false, status: "Unread", dateAdded: new Date() },
       { new: true },
     );
 
@@ -326,66 +326,53 @@ export async function updateBookAction(
     return { success: false, error: "Invalid rating." };
   }
 
+  let normalizedIsbn: string | undefined;
+  if (updates.isbn13 !== undefined) {
+    const raw = updates.isbn13?.trim();
+    normalizedIsbn = raw ? (normalizeIsbn(raw) ?? raw) : undefined;
+  }
+
   try {
     await connectDB();
 
-    const book = await Book.findOneAndUpdate(
-      { _id: id, userId: auth.user.id },
-      {
-        ...(updates.title !== undefined && { title: updates.title.trim() }),
-        ...(updates.subtitle !== undefined && {
-          subtitle: updates.subtitle?.trim(),
-        }),
-        ...(updates.authors !== undefined && { authors: updates.authors }),
-        ...(updates.publisher !== undefined && {
-          publisher: updates.publisher?.trim(),
-        }),
-        ...(updates.publishedDate !== undefined && {
-          publishedDate: updates.publishedDate?.trim(),
-        }),
-        ...(updates.description !== undefined && {
-          description: updates.description?.trim(),
-        }),
-        ...(updates.pageCount !== undefined && { pageCount: updates.pageCount }),
-        ...(updates.coverUrl !== undefined && {
-          coverUrl: updates.coverUrl?.trim(),
-        }),
-        ...(updates.status !== undefined && { status: updates.status }),
-        ...(updates.tags !== undefined && {
-          tags: updates.tags.map((t) => t.trim()).filter(Boolean),
-        }),
-        ...(updates.notes !== undefined && { notes: updates.notes?.trim() }),
-        ...(updates.isPublicNote !== undefined && {
-          isPublicNote: updates.isPublicNote,
-        }),
-        ...(updates.genres !== undefined && {
-          genres: updates.genres.map((g) => g.trim()).filter(Boolean),
-        }),
-        ...(updates.subjects !== undefined && {
-          subjects: updates.subjects.map((s) => s.trim()).filter(Boolean),
-        }),
-        ...(updates.categories !== undefined && {
-          categories: updates.categories.map((c) => c.trim()).filter(Boolean),
-        }),
-        ...(updates.language !== undefined && {
-          langCode: updates.language.trim().toLowerCase() || undefined,
-        }),
-        ...(updates.genres !== undefined ||
-        updates.subjects !== undefined ||
-        updates.categories !== undefined ||
-        updates.language !== undefined
-          ? { metadataEnrichedAt: new Date() }
-          : {}),
-        ...(updates.rating !== undefined && {
-          rating: updates.rating === null ? undefined : updates.rating,
-        }),
-      },
-      { new: true },
-    );
+    const book = await Book.findOne({ _id: id, userId: auth.user.id });
 
     if (!book) {
       return { success: false, error: "Book not found." };
     }
+
+    if (normalizedIsbn !== undefined && normalizedIsbn !== book.isbn13) {
+      const duplicate = await Book.findOne({ userId: auth.user.id, isbn13: normalizedIsbn, _id: { $ne: id } });
+      if (duplicate) {
+        return { success: false, error: "A book with this ISBN already exists in your library." };
+      }
+      book.isbn13 = normalizedIsbn;
+    }
+
+    if (updates.title !== undefined) book.title = updates.title.trim();
+    if (updates.subtitle !== undefined) book.subtitle = updates.subtitle?.trim();
+    if (updates.authors !== undefined) book.authors = updates.authors;
+    if (updates.publisher !== undefined) book.publisher = updates.publisher?.trim();
+    if (updates.publishedDate !== undefined) book.publishedDate = updates.publishedDate?.trim();
+    if (updates.description !== undefined) book.description = updates.description?.trim();
+    if (updates.pageCount !== undefined) book.pageCount = updates.pageCount;
+    if (updates.coverUrl !== undefined) book.coverUrl = updates.coverUrl?.trim();
+    if (updates.status !== undefined) book.status = updates.status;
+    if (updates.tags !== undefined) book.tags = updates.tags.map((t) => t.trim()).filter(Boolean);
+    if (updates.notes !== undefined) book.notes = updates.notes?.trim();
+    if (updates.isPublicNote !== undefined) book.isPublicNote = updates.isPublicNote;
+    if (updates.genres !== undefined) book.genres = updates.genres.map((g) => g.trim()).filter(Boolean);
+    if (updates.subjects !== undefined) book.subjects = updates.subjects.map((s) => s.trim()).filter(Boolean);
+    if (updates.categories !== undefined) book.categories = updates.categories.map((c) => c.trim()).filter(Boolean);
+    if (updates.language !== undefined) book.langCode = updates.language.trim().toLowerCase() || undefined;
+    if (updates.genres !== undefined || updates.subjects !== undefined || updates.categories !== undefined || updates.language !== undefined) {
+      book.metadataEnrichedAt = new Date();
+    }
+    if (updates.rating !== undefined) {
+      book.rating = updates.rating === null ? undefined : updates.rating;
+    }
+
+    await book.save();
 
     revalidateBookPaths(auth.user.username!);
 

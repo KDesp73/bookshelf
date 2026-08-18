@@ -1,12 +1,15 @@
+import {
+  OPEN_LIBRARY_BASE,
+  OPEN_LIBRARY_COVERS_BASE,
+  OPEN_LIBRARY_HEADERS,
+  openLibraryCoverUrl,
+} from "@/lib/books/openlibrary";
+
 export interface CoverOption {
   url: string;
   source: string;
   label?: string;
 }
-
-const OPEN_LIBRARY_HEADERS = {
-  "User-Agent": "BookShelf/1.0 (personal library app; contact: local)",
-};
 
 function normalizeCoverUrl(url: string): string {
   return url
@@ -36,17 +39,13 @@ function addCover(
   options.push({ ...candidate, url });
 }
 
-function openLibraryCoverUrl(coverId: number): string {
-  return `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`;
-}
-
 async function fetchOpenLibraryIsbnCovers(
   isbn13: string,
   options: CoverOption[],
   seen: Set<string>,
 ): Promise<void> {
   try {
-    const res = await fetch(`https://openlibrary.org/isbn/${isbn13}.json`, {
+    const res = await fetch(`${OPEN_LIBRARY_BASE}/isbn/${isbn13}.json`, {
       next: { revalidate: 3600 },
       headers: OPEN_LIBRARY_HEADERS,
     });
@@ -92,7 +91,7 @@ async function fetchOpenLibrarySearchCovers(
     });
 
     const res = await fetch(
-      `https://openlibrary.org/search.json?${params}`,
+      `${OPEN_LIBRARY_BASE}/search.json?${params}`,
       { next: { revalidate: 3600 }, headers: OPEN_LIBRARY_HEADERS },
     );
     if (!res.ok) return;

@@ -6,6 +6,8 @@ import { getSiteUrl } from "@/lib/site-url";
 
 const MAX_COVER_BYTES = 250_000;
 const COVER_FETCH_TIMEOUT_MS = 4_000;
+const COVER_MAX_WIDTH = 400;
+const COVER_QUALITY = 80;
 
 const CARD_WIDTH = 480;
 const CARD_HEIGHT = 640;
@@ -30,7 +32,12 @@ async function fetchImageDataUri(url: string): Promise<string | null> {
     const buffer = Buffer.from(await response.arrayBuffer());
     if (buffer.byteLength > MAX_COVER_BYTES) return null;
 
-    return `data:${contentType.split(";")[0]};base64,${buffer.toString("base64")}`;
+    const compressed = await sharp(buffer)
+      .resize({ width: COVER_MAX_WIDTH, withoutEnlargement: true })
+      .jpeg({ quality: COVER_QUALITY })
+      .toBuffer();
+
+    return `data:image/jpeg;base64,${compressed.toString("base64")}`;
   } catch {
     return null;
   }

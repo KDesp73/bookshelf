@@ -94,10 +94,12 @@ export function BookSearch() {
         return;
       }
 
-      const identifier = result.openLibraryWorkKey ?? result.googleVolumeId ?? `${result.title}-${result.authors.join(",")}`;
+      const identifier = result.isbn13
+        ? undefined
+        : `manual-search-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
       setPreview({
-        isbn13: identifier,
+        isbn13: identifier ?? result.isbn13 ?? "",
         title: result.title,
         subtitle: result.subtitle ?? undefined,
         authors: result.authors,

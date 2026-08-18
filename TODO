@@ -1,33 +1,40 @@
-TODO: reports (inappropriate custom covers or bios)
-TODO: bookshop non-intrusive ads
-TODO: collection groups
-TODO: bookshop accounts
-TODO: friends
-TODO: renting
-DONE: about page
-DONE: landing page
-DONE: wishlist
-DONE: hash user image
-DONE: export collection
-DONE: share profile
-DONE: mobile ui
-DONE: themes
-DONE: customize bookshelf appearence (custom css)
-DONE: genre information
-DONE: restricting/deleting users
-DONE: email verification
-DONE: batch email sending to users
-DONE: forgot password?
-DONE: allow users to delete their account
-DONE: search for a book to add it
-DONE: social media panel shares
-DONE: better discover page
-DONE: preview user collections on discover page
-DONE: quotes
-DONE: achievements
-DONE: performance
-DONE: community suggestions
-DONE: recommendations
-DONE: import from goodreads
-DONE: easter eggs
-DONE: favicon
+DONE: about page []
+DONE: achievements []
+DONE: allow users to delete their account []
+DONE: batch email sending to users []
+DONE: better discover page []
+DONE: community suggestions []
+DONE: customize bookshelf appearence (custom css) []
+DONE: easter eggs []
+DONE: email verification []
+DONE: export collection []
+DONE: favicon []
+DONE: forgot password? []
+DONE: genre information []
+DONE: hash user image []
+DONE: import from goodreads []
+DONE: landing page []
+DONE: mobile ui []
+DONE: performance []
+DONE: preview user collections on discover page []
+DONE: quotes []
+DONE: recommendations []
+DONE: restricting/deleting users []
+DONE: search for a book to add it []
+DONE: share profile []
+DONE: social media panel shares []
+DONE: themes []
+DONE: wishlist []
+TODO: Seperate openlibrary url [optional]
+TODO: achievements [Better achivemenets ui]
+TODO: allow isbn edit []
+TODO: book from wishlist to collection should get new date []
+TODO: compress book covers before svg creation [both for profile and book svgs]
+TODO: bookshop accounts []
+TODO: bookshop non-intrusive ads []
+TODO: collection groups []
+TODO: friends []
+TODO: more book db sources []
+TODO: recommendations [Recommend books from authors the user has read]
+TODO: renting []
+TODO: reports (inappropriate custom covers or bios) []

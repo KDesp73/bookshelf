@@ -1,3 +1,4 @@
+import sharp from "sharp";
 import { connectDB } from "@/lib/db";
 import { getFavoriteBooksForShare } from "@/lib/books/favorites";
 import { getLikeCount } from "@/lib/social/queries";
@@ -20,6 +21,8 @@ import { comicReadWeight } from "@/lib/books/comic-weight";
 const MAX_COVERS = MAX_FAVORITE_BOOKS;
 const MAX_COVER_BYTES = 180_000;
 const COVER_FETCH_TIMEOUT_MS = 4_000;
+const COVER_MAX_WIDTH = 200;
+const COVER_QUALITY = 80;
 
 const PADDING = 28;
 const AVATAR_SIZE = 52;
@@ -145,7 +148,12 @@ async function fetchImageDataUri(url: string): Promise<string | null> {
     const buffer = Buffer.from(await response.arrayBuffer());
     if (buffer.byteLength > MAX_COVER_BYTES) return null;
 
-    return `data:${contentType.split(";")[0]};base64,${buffer.toString("base64")}`;
+    const compressed = await sharp(buffer)
+      .resize({ width: COVER_MAX_WIDTH, withoutEnlargement: true })
+      .jpeg({ quality: COVER_QUALITY })
+      .toBuffer();
+
+    return `data:image/jpeg;base64,${compressed.toString("base64")}`;
   } catch {
     return null;
   }

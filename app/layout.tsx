@@ -8,6 +8,7 @@ import { ShelfPresetStyles } from "@/components/shelf/shelf-preset-styles";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Analytics } from "@vercel/analytics/next"
 import { EasterEggDetector } from "@/components/easter-eggs/easter-egg-detector";
+import { OPEN_LIBRARY_BASE, OPEN_LIBRARY_COVERS_BASE } from "@/lib/books/openlibrary";
 import "./globals.css";
 
 const lora = Lora({
@@ -52,11 +53,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${lora.variable} ${sourceSans.variable} h-full`}>
       <head>
-        <link rel="preconnect" href="https://covers.openlibrary.org" />
-        <link rel="preconnect" href="https://openlibrary.org" />
+        <link rel="preconnect" href={OPEN_LIBRARY_COVERS_BASE} />
+        <link rel="preconnect" href={OPEN_LIBRARY_BASE} />
         <link rel="preconnect" href="https://www.googleapis.com" />
-        <link rel="dns-prefetch" href="https://covers.openlibrary.org" />
-        <link rel="dns-prefetch" href="https://openlibrary.org" />
+        <link rel="dns-prefetch" href={OPEN_LIBRARY_COVERS_BASE} />
+        <link rel="dns-prefetch" href={OPEN_LIBRARY_BASE} />
         <link rel="dns-prefetch" href="https://www.googleapis.com" />
       </head>
       <body className="min-h-full bg-background font-sans text-foreground antialiased">

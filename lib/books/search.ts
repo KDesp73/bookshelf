@@ -1,3 +1,10 @@
+import {
+  OPEN_LIBRARY_BASE,
+  OPEN_LIBRARY_COVERS_BASE,
+  OPEN_LIBRARY_HEADERS,
+  openLibraryCoverUrl,
+} from "@/lib/books/openlibrary";
+
 export interface SearchResult {
   isbn13: string | null;
   title: string;
@@ -13,10 +20,6 @@ export interface SearchResult {
   publisher: string | null;
 }
 
-const OPEN_LIBRARY_HEADERS = {
-  "User-Agent": "BookShelf/1.0 (personal library app; contact: local)",
-};
-
 function deduplicate(results: SearchResult[]): SearchResult[] {
   const seen = new Set<string>();
   return results.filter((r) => {
@@ -30,7 +33,7 @@ function deduplicate(results: SearchResult[]): SearchResult[] {
 async function searchOpenLibrary(query: string): Promise<SearchResult[]> {
   try {
     const res = await fetch(
-      `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=20`,
+      `${OPEN_LIBRARY_BASE}/search.json?q=${encodeURIComponent(query)}&limit=20`,
       { next: { revalidate: 300 }, headers: OPEN_LIBRARY_HEADERS },
     );
     if (!res.ok) return [];
@@ -54,7 +57,7 @@ async function searchOpenLibrary(query: string): Promise<SearchResult[]> {
 
     return data.docs.map((doc): SearchResult => {
       const coverUrl = doc.cover_i
-        ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`
+        ? openLibraryCoverUrl(doc.cover_i)
         : null;
 
       const isbn = doc.isbn?.find((i) => i.length === 13) ?? doc.isbn?.[0] ?? null;
@@ -69,7 +72,7 @@ async function searchOpenLibrary(query: string): Promise<SearchResult[]> {
         description: null,
         pageCount: doc.number_of_pages_median ?? null,
         source: "openlibrary",
-        openLibraryWorkKey: doc.key ? `https://openlibrary.org${doc.key}` : null,
+        openLibraryWorkKey: doc.key ? `${OPEN_LIBRARY_BASE}${doc.key}` : null,
         googleVolumeId: null,
         publisher: doc.publisher?.[0] ?? null,
       };

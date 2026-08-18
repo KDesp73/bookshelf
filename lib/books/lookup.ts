@@ -5,6 +5,12 @@ import {
   mergeStringArrays,
   parsePublishYear,
 } from "@/lib/books/metadata";
+import {
+  OPEN_LIBRARY_BASE,
+  OPEN_LIBRARY_COVERS_BASE,
+  OPEN_LIBRARY_HEADERS,
+  openLibraryCoverUrl,
+} from "@/lib/books/openlibrary";
 
 type PartialMetadata = Partial<BookMetadata>;
 
@@ -23,7 +29,7 @@ async function fetchOpenLibraryWorkMetadata(
   workKey: string,
 ): Promise<Pick<PartialMetadata, "subjects" | "openLibraryWorkKey">> {
   try {
-    const res = await fetch(`https://openlibrary.org${workKey}.json`, {
+    const res = await fetch(`${OPEN_LIBRARY_BASE}${workKey}.json`, {
       next: { revalidate: 3600 },
       headers: OPEN_LIBRARY_HEADERS,
     });
@@ -42,10 +48,6 @@ async function fetchOpenLibraryWorkMetadata(
     return { openLibraryWorkKey: workKey };
   }
 }
-
-const OPEN_LIBRARY_HEADERS = {
-  "User-Agent": "BookShelf/1.0 (personal library app; contact: local)",
-};
 
 export async function fetchBookByIsbn(
   rawIsbn: string,
@@ -79,7 +81,7 @@ async function fetchOpenLibraryBibkeys(
 ): Promise<PartialMetadata> {
   try {
     const res = await fetch(
-      `https://openlibrary.org/api/books?bibkeys=ISBN:${isbn13}&format=json&jscmd=data`,
+      `${OPEN_LIBRARY_BASE}/api/books?bibkeys=ISBN:${isbn13}&format=json&jscmd=data`,
       { next: { revalidate: 3600 }, headers: OPEN_LIBRARY_HEADERS },
     );
 
@@ -126,7 +128,7 @@ async function fetchOpenLibraryEdition(
   isbn13: string,
 ): Promise<PartialMetadata> {
   try {
-    const res = await fetch(`https://openlibrary.org/isbn/${isbn13}.json`, {
+    const res = await fetch(`${OPEN_LIBRARY_BASE}/isbn/${isbn13}.json`, {
       next: { revalidate: 3600 },
       headers: OPEN_LIBRARY_HEADERS,
     });
@@ -153,7 +155,7 @@ async function fetchOpenLibraryEdition(
 
     let coverUrl: string | undefined;
     if (data.covers?.[0]) {
-      coverUrl = `https://covers.openlibrary.org/b/id/${data.covers[0]}-L.jpg`;
+      coverUrl = openLibraryCoverUrl(data.covers[0]);
     }
 
     let authors: string[] = [];
@@ -163,7 +165,7 @@ async function fetchOpenLibraryEdition(
           if (!a.key) return null;
           try {
             const authorRes = await fetch(
-              `https://openlibrary.org${a.key}.json`,
+              `${OPEN_LIBRARY_BASE}${a.key}.json`,
               { next: { revalidate: 3600 }, headers: OPEN_LIBRARY_HEADERS },
             );
             if (!authorRes.ok) return null;
@@ -208,7 +210,7 @@ async function fetchOpenLibrarySearch(
 ): Promise<PartialMetadata> {
   try {
     const res = await fetch(
-      `https://openlibrary.org/search.json?isbn=${isbn13}&limit=1`,
+      `${OPEN_LIBRARY_BASE}/search.json?isbn=${isbn13}&limit=1`,
       { next: { revalidate: 3600 }, headers: OPEN_LIBRARY_HEADERS },
     );
 
@@ -233,7 +235,7 @@ async function fetchOpenLibrarySearch(
     if (!doc) return {};
 
     const coverUrl = doc.cover_i
-      ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`
+      ? openLibraryCoverUrl(doc.cover_i)
       : undefined;
 
     const subjects = mergeStringArrays([doc.subject]);
