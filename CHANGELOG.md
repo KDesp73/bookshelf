@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.8.0] - 2026-08-18
+
+### Added
+
+- Editable ISBN field in book edit form
+- Collapsible achievements section on profile (shows 4 by default, expandable)
+- OpenLibrary URL constants extracted into shared module
+
+### Changed
+
+- Books moved from wishlist to library now get a fresh date added
+- Profile achievements redesigned with better visual hierarchy, hover effects, and relative dates
+- Book cover images are now compressed before embedding in share SVGs
+- Search results no longer use OpenLibrary work key as ISBN fallback
+
+### Fixed
+
+- ISBN field was read-only in the book edit form
+
+
 ## [1.7.0] - 2026-07-07 
 
 ### Added
@@ -150,4 +170,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 [1.5.0]: https://github.com/KDesp73/bookshelf//releases/tag/v1.5.0
 [1.6.0]: https://github.com/KDesp73/bookshelf//releases/tag/v1.6.0
 [1.7.0]: https://github.com/KDesp73/bookshelf//releases/tag/v1.7.0
+[1.8.0]: https://github.com/KDesp73/bookshelf//releases/tag/v1.8.0
 
