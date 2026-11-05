@@ -58,7 +58,7 @@ export function BookDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+      <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto p-0 sm:max-w-4xl">
         <BookDetailsContent
           key={book._id}
           book={book}
@@ -171,33 +171,23 @@ function BookDetailsContent({
   const canShowNotes = showNotes || book.isPublicNote;
 
   return (
-    <>
-      <DialogHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-        <DialogTitle className="font-serif pr-2 text-xl leading-snug">
-          {book.title}
-        </DialogTitle>
-        {isOwner && (
-          <Link
-            href={`/books/${book._id}/edit`}
-            onClick={() => onOpenChange(false)}
-          >
-            <Button variant="outline" size="sm" className="shrink-0">
-              Edit
-            </Button>
-          </Link>
-        )}
-      </DialogHeader>
-
-      <div className="space-y-5">
-        <div className="flex flex-col gap-5 sm:flex-row">
+    <div>
+      <div className="grid sm:grid-cols-[minmax(0,300px)_minmax(0,1fr)]">
+        <div className="relative flex items-center justify-center border-b border-stone-200/80 bg-gradient-to-br from-stone-100 via-white to-amber-50 p-6 sm:border-b-0 sm:border-r sm:p-8 dark:border-stone-800 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
           <BookCover
             title={book.title}
             coverUrl={book.coverUrl}
-            className="mx-auto w-40 sm:mx-0 sm:w-36"
+            className="w-48 shadow-xl sm:w-full sm:max-w-[230px]"
           />
-          <div className="min-w-0 flex-1 space-y-3">
+        </div>
+
+        <div className="min-w-0 space-y-5 p-6 pr-12 sm:p-7 sm:pr-12">
+          <DialogHeader className="space-y-1.5">
+            <DialogTitle className="font-serif text-2xl leading-tight sm:text-[1.75rem]">
+              {book.title}
+            </DialogTitle>
             {book.subtitle && (
-              <p className="text-base text-stone-600 dark:text-stone-400">
+              <p className="text-base leading-snug text-stone-600 dark:text-stone-400">
                 {book.subtitle}
               </p>
             )}
@@ -205,89 +195,106 @@ function BookDetailsContent({
               {book.authors.join(", ")}
             </p>
             {book.rating != null && !isWishlist ? (
-              <StarRating value={book.rating} readOnly />
-            ) : null}
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge
-                className={cn(
-                  "border-0",
-                  statusColors[isWishlist ? "Wishlist" : book.status],
-                )}
-              >
-                {isWishlist ? "Wishlist" : book.status}
-              </Badge>
-              {book.tags.map((tag) => (
-                <Badge key={tag} variant="secondary">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-            <dl className="grid gap-1 text-sm text-stone-600 dark:text-stone-400">
-              {book.publisher && (
-                <div>
-                  <dt className="inline font-medium text-stone-700 dark:text-stone-300">
-                    Publisher:{" "}
-                  </dt>
-                  <dd className="inline">{book.publisher}</dd>
-                </div>
-              )}
-              {book.publishedDate && (
-                <div>
-                  <dt className="inline font-medium text-stone-700 dark:text-stone-300">
-                    Published:{" "}
-                  </dt>
-                  <dd className="inline">{book.publishedDate}</dd>
-                </div>
-              )}
-              {book.pageCount != null && (
-                <div>
-                  <dt className="inline font-medium text-stone-700 dark:text-stone-300">
-                    Pages:{" "}
-                  </dt>
-                  <dd className="inline">{book.pageCount}</dd>
-                </div>
-              )}
-              <div>
-                <dt className="inline font-medium text-stone-700 dark:text-stone-300">
-                  ISBN:{" "}
-                </dt>
-                <dd className="inline font-mono text-xs">{book.isbn13}</dd>
+              <div className="pt-0.5">
+                <StarRating value={book.rating} readOnly />
               </div>
-            </dl>
-          </div>
-        </div>
+            ) : null}
+          </DialogHeader>
 
-        {book.description && (
-          <div className="rounded-lg border border-stone-200/80 bg-white/60 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/40">
-            <p className="text-sm leading-relaxed text-stone-700 dark:text-stone-300">
-              {book.description}
-            </p>
-          </div>
-        )}
-
-        {canShowNotes && book.notes && (
-          <div className="rounded-lg border border-amber-200/60 bg-amber-50/50 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-950/20">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-medium uppercase tracking-wide text-amber-900/70 dark:text-amber-200/70">
-                Notes
-              </p>
-              {book.isPublicNote && (
-                <span className="text-[10px] text-amber-600/60 dark:text-amber-400/60">
-                  Public
-                </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              className={cn(
+                "border-0",
+                statusColors[isWishlist ? "Wishlist" : book.status],
               )}
-            </div>
-            <p className="mt-1 text-sm text-stone-700 dark:text-stone-300">
-              {book.notes}
-            </p>
+            >
+              {isWishlist ? "Wishlist" : book.status}
+            </Badge>
+            {book.tags.map((tag) => (
+              <Badge key={tag} variant="secondary">
+                {tag}
+              </Badge>
+            ))}
           </div>
-        )}
 
+          <dl className="grid grid-cols-2 gap-x-5 gap-y-3 rounded-lg border border-stone-200/80 bg-stone-50/70 px-4 py-3.5 dark:border-stone-800 dark:bg-stone-900/50">
+            {book.publisher && (
+              <div className="min-w-0">
+                <dt className="text-[11px] font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400">
+                  Publisher
+                </dt>
+                <dd className="mt-0.5 truncate text-sm text-stone-800 dark:text-stone-200">
+                  {book.publisher}
+                </dd>
+              </div>
+            )}
+            {book.publishedDate && (
+              <div className="min-w-0">
+                <dt className="text-[11px] font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400">
+                  Published
+                </dt>
+                <dd className="mt-0.5 text-sm text-stone-800 dark:text-stone-200">
+                  {book.publishedDate}
+                </dd>
+              </div>
+            )}
+            {book.pageCount != null && (
+              <div className="min-w-0">
+                <dt className="text-[11px] font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400">
+                  Pages
+                </dt>
+                <dd className="mt-0.5 text-sm text-stone-800 dark:text-stone-200">
+                  {book.pageCount}
+                </dd>
+              </div>
+            )}
+            <div className="min-w-0">
+              <dt className="text-[11px] font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400">
+                ISBN
+              </dt>
+              <dd className="mt-0.5 truncate font-mono text-xs text-stone-800 dark:text-stone-200">
+                {book.isbn13}
+              </dd>
+            </div>
+          </dl>
+
+          {book.description && (
+            <section className="space-y-1.5">
+              <h3 className="text-[11px] font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400">
+                About this book
+              </h3>
+              <p className="text-sm leading-relaxed text-stone-700 dark:text-stone-300">
+                {book.description}
+              </p>
+            </section>
+          )}
+
+          {canShowNotes && book.notes && (
+            <div className="rounded-lg border border-amber-200/60 bg-amber-50/50 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-950/20">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-amber-900/70 dark:text-amber-200/70">
+                  Notes
+                </p>
+                {book.isPublicNote && (
+                  <span className="text-[10px] text-amber-600/60 dark:text-amber-400/60">
+                    Public
+                  </span>
+                )}
+              </div>
+              <p className="mt-1.5 text-sm text-stone-700 dark:text-stone-300">
+                {book.notes}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="sticky bottom-0 z-10 border-t border-stone-200/80 bg-stone-50/95 px-6 py-4 backdrop-blur dark:border-stone-800 dark:bg-stone-950/95">
         {error && (
-          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          <p className="mb-3 text-sm text-red-600 dark:text-red-400">{error}</p>
         )}
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {canAddToWishlist ? (
             addedToWishlist ? (
               <Button variant="secondary" disabled>
@@ -315,6 +322,7 @@ function BookDetailsContent({
           {isOwner && !isWishlist ? (
             <Button
               variant="outline"
+              size="sm"
               onClick={handleMoveToWishlist}
               disabled={pending}
             >
@@ -326,8 +334,18 @@ function BookDetailsContent({
             title={book.title}
             authors={book.authors}
           />
+          {isOwner && (
+            <Button asChild variant="outline" size="sm" className="sm:ml-auto">
+              <Link
+                href={`/books/${book._id}/edit`}
+                onClick={() => onOpenChange(false)}
+              >
+                Edit
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
