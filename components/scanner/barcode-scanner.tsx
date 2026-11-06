@@ -57,8 +57,10 @@ export function BarcodeScanner({
   const startScanner = useCallback(async () => {
     if (disabled || scannedRef.current) return;
 
-    setError(null);
+    // Yield before touching state so the effect only starts the external scanner.
+    await Promise.resolve();
     await stopScanner();
+    setError(null);
 
     const scanner = new Html5Qrcode(containerId, {
       formatsToSupport: [
@@ -103,8 +105,19 @@ export function BarcodeScanner({
   }, [containerId, disabled, onScan, stopScanner]);
 
   useEffect(() => {
-    void startScanner();
+    let cancelled = false;
+
+    async function connect() {
+      await Promise.resolve();
+      if (!cancelled) {
+        await startScanner();
+      }
+    }
+
+    void connect();
+
     return () => {
+      cancelled = true;
       void stopScanner();
     };
   }, [startScanner, stopScanner]);

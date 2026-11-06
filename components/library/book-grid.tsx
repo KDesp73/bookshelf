@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import type { BookDocument, PublicBookDocument } from "@/types/book";
 import { BookCover } from "@/components/books/book-cover";
@@ -38,13 +38,17 @@ export function BookGrid({
   canManageFavorites = false,
 }: BookGridProps) {
   const pathname = usePathname();
-  const [selected, setSelected] = useState<BookDocument | PublicBookDocument | null>(
-    null,
-  );
+  const [selection, setSelection] = useState<{
+    pathname: string;
+    book: BookDocument | PublicBookDocument;
+  } | null>(null);
 
-  useEffect(() => {
-    setSelected(null);
-  }, [pathname]);
+  // Discard a stale dialog selection when the route changes.
+  const selected = selection?.pathname === pathname ? selection.book : null;
+
+  function selectBook(book: BookDocument | PublicBookDocument | null) {
+    setSelection(book ? { pathname, book } : null);
+  }
 
   if (books.length === 0) {
     return (
@@ -71,11 +75,11 @@ export function BookGrid({
             role="button"
             tabIndex={0}
             aria-label={`View ${book.title}`}
-            onClick={() => setSelected(book)}
+            onClick={() => selectBook(book)}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
-                setSelected(book);
+                selectBook(book);
               }
             }}
             className="group shelf-card relative cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600/50 rounded-md"
@@ -123,13 +127,13 @@ export function BookGrid({
       <BookDetailsDialog
         book={selected}
         open={!!selected}
-        onOpenChange={(open) => !open && setSelected(null)}
+        onOpenChange={(open) => !open && selectBook(null)}
         isOwner={isOwner}
         showNotes={showNotes}
         canAddToWishlist={canAddToWishlist}
         favoriteBookIds={favoriteBookIds}
         canManageFavorites={canManageFavorites}
-        onUpdated={(updated) => setSelected(updated)}
+        onUpdated={(updated) => selectBook(updated)}
       />
     </>
   );

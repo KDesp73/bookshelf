@@ -27,7 +27,9 @@ export const metadata: Metadata = {
   description: "Catalog your books, rate your reads, and discover other readers' collections.",
   icons: {
     icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
   },
+  manifest: '/site.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

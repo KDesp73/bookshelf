@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
+import { useMounted } from "@/lib/hooks/use-mounted";
 import { cn } from "@/lib/utils";
 
 type ThemeOption = "light" | "dark" | "system";
@@ -16,9 +16,7 @@ const OPTIONS: { value: ThemeOption; label: string; icon: typeof Sun }[] = [
 
 export function ThemeSettings() {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   const activeTheme = (theme ?? "system") as ThemeOption;
 

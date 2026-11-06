@@ -61,6 +61,11 @@ function applyListFilter(
   }
 }
 
+/** Escape user input so it is treated as a literal search term, not a regex. */
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function buildBookQuery(
   userId: string,
   filters: LibraryFilters,
@@ -78,7 +83,7 @@ function buildBookQuery(
   }
 
   if (filters.search?.trim()) {
-    const term = filters.search.trim();
+    const term = escapeRegExp(filters.search.trim());
     query.$or = [
       { title: { $regex: term, $options: "i" } },
       { subtitle: { $regex: term, $options: "i" } },

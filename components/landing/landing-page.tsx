@@ -224,12 +224,12 @@ export function LandingPage() {
                     <dt className="font-medium text-stone-800 dark:text-stone-200">
                       Name
                     </dt>
-                    <a
+                    <Link
                       href="/u/kdesp73"
                       className="inline-flex items-center gap-1.5 text-amber-800 underline-offset-2 hover:underline dark:text-amber-300"
                     >
                       <dd className="mt-0.5">Konstantinos Despoinidis</dd>
-                    </a>
+                    </Link>
                   </div>
                   <div>
                     <dt className="font-medium text-stone-800 dark:text-stone-200">
