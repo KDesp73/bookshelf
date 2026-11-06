@@ -28,19 +28,19 @@ export function CoverPicker({
   className,
 }: CoverPickerProps) {
   const inputId = useId();
-  const [options, setOptions] = useState<CoverOption[]>([]);
+  const [fetchedOptions, setFetchedOptions] = useState<CoverOption[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [customMode, setCustomMode] = useState(false);
   const userEditedCustom = useRef(false);
 
   const canSearch = Boolean(title.trim() && authors.length > 0);
+  const options = canSearch ? fetchedOptions : [];
 
   const authorsKey = useMemo(() => JSON.stringify(authors), [authors]);
 
   useEffect(() => {
     if (!canSearch) {
-      setOptions([]);
       return;
     }
 
@@ -55,11 +55,11 @@ export function CoverPicker({
 
       if (!result.success) {
         setLoadError(result.error);
-        setOptions([]);
+        setFetchedOptions([]);
         return;
       }
 
-      setOptions(result.data);
+      setFetchedOptions(result.data);
 
       if (
         !userEditedCustom.current &&

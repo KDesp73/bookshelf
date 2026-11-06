@@ -6,14 +6,11 @@ import { User } from "@/models/User";
 
 const STATIC_ROUTES: { path: string; priority?: number; changeFrequency?: "daily" | "weekly" | "monthly" }[] = [
   { path: "", priority: 1.0, changeFrequency: "daily" },
-  { path: "/add", priority: 0.6, changeFrequency: "monthly" },
   { path: "/community", priority: 0.7, changeFrequency: "weekly" },
   { path: "/discover", priority: 0.8, changeFrequency: "daily" },
   { path: "/news", priority: 0.7, changeFrequency: "weekly" },
   { path: "/rankings", priority: 0.6, changeFrequency: "weekly" },
-  { path: "/scan", priority: 0.5, changeFrequency: "monthly" },
   { path: "/search", priority: 0.6, changeFrequency: "weekly" },
-  { path: "/wishlist", priority: 0.5, changeFrequency: "weekly" },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
