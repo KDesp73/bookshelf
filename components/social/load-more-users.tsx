@@ -4,6 +4,7 @@ import { useCallback, useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import { listUsersAction } from "@/actions/social";
 import { UserCard } from "@/components/social/user-card";
+import { Button } from "@/components/ui/button";
 import type { UserListItem } from "@/types/user";
 
 interface LoadMoreUsersProps {
@@ -50,14 +51,9 @@ export function LoadMoreUsers({
 
       {hasMore ? (
         <div className="flex justify-center pt-4">
-          <button
-            type="button"
-            onClick={handleLoadMore}
-            disabled={pending}
-            className="inline-flex items-center gap-2 rounded-lg border border-stone-300 bg-white/80 px-6 py-2.5 text-sm font-medium text-stone-700 shadow-sm transition hover:bg-white hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-stone-600 dark:bg-stone-800/80 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
-          >
+          <Button variant="outline" onClick={handleLoadMore} disabled={pending}>
             {pending ? "Loading…" : "Load more"}
-          </button>
+          </Button>
         </div>
       ) : null}
     </>
