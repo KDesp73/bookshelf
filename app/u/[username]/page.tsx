@@ -20,6 +20,7 @@ import { ShelfThemeWrapper } from "@/components/shelf/shelf-theme-wrapper";
 import { CollectionIOMenu } from "@/components/library/collection-io-menu";
 import { LibraryFilters } from "@/components/library/library-filters";
 import { BookGrid } from "@/components/library/book-grid";
+import { ReadingChallengeSection } from "@/components/challenge/reading-challenge-section";
 import { getUserAchievements } from "@/lib/achievements";
 
 interface ProfilePageProps {
@@ -130,6 +131,8 @@ export default async function ProfilePage({
         viewerLoggedIn={!!viewer?.id}
         wishlistPublic={user.wishlistPublic}
       />
+
+      <ReadingChallengeSection userId={user._id} editable={isOwner} />
 
       <ProfileAchievements achievements={achievements.map((a) => ({ ...a, _id: a._id.toString() }))} />
 

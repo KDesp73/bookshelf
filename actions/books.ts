@@ -228,6 +228,8 @@ export async function saveBookAction(
       isPublicNote: input.isPublicNote === true,
       rating: input.isWishlist ? undefined : (input.rating ?? undefined),
       isWishlist: input.isWishlist === true,
+      finishedAt:
+        !input.isWishlist && input.status === "Read" ? new Date() : undefined,
     });
 
     revalidateBookPaths(auth.user.username!);
@@ -264,7 +266,12 @@ export async function moveToLibraryAction(
 
     const book = await Book.findOneAndUpdate(
       { _id: id, userId: auth.user.id, isWishlist: true },
-      { isWishlist: false, status: "Unread", dateAdded: new Date() },
+      {
+        isWishlist: false,
+        status: "Unread",
+        dateAdded: new Date(),
+        $unset: { finishedAt: 1 },
+      },
       { new: true },
     );
 
@@ -293,7 +300,10 @@ export async function moveToWishlistAction(
 
     const book = await Book.findOneAndUpdate(
       { _id: id, userId: auth.user.id, isWishlist: { $ne: true } },
-      { isWishlist: true, rating: undefined },
+      {
+        isWishlist: true,
+        $unset: { rating: 1, finishedAt: 1 },
+      },
       { new: true },
     );
 
@@ -357,7 +367,14 @@ export async function updateBookAction(
     if (updates.description !== undefined) book.description = updates.description?.trim();
     if (updates.pageCount !== undefined) book.pageCount = updates.pageCount;
     if (updates.coverUrl !== undefined) book.coverUrl = updates.coverUrl?.trim();
-    if (updates.status !== undefined) book.status = updates.status;
+    if (updates.status !== undefined) {
+      if (updates.status === "Read" && book.status !== "Read") {
+        book.finishedAt = new Date();
+      } else if (updates.status !== "Read") {
+        book.finishedAt = undefined;
+      }
+      book.status = updates.status;
+    }
     if (updates.tags !== undefined) book.tags = updates.tags.map((t) => t.trim()).filter(Boolean);
     if (updates.notes !== undefined) book.notes = updates.notes?.trim();
     if (updates.isPublicNote !== undefined) book.isPublicNote = updates.isPublicNote;
