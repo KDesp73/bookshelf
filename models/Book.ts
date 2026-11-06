@@ -45,6 +45,7 @@ const bookSchema = new Schema(
     },
     isWishlist: { type: Boolean, default: false, index: true },
     dateAdded: { type: Date, default: Date.now },
+    finishedAt: { type: Date },
   },
   {
     timestamps: false,
@@ -59,6 +60,7 @@ bookSchema.index(
 );
 bookSchema.index({ userId: 1, genres: 1 });
 bookSchema.index({ userId: 1, status: 1 });
+bookSchema.index({ userId: 1, status: 1, finishedAt: 1 });
 bookSchema.index({ metadataEnrichedAt: 1 });
 
 export type IBook = InferSchemaType<typeof bookSchema>;
